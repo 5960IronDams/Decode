@@ -4,8 +4,6 @@ import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
@@ -73,6 +71,12 @@ public class GyroTele extends LinearOpMode {
 
             realTheta = (360 - zeroedYaw) + theta;
 
+            if (gamepad1.left_trigger != 0) {
+                realTheta = Math.atan2(y, x) * 180 / Math.PI;
+            } else if ((gamepad1.right_trigger != 0)) {
+                theta = Math.atan2(y, x) * 180 / Math.PI;
+                realTheta = (360 - zeroedYaw + theta) % 360;
+            }
             double power = Math.hypot(x, y);
 
             double sin = Math.sin((realTheta * (Math.PI / 180)) - (Math.PI / 4));
