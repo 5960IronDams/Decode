@@ -10,12 +10,12 @@ public class PlayerOpMode extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
 
-        WooshMachine _drive = new WooshMachine(this);
+        WooshMachine _drive = new WooshMachine(this, false);
         waitForStart();
 
             Actions.runBlocking(
                 new ParallelAction(
-                        _drive.runDrive()
+                    _drive.runDrive()
                 )
             );
         }
