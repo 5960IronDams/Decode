@@ -17,7 +17,7 @@ public class Pinpoint implements IGyro {
     }
 
     private void init(Pose2D pose) {
-        _pinpoint.setOffsets(-84.0, -168.0, DistanceUnit.MM);
+        _pinpoint.setOffsets(-84.0, -168.0, DistanceUnit.MM); //TODO: What is this doing?
         _pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
         _pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.FORWARD);
         _pinpoint.resetPosAndIMU();

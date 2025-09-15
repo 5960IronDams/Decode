@@ -6,7 +6,9 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
 public class Imu implements IGyro {
     private final BNO055IMU _imu;
@@ -39,5 +41,10 @@ public class Imu implements IGyro {
 
     public void reset() {
         _initYaw = _imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;
+    }
+
+    @Override
+    public Pose2D getPose() {
+        return new Pose2D(DistanceUnit.INCH, _angles.thirdAngle, _angles.secondAngle, AngleUnit.DEGREES, _angles.firstAngle);
     }
 }
