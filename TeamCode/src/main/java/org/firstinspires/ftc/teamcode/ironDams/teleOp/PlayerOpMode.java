@@ -5,18 +5,17 @@ import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-@TeleOp(name = "GyroTele", group = "_IronDams")
+@TeleOp(name = "PlayerOpMode", group = "_IronDams")
 public class PlayerOpMode extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
-
-        WooshMachine _drive = new WooshMachine(this, false);
+        WooshMachine _drive = new WooshMachine(this, true);
         waitForStart();
 
-            Actions.runBlocking(
-                new ParallelAction(
-                    _drive.runDrive()
-                )
-            );
-        }
+        Actions.runBlocking(
+            new ParallelAction(
+                _drive.runDrive()
+            )
+        );
     }
+}
