@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
@@ -80,14 +81,11 @@ public class AprilTagReader {
                     AprilTagDetection detection = detections.get(0);
                     sequenceCode = detection.id;
 
-                    _telemetry.addData("Sequence Code", sequenceCode);
-                    _telemetry.addData("ftcPose.x", detection.ftcPose.x); // side offset, positive:= tag is to the right
-                    _telemetry.addData("ftcPose.y", detection.ftcPose.y); // forward offset
-                    _telemetry.addData("ftcPose.yaw", detection.ftcPose.yaw); // the rotation offset, positive:= counter clockwise rotation
-                    _telemetry.update();
+                    packet.put("Sequence Code", sequenceCode);
+                    packet.put("ftcPose.x", detection.ftcPose.x);
+                    packet.put("ftcPose.y", detection.ftcPose.y);
+                    packet.put("ftcPose.yaw", detection.ftcPose.yaw);
                 }
-
-                packet.put("detections", detections);
 
                 return !detected || _continuous;
             }

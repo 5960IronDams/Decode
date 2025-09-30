@@ -12,6 +12,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 
 import java.util.List;
+import java.util.StringJoiner;
 
 public class BallVisionReader {
     private final HardwareMap _hardwareMap;
@@ -51,9 +52,10 @@ public class BallVisionReader {
 
                 boolean detected = blocks != null && blocks.length > 0;
 
+                String blockDetection = "";
                 if (detected) {
                     for (int i = 0; i < blocks.length; i++) {
-                        _telemetry.addData("Block_" + i, blocks[i].id);
+                        blockDetection += blocks[i].id + ", ";
                         /*
                          * Here inside the FOR loop, you could save or evaluate specific info for the currently recognized Bounding Box:
                          * - blocks[i].width and blocks[i].height   (size of box, in pixels)
@@ -66,7 +68,7 @@ public class BallVisionReader {
                     }
                 }
 
-                packet.put("blocks", blocks);
+                packet.put("blocks", blockDetection);
 
                 return !detected || _continuous;
             }

@@ -1,5 +1,9 @@
 package org.firstinspires.ftc.teamcode.ironDams.core.odometry;
 
+import androidx.annotation.NonNull;
+
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -17,15 +21,15 @@ public class Pinpoint implements IGyro {
     }
 
     private void init(Pose2D pose) {
-        _pinpoint.setOffsets(-84.0, -168.0, DistanceUnit.MM); //TODO: What is this doing?
+        _pinpoint.setOffsets(0.0, 0.0, DistanceUnit.INCH);
         _pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
         _pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.FORWARD);
         _pinpoint.resetPosAndIMU();
         _pinpoint.setPosition(pose);
 
         _initYaw = getPose().getHeading(AngleUnit.DEGREES);
-    }
 
+    }
     public double update() {
         return -_initYaw + getPose().getHeading(AngleUnit.DEGREES);
     }
@@ -38,5 +42,22 @@ public class Pinpoint implements IGyro {
         _pinpoint.update();
         return _pinpoint.getPosition();
 
+    }
+    public Action pinpointTelemetry() {
+        return new Action() {
+            private boolean initialized = false;
+
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                if (!initialized) {
+                    initialized = true;
+                }
+                _pinpoint.update();
+                packet.put("x", _pinpoint.getEncoderX());
+                packet.put("y", _pinpoint.getEncoderY());
+                packet.put("Z", _pinpoint.getHeading(AngleUnit.DEGREES));
+                return true;
+            }
+        };
     }
 }

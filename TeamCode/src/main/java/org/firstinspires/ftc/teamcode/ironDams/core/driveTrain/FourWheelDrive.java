@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.ironDams.core.driveTrain;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class FourWheelDrive {
@@ -21,6 +22,9 @@ public class FourWheelDrive {
         _rightBackDrive.setDirection(DcMotor.Direction.REVERSE);
 
         _leftFrontDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        _leftBackDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        _rightFrontDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        _rightBackDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         //TODO: Can we try to make all the motors brake?
     }
 }
