@@ -1,20 +1,15 @@
-package org.firstinspires.ftc.teamcode.ironDams.autonomus;
+package org.firstinspires.ftc.teamcode.decode.autonomous;
 
 // RR-specific imports
 
 import com.acmerobotics.dashboard.config.Config;
-import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.ParallelAction;
-import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
-import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
 import com.acmerobotics.roadrunner.ftc.Actions;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.teamcode.MecanumDrive;
-import org.firstinspires.ftc.teamcode.ironDams.autonomus.subsystems.AprilTagReader;
+import org.firstinspires.ftc.teamcode.decode.core.Decoder;
 
 @Config
 //@Autonomous(name = "AUTONOMOUS_CAMERA", group = "Autonomous")
@@ -27,7 +22,7 @@ public class AutonomousCamera extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        AprilTagReader aprilTagReader = new AprilTagReader(this, true);
+        Decoder decoder = new Decoder(hardwareMap, true);
 
         waitForStart();
 
@@ -35,7 +30,7 @@ public class AutonomousCamera extends LinearOpMode {
 
         Actions.runBlocking(
             new SequentialAction(
-                aprilTagReader.readTagAction(),
+                decoder.readTagAction(),
                 // sort balls in intake. pass seq. # in as argument, aprilTagReader.getSequenceCode();
                 // shoot balls into hoper.
                 // drive to first pickup location.
