@@ -5,11 +5,16 @@ import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.teamcode.decode.core.Intake;
+import org.firstinspires.ftc.teamcode.decode.core.Spindexer;
+
 @TeleOp(name = "PlayerOpMode", group = "_IronDams")
 public class PlayerOpMode extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         WooshMachine _drive = new WooshMachine(this, true);
+        Intake _intake = new Intake(hardwareMap);
+        Spindexer _spindexer = new Spindexer(hardwareMap);
 
         /* The Drive Train will run based on controller motion
          * The intake and spindexer will run when there isn't 3 balls detected.
@@ -21,13 +26,20 @@ public class PlayerOpMode extends LinearOpMode {
          */
 
         waitForStart();
-//        while (opModeIsActive()){
-//            _drive.go();
-//        }
-        Actions.runBlocking(
-            new ParallelAction(
-                _drive.runDrive()
-            )
-        );
+        while (opModeIsActive()){
+            _drive.go();
+            if (gamepad1.a)
+                _intake.run(0.5);
+            else _intake.stop();
+
+            if (gamepad1.b)
+                _spindexer.run(0.5);
+            else _spindexer.stop();
+        }
+//        Actions.runBlocking(
+//            new ParallelAction(
+//                _drive.runDrive()
+//            )
+//        );
     }
 }
