@@ -15,7 +15,7 @@ public class Launcher {
         _left = hardwareMap.get(DcMotorEx.class, "leftOut");
         _right = hardwareMap.get(DcMotorEx.class, "rightOut");
 
-        _left.setDirection(DcMotorEx.Direction.REVERSE);
+        _right.setDirection(DcMotorEx.Direction.REVERSE);
 
         _left.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
         _right.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
@@ -26,23 +26,27 @@ public class Launcher {
         close();
     }
 
-    public void open() {
-        double openPos = 1.0;
+    public Launcher open() {
+        double openPos = 0.5;
         _servo.setPosition(openPos);
+        return this;
     }
 
-    public void close() {
-        double closedPos = 0.0;
+    public Launcher close() {
+        double closedPos = 1.0;
         _servo.setPosition(closedPos);
+        return this;
     }
 
-    public void run(double power) {
+    public Launcher run(double power) {
         _left.setPower(power);
         _right.setPower(power);
+        return this;
     }
 
-    public void stop() {
+    public Launcher stop() {
         _left.setPower(0);
         _right.setPower(0);
+        return this;
     }
 }
