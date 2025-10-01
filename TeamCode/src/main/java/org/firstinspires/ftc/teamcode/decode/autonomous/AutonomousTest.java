@@ -1,29 +1,17 @@
-package org.firstinspires.ftc.teamcode.ironDams.autonomus;
+package org.firstinspires.ftc.teamcode.decode.autonomous;
 
 // RR-specific imports
 import com.acmerobotics.dashboard.config.Config;
 
 // Non-RR imports
 import com.acmerobotics.roadrunner.Action;
-import com.acmerobotics.roadrunner.NullAction;
-import com.acmerobotics.roadrunner.ParallelAction;
-import com.acmerobotics.roadrunner.RaceAction;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.acmerobotics.roadrunner.Pose2d;
-import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
-import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
-import org.firstinspires.ftc.teamcode.ironDams.core.odometry.IGyro;
-import org.firstinspires.ftc.teamcode.ironDams.core.odometry.Pinpoint;
-import org.opencv.core.Mat;
 
 @Config
 @Autonomous(name = "AUTONOMOUS_TEST", group = "Autonomous")
