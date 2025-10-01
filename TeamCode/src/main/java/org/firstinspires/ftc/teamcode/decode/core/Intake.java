@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.decode.core;
 
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class Intake {
@@ -10,7 +11,7 @@ public class Intake {
     public Intake(HardwareMap hardwareMap) {
         _motor = hardwareMap.get(DcMotorEx.class, "intake");
 
-        _motor.setDirection(DcMotorEx.Direction.FORWARD);
+        _motor.setDirection(DcMotorEx.Direction.REVERSE);
         _motor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
         _motor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
     }
