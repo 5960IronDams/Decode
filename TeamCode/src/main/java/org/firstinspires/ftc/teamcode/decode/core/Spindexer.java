@@ -27,4 +27,8 @@ public class Spindexer {
     public void run(double power) {
         _spindexer.setPower(power);
     }
+
+    public void stop() {
+        _spindexer.setPower(0);
+    }
 }
