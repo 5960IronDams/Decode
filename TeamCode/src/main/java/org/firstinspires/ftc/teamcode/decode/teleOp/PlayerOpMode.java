@@ -12,6 +12,8 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.decode.core.BallVision;
+import org.firstinspires.ftc.teamcode.decode.core.ColorVision;
 import org.firstinspires.ftc.teamcode.decode.core.Decoder;
 import org.firstinspires.ftc.teamcode.decode.core.Intake;
 import org.firstinspires.ftc.teamcode.decode.core.Launcher;
@@ -24,10 +26,12 @@ public class PlayerOpMode extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         Decoder _decoder = new Decoder(this);
+        BallVision _ballVision=new BallVision(hardwareMap,true);
         WooshMachine _drive = new WooshMachine(this, true);
         Intake _intake = new Intake(hardwareMap);
         Spindexer _spindexer = new Spindexer(hardwareMap);
         Launcher _launcher =new Launcher(hardwareMap);
+        ColorVision _colorVIsion = new ColorVision(this);
 
         /* The Drive Train will run based on controller motion
          * The intake and spindexer will run when there isn't 3 balls detected.
@@ -39,7 +43,12 @@ public class PlayerOpMode extends LinearOpMode {
          */
 
         waitForStart();
-//        while (opModeIsActive()){
+        while (opModeIsActive()){
+            telemetry.addData("r", _colorVIsion.getRed());
+            telemetry.addData("g", _colorVIsion.getGreen());
+            telemetry.addData("b", _colorVIsion.getBlue());
+            telemetry.addData("a", _colorVIsion.getArgb());
+            telemetry.update();
 //            _drive.go();
 //            if (gamepad1.a)
 //                _intake.run(0.5);
@@ -55,11 +64,12 @@ public class PlayerOpMode extends LinearOpMode {
 //            else {
 //                _launcher.close().stop();
 //            }
-//        }
+        }
         Actions.runBlocking(
             new ParallelAction(
                 _drive.runDrive(),
                 _decoder.setSequence(),
+                _ballVision.readTagAction(),
                 updateTelemetry()
             )
         );
