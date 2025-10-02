@@ -22,7 +22,7 @@ public class AutonomousCamera extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        Decoder decoder = new Decoder(hardwareMap, true);
+        Decoder decoder = new Decoder(this);
 
         waitForStart();
 
@@ -30,7 +30,7 @@ public class AutonomousCamera extends LinearOpMode {
 
         Actions.runBlocking(
             new SequentialAction(
-                decoder.readTagAction(),
+                decoder.readTagAction(true),
                 // sort balls in intake. pass seq. # in as argument, aprilTagReader.getSequenceCode();
                 // shoot balls into hoper.
                 // drive to first pickup location.
