@@ -16,16 +16,14 @@ import org.firstinspires.ftc.teamcode.ironDams.core.odometry.Pinpoint;
 public class TelemetyOpMode extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
-        Pinpoint _pinpoin = new Pinpoint(hardwareMap, new Pose2D(DistanceUnit.INCH, 0, 0, AngleUnit.DEGREES, 0));
-        Decoder _atr = new Decoder(hardwareMap, true);
-        BallVision _husky = new BallVision(hardwareMap, true);
+//        Pinpoint _pinpoin = new Pinpoint(hardwareMap, new Pose2D(DistanceUnit.INCH, 0, 0, AngleUnit.DEGREES, 0));
+        Decoder _decoder = new Decoder(this);
+//        BallVision _husky = new BallVision(hardwareMap, true);
         waitForStart();
 
         Actions.runBlocking(
             new ParallelAction(
-                _pinpoin.pinpointTelemetry(),
-                _atr.readTagAction(),
-                _husky.readTagAction()
+                _decoder.setSequence()
             )
         );
     }
