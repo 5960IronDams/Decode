@@ -31,7 +31,7 @@ public class GyroMecanumDrive
         double zeroedYaw = _gyro.update();
 
         double x = -powerX;
-        double y = -powerY;
+        double y = powerY;
         double turn = -powerTurn;
 
         double theta = Math.atan2(y, x) * 180 / Math.PI; // aka angle
