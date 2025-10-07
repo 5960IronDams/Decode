@@ -1,5 +1,9 @@
 package org.firstinspires.ftc.teamcode.decode.core;
 
+import androidx.annotation.NonNull;
+
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
@@ -20,15 +24,32 @@ public class Spindexer {
         double closedPos = 0.0;
     }
 
-    public void run() {
-        run(1.0);
+    public void setPower() {
+        setPower(1.0);
     }
 
-    public void run(double power) {
+    public void setPower(double power) {
         _spindexer.setPower(power);
     }
 
     public void stop() {
         _spindexer.setPower(0);
+    }
+
+    public Action manageSpindexer() {
+        return new Action() {
+            private boolean initialized = false;
+
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                if (!initialized) {
+                    initialized = true;
+                }
+
+                setPower(0.10);
+
+                return true;
+            }
+        };
     }
 }
