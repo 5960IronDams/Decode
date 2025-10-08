@@ -25,9 +25,9 @@ public class MecanumDrive
     @Override
     public void drive(double powerX, double powerY, double powerTurn) {
 
-        double x = -powerX;
+        double x = powerX;
         double y = powerY;
-        double turn = -powerTurn;
+        double turn = powerTurn;
         double power = Math.hypot(x, y);
 
 

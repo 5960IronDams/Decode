@@ -107,9 +107,6 @@ public class Decoder {
                 packet.put("ChangePattern", _gamepad.b);
                 packet.put("PatternId", _sequenceCode);
                 packet.put("Pattern", getSequenceCodeString());
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    packet.put("TIme", LocalDate.now());
-                }
 
                 return true;
             }

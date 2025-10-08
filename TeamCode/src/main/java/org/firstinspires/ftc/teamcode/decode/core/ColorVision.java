@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class ColorVision {
+    private String _pattern = "UUU";
     private final ColorSensor _colorR;
     private final ColorSensor _colorL;
     private final ColorSensor _colorC;
@@ -22,6 +23,10 @@ public class ColorVision {
         _colorC = hardwareMap.get(ColorSensor.class, "colorC");
 
         _colorR.enableLed(true);
+    }
+
+    public String getPattern() {
+        return _pattern;
     }
 
     public ColorReading GetRightReading() {
@@ -51,7 +56,7 @@ public class ColorVision {
         return _readingC;
     }
 
-    public String getPattern(){
+    public String setPattern(){
         ColorReading right = GetRightReading();
         ColorReading left = GetLeftReading();
         ColorReading  center = GetCenterReading();
@@ -60,26 +65,28 @@ public class ColorVision {
 
         if (right.b > 100 && right.b > right.g)
         {
-            pattern = "p";
+            pattern = "P";
         }
         else if (right.g > 100 && right.g > right.b)
         {
-            pattern = "g";
+            pattern = "G";
         } else {
-            pattern="u";
+            pattern="U";
         }
 
 
         if (left.b > 100 && left.b > left.g) {
-            pattern += "p";
+            pattern += "P";
         }
-        else if (left.g > 100 && left.g > left.b) pattern += "g";
-        else pattern+="u";
+        else if (left.g > 100 && left.g > left.b) pattern += "G";
+        else pattern+="U";
 
 
-        if (center.b > 100 && center.b > left.g)pattern += "p";
-        else if (center.g > 100 && center.g > center.b)pattern += "g";
-        else pattern += "u";
+        if (center.b > 100 && center.b > left.g)pattern += "P";
+        else if (center.g > 100 && center.g > center.b)pattern += "G";
+        else pattern += "U";
+
+        _pattern = pattern;
         return pattern;
     }
 
@@ -106,7 +113,7 @@ public class ColorVision {
     }
 
 
-    public Action readPattern() {
+    public Action readSensors() {
         return new Action() {
             private boolean initialized = false;
 
@@ -116,7 +123,7 @@ public class ColorVision {
                     initialized = true;
                 }
 
-                String reading = getPattern();
+                String reading = setPattern();
 
                 packet.put("Pattern", reading);
 
