@@ -57,7 +57,7 @@ public class Spindexer {
     private Spindexer toggleSpindexer(){
 
         if (_intake.isRunning()){
-            setPower(0.25);
+            setPower(0.175);
         }
         else if (_launcher.isRunning()){
             setPower(0.15);

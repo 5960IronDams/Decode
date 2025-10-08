@@ -33,7 +33,7 @@ public class Intake {
 
             if (_runningIntake) setPower(1);
             else stop();
-            _opMode.sleep(100);
+            _opMode.sleep(200);
         }
 
         return this;

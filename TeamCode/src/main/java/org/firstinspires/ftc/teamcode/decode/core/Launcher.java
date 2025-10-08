@@ -53,7 +53,7 @@ public class Launcher {
                 stop();
                 close();
             }
-            _opMode.sleep(100);
+            _opMode.sleep(200);
         }
         return _shoot;
     }
