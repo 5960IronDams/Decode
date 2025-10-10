@@ -1,18 +1,13 @@
-package org.firstinspires.ftc.teamcode.ironDams.autonomus;
+package org.firstinspires.ftc.teamcode.decode.autonomous;
 
 // RR-specific imports
 import com.acmerobotics.dashboard.config.Config;
 
 // Non-RR imports
 import com.acmerobotics.roadrunner.Action;
-import com.acmerobotics.roadrunner.NullAction;
-import com.acmerobotics.roadrunner.ParallelAction;
-import com.acmerobotics.roadrunner.RaceAction;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.acmerobotics.roadrunner.Pose2d;
-import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
-import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
@@ -26,28 +21,32 @@ public class AutonomousTest extends LinearOpMode {
     @Override
     public void runOpMode() {
         // Define the starting pose of the robot
-        Pose2d initialPose = new Pose2d(0, 0, 0);
+        Pose2d initialPose = new Pose2d(0, 0, 0);//To Do - Find pos x and y
         MecanumDrive drive = new MecanumDrive(hardwareMap, initialPose);
 
+ //       IGyro pinpoint = new Pinpoint(hardwareMap, new Pose2D(DistanceUnit.INCH, 0,0,
+ //               AngleUnit.DEGREES, 0));
         telemetry.addLine("Ready to start");
         telemetry.update();
 
         waitForStart();
+//        while (opModeIsActive()){
 //
-//        Action moveForward = drive.actionBuilder(initialPose)
-//                .lineToX(36)
-//                .turn(Math.toRadians(9000))
-//                .build();
+//        Pose2D pos = pinpoint.getPose();
+//
+//        telemetry.addData("X",pos.getX(DistanceUnit.INCH));
+//        telemetry.addData("Y",pos.getY(DistanceUnit.INCH));
+//        telemetry.addData("Z",pos.getHeading(AngleUnit.DEGREES));
+//        telemetry.update();
+//        }
+
+        Action FirstSwoop = drive.actionBuilder(initialPose)
+                .lineToX(20)
+                //.splineTo(new Vector2d(48, 48), Math.PI / 2)
+                .build();
 
         Actions.runBlocking(
-                new ParallelAction(
-                        drive.actionBuilder(new Pose2d(0, 0, 0))
-                                .lineToX(-66)
-                                .build(),
-                        drive.actionBuilder(new Pose2d(0, 0, 0))
-                                .turn(Math.toRadians(360)) // 25 full spins!
-                                .build()
-                )
+                new SequentialAction(FirstSwoop)
         );
     }
 }

@@ -13,8 +13,6 @@ import org.firstinspires.ftc.teamcode.ironDams.core.odometry.Pinpoint;
 public class GyroMecanumDrive
         extends FourWheelDrive
         implements IDriveTrain {
-
-    private final Gamepad _gamepad1;
     private final IGyro _gyro;
 
     public GyroMecanumDrive(HardwareMap hardwareMap, Gamepad gamepad, boolean usePinpoint) {
@@ -22,7 +20,6 @@ public class GyroMecanumDrive
 
         _gyro = usePinpoint ? new Pinpoint(hardwareMap, new Pose2D(DistanceUnit.INCH, 0, 0, AngleUnit.DEGREES, 0))
                 : new Imu(hardwareMap);
-        _gamepad1 = gamepad;
     }
 
 
@@ -30,12 +27,12 @@ public class GyroMecanumDrive
     public void init() { }
 
     @Override
-    public void drive() {
+    public void drive(double powerX, double powerY, double powerTurn) {
         double zeroedYaw = _gyro.update();
 
-        double x = _gamepad1.right_stick_x;
-        double y = -_gamepad1.right_stick_y;
-        double turn = -_gamepad1.left_stick_x;
+        double x = -powerX;
+        double y = -powerY;
+        double turn = -powerTurn;
 
         double theta = Math.atan2(y, x) * 180 / Math.PI; // aka angle
 
@@ -43,12 +40,12 @@ public class GyroMecanumDrive
 
         realTheta = (360 - zeroedYaw) + theta;
 
-        if (_gamepad1.left_trigger != 0) {
-            realTheta = Math.atan2(y, x) * 180 / Math.PI;
-        } else if ((_gamepad1.right_trigger != 0)) {
-            theta = Math.atan2(y, x) * 180 / Math.PI;
-            realTheta = (360 - zeroedYaw + theta) % 360;
-        }
+//        if (_gamepad1.left_trigger != 0) {
+//            realTheta = Math.atan2(y, x) * 180 / Math.PI;
+//        } else if ((_gamepad1.right_trigger != 0)) {
+//            theta = Math.atan2(y, x) * 180 / Math.PI;
+//            realTheta = (360 - zeroedYaw + theta) % 360;
+//        }
         double power = Math.hypot(x, y);
 
         double sin = Math.sin((realTheta * (Math.PI / 180)) - (Math.PI / 4));
@@ -74,8 +71,9 @@ public class GyroMecanumDrive
         _rightBackDrive.setPower(rightBack);
 
         // Buttons
-        if (_gamepad1.b) {
-            _gyro.reset();
-        }
+//        if (_gamepad1.b) {
+//            _gyro.reset();
+//        }
+        //TODO
     }
 }
