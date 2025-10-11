@@ -23,11 +23,11 @@ import java.time.LocalDate;
 public class PlayerOpMode extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
-        Decoder _decoder = new Decoder(this);
-        WooshMachine _drive = new WooshMachine(this, true);
-        Intake _intake = new Intake(hardwareMap);
-        Spindexer _spindexer = new Spindexer(hardwareMap);
-        Launcher _launcher =new Launcher(hardwareMap);
+//        Decoder _decoder = new Decoder(this);
+//        WooshMachine _drive = new WooshMachine(this, true);
+        Intake _intake = new Intake(this);
+        Spindexer _spindexer = new Spindexer(this, _intake);
+//        Launcher _launcher =new Launcher(hardwareMap);
 
         /* The Drive Train will run based on controller motion
          * The intake and spindexer will run when there isn't 3 balls detected.
@@ -39,33 +39,20 @@ public class PlayerOpMode extends LinearOpMode {
          */
 
         waitForStart();
-//        while (opModeIsActive()){
-//            _drive.go();
-//            if (gamepad1.a)
-//                _intake.run(0.5);
-//            else _intake.stop();
-//
-//            if (gamepad1.b)
-//                _spindexer.run(0.5);
-//            else _spindexer.stop();
-//
-//            if (gamepad1.x) {
-//                _launcher.run(0.5).open();
-//            }
-//            else {
-//                _launcher.close().stop();
-//            }
-//        }
+
         Actions.runBlocking(
             new ParallelAction(
-                _drive.runDrive(),
-                _decoder.setSequence(),
+                    _spindexer.runAction(),
+//                _drive.runDrive(),
+//                _decoder.setSequence(),
                 updateTelemetry()
             )
         );
 
         telemetry.addData("Completed", "");
         telemetry.update();
+
+        this.sleep(15000);
     }
 
     public Action updateTelemetry() {
