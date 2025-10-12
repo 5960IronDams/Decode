@@ -24,25 +24,23 @@ public class WooshMachine {
     private boolean switchDriveTrain(){
         if(_opMode.gamepad1.right_trigger != 0){
             _isGyro = !_isGyro;
-            return true;
         }
-        return false;
+
+        return _isGyro;
     }
 
     private void checkDriveTrain() {
         if(switchDriveTrain()){
-            if(!_isGyro){
-                _driveTrain = new MecanumDrive(_opMode.hardwareMap, _opMode.gamepad1, _usePinpoint);
-            } else {
-                _driveTrain = new GyroMecanumDrive(_opMode.hardwareMap, _opMode.gamepad1, _usePinpoint);
-            }
+            _driveTrain = new MecanumDrive(_opMode.hardwareMap, _opMode.gamepad1, _usePinpoint);
+        } else {
+            _driveTrain = new GyroMecanumDrive(_opMode.hardwareMap, _opMode.gamepad1, _usePinpoint);
         }
     }
 
     public void go() {
         checkDriveTrain();
         _driveTrain.drive(_opMode.gamepad1.right_stick_x
-                , _opMode.gamepad1.right_stick_y
+                , -_opMode.gamepad1.right_stick_y
                 , _opMode.gamepad1.left_stick_x);
     }
 

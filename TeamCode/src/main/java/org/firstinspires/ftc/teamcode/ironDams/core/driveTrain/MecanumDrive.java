@@ -26,8 +26,8 @@ public class MecanumDrive
     public void drive(double powerX, double powerY, double powerTurn) {
 
         double x = powerX;
-        double y = -powerY;
-        double turn = -powerTurn;
+        double y = powerY;
+        double turn = powerTurn;
         double power = Math.hypot(x, y);
 
 

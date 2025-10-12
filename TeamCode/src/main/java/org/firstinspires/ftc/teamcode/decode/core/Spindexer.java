@@ -17,16 +17,23 @@ import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
+import com.qualcomm.robotcore.hardware.Servo;
 
 public class Spindexer {
     private final LinearOpMode _opMode;
 
     private final Intake _intake;
-
-    private final CRServo _spindexer;
+    private boolean gotBall;
+    private boolean _gotBall;
+    private final Servo _spindexer;
+    private int rotationNumber = 1;
+    private double rotationPercentOne = 0;
+    private double rotationPercentTwo = 0.033;
+    private double rotationPercentThree = 0.066;
+    private double rotationPercentFour = 0.099;
+    private double rotationPercentFive = 0.132;
+    private double rotationPercentSix = 0.165;
     private final ColorSensor _colorCenter;
-//    private final ColorSensor _colorRight;
-    private final DcMotor _encoder;
 
     private Mode _mode = Mode.INTAKE;
     private boolean _instakeModeHasBall = false;
@@ -43,18 +50,14 @@ public class Spindexer {
         _opMode = opMode;
 
         _intake = intake;
-        _spindexer = opMode.hardwareMap.get(CRServo.class, Constants.Spindexer.SPINDEXER_ID);
-
+        _spindexer = opMode.hardwareMap.get(Servo.class, Constants.Spindexer.SPINDEXER_ID);
         _colorCenter = opMode.hardwareMap.get(ColorSensor.class, Constants.Spindexer.COLOR_CENTER_ID);
-
-        _encoder = opMode.hardwareMap.get(DcMotor.class, Constants.Spindexer.ABS_ENCODER_ID);
-        _encoder.setDirection(DcMotorSimple.Direction.REVERSE);
 
 //        closeLauncher();
     }
 
     public Spindexer playMode() {
-        _spindexer.setPower(_opMode.gamepad2.left_stick_y);
+        _spindexer.setPosition(_opMode.gamepad2.left_stick_y);
         return this;
     }
 
@@ -63,17 +66,13 @@ public class Spindexer {
         return this;
     }
 
-    public int getCurrentPosition() {
-        return _encoder.getCurrentPosition();
-    }
-
     public Spindexer closeLauncher() {
 //        double closedPos = 0.0;
         return this;
     }
 
-    public Spindexer setPower(double power) {
-        _spindexer.setPower(power);
+    public Spindexer setPosition(double power) {
+        _spindexer.setPosition(power);
         return this;
     }
 
@@ -86,89 +85,56 @@ public class Spindexer {
                 if (!initialized) {
                     initialized = true;
                 }
+                int blue = _colorCenter.blue();
+                int green = _colorCenter.green();
 
-//                _spindexer.setPower(0.1);
-                _intake.setPower(0.5); // 2500c
-//                _intake.setPower(0.75); //3000c
-                boolean moveSpindexer;
-                double intakeCurrent = _intake.getCurrent();
-
-                if (intakeCurrent > 2500) _scanCycles++;
-                else _scanCycles = 0;
-
-                if (_scanCycles >= 6) {
-                    _spindexer.setPower(0.12);
-                    _targetPos = getCurrentPosition() + 2200;
-                } else if (_scanCycles == 0 && getCurrentPosition() >= _targetPos) {
-                    _spindexer.setPower(0);
+                if(blue > COLOR_THRESHOLD || green > COLOR_THRESHOLD){
+                    gotBall = true;
+                }else{
+                    gotBall = false;
                 }
 
-                packet.put("current", intakeCurrent);
-                packet.put("power", _spindexer.getPower());
-                packet.put("scans", _scanCycles);
+                if(rotationNumber == 1){
+                    _spindexer.setPosition(rotationPercentOne);
+                }else if(rotationNumber == 2){
+                    _spindexer.setPosition(rotationPercentTwo);
+                }else if(rotationNumber == 3){
+                    _spindexer.setPosition(rotationPercentThree);
+                }else if(rotationNumber == 4){
+                    _spindexer.setPosition(rotationPercentFour);
+                }else if(rotationNumber == 5){
+                    _spindexer.setPosition(rotationPercentFive);
+                }else if(rotationNumber == 6){
+                    _spindexer.setPosition(rotationPercentSix);
+                }
+
+                _intake.setPower(0.5);
+
+                if(gotBall && _gotBall == false){
+                    if (rotationNumber == 1){
+                        rotationNumber = 3;
+                        pattern[2] = green > blue ? "G" : "P";
+                    } else if (rotationNumber == 3){
+                        rotationNumber = 5;
+                        pattern[0] = green > blue ? "G" : "P";
+                    }else if(rotationNumber == 5){
+                        pattern[1] = green > blue ? "G" : "P";
+                    }
+                    _gotBall = true;
+                } else if (gotBall == false && _gotBall){
+                    _gotBall = false;
+                }
+
+                packet.put("Servo pos", _spindexer.getPosition());
+                packet.put("rotationNumber", rotationNumber);
+                packet.put("got Ball", gotBall);
+                packet.put("_got Ball", _gotBall);
+                packet.put("pattern", String.join(", ", pattern));
+                packet.put("red", _colorCenter.red());
+                packet.put("blue", _colorCenter.blue());
+                packet.put("green", _colorCenter.green());
 
                 return true;
-
-//                packet.put("Power", _spindexer.getPower());
-
-
-//                boolean hasBall = false;
-//                double power = 0;
-//
-//                if (_mode == Mode.INTAKE) {
-//                    if (_isRunning) {
-//                        _intake.stop();
-//                        int cp = getCurrentPosition();
-////                        int tolerance = 800;
-////                        if (_ballCount > 1) tolerance += 50 * (_ballCount - 1);
-//                        if (cp >= _targetPos) {
-//                            _isRunning = false;
-//                            if (pattern[0] != null && pattern[2] != null && pattern[1] != null && !pattern[0].isEmpty() && !pattern[1].isEmpty() && !pattern[2].isEmpty()) _mode = Mode.SORT;
-//                            setPower(0);
-//                        } else {
-//                            power = Acceleration.getPower(_targetPos, cp, 2000, 0.1);
-//                            setPower(power);
-//                        }
-//                    } else {
-//                        _intake.run(Constants.Intake.MAX_POWER);
-//                        int blue = _colorCenter.blue();
-//                        int green = _colorCenter.green();
-//                        hasBall = blue > COLOR_THRESHOLD || green > COLOR_THRESHOLD;
-//
-//                        if (hasBall != _instakeModeHasBall) {
-//                            _instakeModeHasBall = hasBall;
-//                            if (hasBall) {
-//                                _patternIndex = (_patternIndex == 2) ? 0 : _patternIndex + 1;
-//
-//                                _opMode.sleep(Constants.WAIT_DURATION_MS);
-//                                blue = _colorCenter.blue();
-//                                green = _colorCenter.green();
-//                                pattern[_patternIndex] = green > blue ? "G" : "P";
-//                                _ballCount += 1;
-//
-//                                _isRunning = true;
-//                                _targetPos = getCurrentPosition() + TURN_TICKS;
-//                            }
-//                        }
-//                    }
-//                }else {
-//                    _intake.stop();
-//                }
-//
-//                packet.addLine("SPINDEXER");
-//                packet.put("Mode", _mode);
-//                packet.put("Spin Pos", getCurrentPosition());
-//                packet.put("Target Pos", _targetPos);
-//                packet.put("Center Red", _colorCenter.red());
-//                packet.put("Center Green", _colorCenter.green());
-//                packet.put("Center Blue", _colorCenter.blue());
-//                packet.put("Center Loaded", hasBall);
-//                packet.put("pattern", String.join(", ", pattern));
-//                packet.put("isRunning", _isRunning);
-//                packet.put("power", power);
-//                packet.put("truePower", _spindexer.getPower());
-
-//                return true;
             }
         };
     }
