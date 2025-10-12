@@ -66,6 +66,7 @@ public class PlayerOpMode extends LinearOpMode {
 
         Actions.runBlocking(
             new ParallelAction(
+//                    _launcher.runAction(),
                     _spindexer.runAction(),
 //                _drive.runDrive(),
 //                _decoder.setSequence(),

@@ -10,6 +10,7 @@ import org.firstinspires.ftc.teamcode.decode.Pattern;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 
 /**
@@ -54,6 +55,8 @@ public class Spindexer {
         _launcher = launcher;
         _pattern = pattern;
         _spindexer = opMode.hardwareMap.get(Servo.class, Constants.Spindexer.SPINDEXER_ID);
+
+        _spindexer.setPosition(Constants.Spindexer.Positions[0]);
     }
 
     /**
@@ -96,7 +99,7 @@ public class Spindexer {
 
             boolean hasStateChanged = _colorVision.update().hasStateChange();
             if (hasStateChanged) {
-                boolean hasBall = _colorVision.hasBall();
+                boolean hasBall = _colorVision.getCurrentlyHasBall();
                 if (hasBall) {
                     if (_currentPos == 0) {
                         _pattern.updatePatternBuilder(2, _colorVision.getColorCode());
@@ -163,7 +166,7 @@ public class Spindexer {
      *  </ul>
      */
     private void playerShoot() {
-        if (_opMode.gamepad2.b) {
+        if (_opMode.gamepad2.a) {
             if (_mode != Mode.SHOOT) _mode = Mode.SHOOT;
             _isShooting = true;
             _opMode.sleep(Constants.WAIT_DURATION_MS);
@@ -199,6 +202,7 @@ public class Spindexer {
                     _shootCount = 0;
                     _isShooting = false;
                     _mode = Mode.INTAKE;
+                    _spindexer.setPosition(Constants.Spindexer.Positions[0]);
                 }
             }
         }
@@ -222,9 +226,14 @@ public class Spindexer {
 
                 packet.put("Spindexer Mode", _mode);
                 packet.put("Intake Mode", _intake.getMode());
+                packet.put("Pattern Target G", _pattern.getGreenTarget());
+                packet.put("Pattern Actual G", _pattern.getGreenPosition());
                 packet.put("Pattern Target", _pattern.getTarget());
                 packet.put("Pattern Actual", _pattern.getPattern());
                 packet.put("Servo pos", _spindexer.getPosition());
+                packet.put("red", _colorVision.getRed());
+                packet.put("blue", _colorVision.getBlue());
+                packet.put("green", _colorVision.getGreen());
 
                 return true;
             }

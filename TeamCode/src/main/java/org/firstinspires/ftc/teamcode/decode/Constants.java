@@ -20,7 +20,7 @@ public final class Constants {
     }
     public static final class Intake {
         public static final String INTAKE_ID = "intake";
-        public static final double MAX_POWER = 0.2;
+        public static final double MAX_POWER = 0.5;
 
         public enum Mode {
             ACTIVE, INACTIVE
@@ -33,8 +33,8 @@ public final class Constants {
         public static final String MOTOR_RIGHT_ID = "rightOut";
 
         public static final double MAX_POWER = 0.5;
-        public static final double OPEN_POS = 0.5;
-        public static final double CLOSED_POS = 1.0;
+        public static final double OPEN_POS = 0.27;
+        public static final double CLOSED_POS = 0.0;
 
         public static final int BALL_DROP_DELAY = 1000;
     }
