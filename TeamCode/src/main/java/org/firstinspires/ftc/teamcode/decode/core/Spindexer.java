@@ -272,4 +272,28 @@ public class Spindexer {
             }
         };
     }
+
+    public Action runSpinner() {
+        return new Action() {
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+
+                if (_opMode.gamepad2.x) {
+                    _currentPos = (_currentPos > (Constants.Spindexer.Positions.length - 2) ? 0 : _currentPos + 1);
+                    _spindexer.setPosition(Constants.Spindexer.Positions[_currentPos]);
+
+                    _opMode.sleep(Constants.WAIT_DURATION_MS);
+                }
+                else if (_opMode.gamepad2.left_stick_y > 0) {
+                    _spindexer.setPosition(_opMode.gamepad2.left_stick_y);
+                }
+
+                packet.put("Current Pos Index", _currentPos);
+                packet.put("Servo Pos", _spindexer.getPosition());
+                packet.put("Gamepad Y", _opMode.gamepad2.left_stick_y);
+
+                return true;
+            }
+        };
+    }
 }

@@ -12,7 +12,7 @@ public final class Constants {
     public static final class Spindexer {
         public static final String SPINDEXER_ID = "spindex"; // Positional Servo
 
-        public static final double[] Positions = { 0, 0.033, 0.066, 0.099, 0.132, 0.165, 0.198, 0.231, 0.264, 0.297, 0.330, 0.363 };
+        public static final double[] Positions = { 0.063, 0.096, 0.128, 0.165, 0.198, 0.231, 0.264, 0.297, 0.330, 0.363, 0.396, 0.492, 0.462 };
 
         public enum Mode {
             INTAKE, SORT, SHOOT
