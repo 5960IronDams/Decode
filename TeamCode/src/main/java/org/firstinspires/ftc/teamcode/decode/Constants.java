@@ -5,9 +5,7 @@ public final class Constants {
     public static final long WAIT_DURATION_MS = 100;
 
     public static final class Spindexer {
-        public static final String COLOR_LEFT_ID = "colorL";
         public static final String COLOR_CENTER_ID = "colorC";
-        public static final String COLOR_RIGHT_ID = "colorR";
         public static final String SPINDEXER_ID = "spindex";
         public static final String ABS_ENCODER_ID = "enc";
 

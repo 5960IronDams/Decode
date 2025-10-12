@@ -17,7 +17,7 @@ import org.firstinspires.ftc.teamcode.decode.teleOp.WooshMachine;
 import org.firstinspires.ftc.teamcode.ironDams.core.odometry.IGyro;
 import org.firstinspires.ftc.teamcode.ironDams.core.odometry.Pinpoint;
 
-@TeleOp(name = "PlayerOpMode", group = "_IronDams")
+@TeleOp(name = "PlayerOpModeID", group = "_IronDams")
 public class PlayerOpMode extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
@@ -26,17 +26,17 @@ public class PlayerOpMode extends LinearOpMode {
         ColorVision colorVision = new ColorVision(hardwareMap);
         Launcher launcher = new Launcher(this);
         Intake intake = new Intake(this);
-        Spindexer spindexer = new Spindexer(this, decoder, colorVision, intake, launcher);
+        Spindexer spindexer = new Spindexer(this, intake);
 
         IGyro pinpoint = new Pinpoint(hardwareMap, new Pose2D(DistanceUnit.INCH, 0 , 0, AngleUnit.DEGREES, 0));
 
         waitForStart();
         Actions.runBlocking(
             new ParallelAction(
-                    drive.runDrive(),
-                    intake.manageIntake(),
-                    launcher.manageLauncher(),
-                    spindexer.manageSpindexer()
+//                    drive.runDrive(),
+//                    intake.(),
+//                    launcher.manageLauncher(),
+                    spindexer.runAction()
             )
         );
 
