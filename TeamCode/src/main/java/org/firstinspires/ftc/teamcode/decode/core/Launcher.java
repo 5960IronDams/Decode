@@ -1,27 +1,23 @@
 package org.firstinspires.ftc.teamcode.decode.core;
 
-import androidx.annotation.NonNull;
-
-import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
-import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
+
+import org.firstinspires.ftc.teamcode.decode.Constants;
 
 public class Launcher {
     private final Servo _servo;
     private final DcMotorEx _left;
     private final DcMotorEx _right;
     private final LinearOpMode _opMode;
-    private boolean _shoot;
 
     public Launcher(LinearOpMode opMode) {
         _opMode = opMode;
-        _servo = opMode.hardwareMap.get(Servo.class, "launcher");
+        _servo = opMode.hardwareMap.get(Servo.class, Constants.Launcher.LAUNCHER_ID);
 
-        _left = opMode.hardwareMap.get(DcMotorEx.class, "leftOut");
-        _right = opMode.hardwareMap.get(DcMotorEx.class, "rightOut");
+        _left = opMode.hardwareMap.get(DcMotorEx.class, Constants.Launcher.MOTOR_LEFT_ID);
+        _right = opMode.hardwareMap.get(DcMotorEx.class, Constants.Launcher.MOTOR_RIGHT_ID);
 
         _left.setDirection(DcMotorEx.Direction.REVERSE);
 
@@ -34,61 +30,27 @@ public class Launcher {
         close();
     }
 
-    public boolean isRunning(){
-        return _shoot;
-    }
-
     public Launcher open() {
-        double openPos = 0.5;
-        _servo.setPosition(openPos);
+        _servo.setPosition(Constants.Launcher.OPEN_POS);
         return this;
-    }
-    public boolean shootingToggle(){
-        if(_opMode.gamepad2.a){
-            _shoot = !_shoot;
-            if(_shoot){
-                setPower(0.5);
-                open();
-            }else{
-                stop();
-                close();
-            }
-            _opMode.sleep(200);
-        }
-        return _shoot;
     }
 
     public Launcher close() {
-        double closedPos = 1.0;
-        _servo.setPosition(closedPos);
+        _servo.setPosition(Constants.Launcher.CLOSED_POS);
         return this;
     }
 
-    public Launcher setPower(double power) {
-        _left.setPower(power);
-        _right.setPower(power);
-        return this;
-    }
-
-    public Launcher stop() {
+    public void stop() {
         _left.setPower(0);
         _right.setPower(0);
-        return this;
     }
-    public Action manageLauncher() {
-        return new Action() {
-            private boolean initialized = false;
 
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                if (!initialized) {
-                    initialized = true;
-                }
+    public void setPower() {
+        _left.setPower(Constants.Launcher.MAX_POWER);
+        _right.setPower(Constants.Launcher.MAX_POWER);
+    }
 
-                shootingToggle();
-
-                return true;
-            }
-        };
+    public double getPower() {
+        return _left.getPower();
     }
 }

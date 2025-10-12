@@ -12,6 +12,8 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.decode.Pattern;
+import org.firstinspires.ftc.teamcode.decode.core.ColorVision;
 import org.firstinspires.ftc.teamcode.decode.core.Decoder;
 import org.firstinspires.ftc.teamcode.decode.core.Intake;
 import org.firstinspires.ftc.teamcode.decode.core.Launcher;
@@ -21,13 +23,35 @@ import java.time.LocalDate;
 
 @TeleOp(name = "PlayerOpMode", group = "_IronDams")
 public class PlayerOpMode extends LinearOpMode {
+    /**
+     * <ul>
+     *     <li>
+     *         GAMEPAD 1<br>
+     *         <ul>
+     *             <li></li>
+     *         </ul>
+     *     </li>
+     *     <li>
+     *         GAMEPAD 2<br>
+     *         <ul>
+     *             <li>Left Trigger - Intake.INACTIVE</li>
+     *             <li>Right Trigger - Intake.ACTIVE</li>
+     *             <li>X - Pattern Id Rotation</li>
+     *             <li>A - Activate Launcher</li>
+     *         </ul>
+     *     </li>
+     * </ul>
+     * @throws InterruptedException
+     */
     @Override
     public void runOpMode() throws InterruptedException {
-//        Decoder _decoder = new Decoder(this);
 //        WooshMachine _drive = new WooshMachine(this, true);
         Intake _intake = new Intake(this);
-        Spindexer _spindexer = new Spindexer(this, _intake);
-//        Launcher _launcher =new Launcher(hardwareMap);
+//        Decoder _decoder = new Decoder(this);
+        ColorVision _colorVision = new ColorVision(this);
+        Launcher _launcher =new Launcher(this);
+        Pattern _pattern = new Pattern(this);
+        Spindexer _spindexer = new Spindexer(this, _intake, _colorVision, _launcher, _pattern);
 
         /* The Drive Train will run based on controller motion
          * The intake and spindexer will run when there isn't 3 balls detected.

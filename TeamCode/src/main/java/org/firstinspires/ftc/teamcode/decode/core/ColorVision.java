@@ -1,87 +1,42 @@
 package org.firstinspires.ftc.teamcode.decode.core;
 
-import androidx.annotation.NonNull;
-
-import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
-import com.acmerobotics.roadrunner.Action;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
-import com.qualcomm.robotcore.hardware.HardwareMap;
+
+import org.firstinspires.ftc.teamcode.decode.Constants;
 
 public class ColorVision {
-    private String _pattern = "UUU";
-    private final ColorSensor _colorC;
+    private final ColorSensor _colorSensor;
 
-    private final ColorReading _readingR = new ColorReading();
-    private final ColorReading _readingL = new ColorReading();
-    private final ColorReading _readingC = new ColorReading();
+    private int _blue;
+    private int _green;
 
-    public ColorVision(HardwareMap hardwareMap) {
-        _colorC = hardwareMap.get(ColorSensor.class, "colorC");
+    private boolean _hasBall;
+
+    public ColorVision(LinearOpMode opMode) {
+        _colorSensor = opMode.hardwareMap.get(ColorSensor.class, Constants.ColorVision.COLOR_CENTER_ID);
     }
 
-    public String getPattern() {
-        return _pattern;
+    public ColorVision update() {
+        _blue = _colorSensor.blue();
+        _green = _colorSensor.green();
+        return this;
     }
 
-    public ColorReading GetCenterReading() {
-        _readingC.b = _colorC.blue();
-        _readingC.r = _colorC.red();
-        _readingC.g = _colorC.green();
-        _readingC.a = _colorC.alpha();
-
-        return _readingC;
+    public boolean hasBall() {
+        return _blue > Constants.ColorVision.COLOR_THRESHOLD || _green > Constants.ColorVision.COLOR_THRESHOLD;
     }
 
-    public String setPattern(){
-        ColorReading  center = GetCenterReading();
+    public boolean hasStateChange() {
+        if (hasBall() != _hasBall) {
+            _hasBall = !_hasBall;;
+            return true;
+        }
 
-        String pattern="";
-
-
-        if (center.b > 100 && center.b > center.g)pattern += "P";
-        else if (center.g > 100 && center.g > center.b)pattern += "G";
-        else pattern += "U";
-
-        _pattern = pattern;
-        return pattern;
+        return false;
     }
-    public Action readSensors() {
-        return new Action() {
-            private boolean initialized = false;
 
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                if (!initialized) {
-                    initialized = true;
-                }
-
-                String reading = setPattern();
-
-                packet.put("Pattern", reading);
-
-                return true;
-            }
-        };
-    }
-    public Action getCenterReading() {
-        return new Action() {
-            private boolean initialized = false;
-
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                if (!initialized) {
-                    initialized = true;
-                }
-
-                ColorReading reading = GetCenterReading();
-
-                packet.put("Center R", reading.r);
-                packet.put("Center G", reading.g);
-                packet.put("Center B", reading.b);
-                packet.put("Center A", reading.a);
-
-                return true;
-            }
-        };
+    public String getColorCode() {
+        return _blue > _green ? "P" : "G";
     }
 }
