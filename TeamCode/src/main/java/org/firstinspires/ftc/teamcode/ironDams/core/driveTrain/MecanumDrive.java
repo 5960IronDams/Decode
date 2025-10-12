@@ -25,28 +25,18 @@ public class MecanumDrive
     @Override
     public void drive(double powerX, double powerY, double powerTurn) {
 
-        double x = powerX;
-        double y = powerY;
-        double turn = powerTurn;
-        double power = Math.hypot(x, y);
+        double vertical = -powerY;
+        double horizontal = powerX;
+        double pivot = powerTurn;
 
+        double flp = (pivot + vertical + horizontal);
+        double frp = (-pivot + (vertical - horizontal));
+        double rlp = (pivot + (vertical - horizontal));
+        double rrp = (-pivot + vertical + horizontal);
 
-        double leftFront = (power + turn);
-        double rightFront = (power - turn);
-        double leftBack = (power + turn);
-        double rightBack = (power - turn);
-
-
-        if ((power + Math.abs(turn)) > 1) {
-            leftFront /= power + turn;
-            rightFront /= power - turn;
-            leftBack /= power + turn;
-            rightBack /= power - turn;
-        }
-
-        _leftFrontDrive.setPower(leftFront);
-        _rightFrontDrive.setPower(rightFront);
-        _leftBackDrive.setPower(leftBack);
-        _rightBackDrive.setPower(rightBack);
+        _leftBackDrive.setPower(rlp);
+        _rightBackDrive.setPower(rrp);
+        _leftFrontDrive.setPower(flp);
+        _rightFrontDrive.setPower(frp);
     }
 }

@@ -13,37 +13,29 @@ import org.firstinspires.ftc.teamcode.ironDams.core.driveTrain.MecanumDrive;
 public class WooshMachine {
     private final LinearOpMode _opMode;
     private final boolean _usePinpoint;
-    private IDriveTrain _driveTrain = null;
+    private GyroMecanumDrive _driveTrain = null;
     private boolean _isGyro = true;
     public WooshMachine(LinearOpMode opMode, boolean usePinpoint) {
         _opMode = opMode;
         _usePinpoint = usePinpoint;
-        _driveTrain = new GyroMecanumDrive(_opMode.hardwareMap, _opMode.gamepad1, _usePinpoint);
+        _driveTrain = new GyroMecanumDrive(opMode);
     }
 
-    private boolean switchDriveTrain(){
-        if(_opMode.gamepad1.right_trigger != 0){
-            _isGyro = !_isGyro;
-        }
-
-        return _isGyro;
-    }
-
-    private void checkDriveTrain() {
-        if(switchDriveTrain()){
-            _driveTrain = new MecanumDrive(_opMode.hardwareMap, _opMode.gamepad1, _usePinpoint);
-        } else {
-            _driveTrain = new GyroMecanumDrive(_opMode.hardwareMap, _opMode.gamepad1, _usePinpoint);
-        }
-    }
-
-    public void go() {
-        checkDriveTrain();
-        _driveTrain.drive(_opMode.gamepad1.right_stick_x
-                , -_opMode.gamepad1.right_stick_y
-                , _opMode.gamepad1.left_stick_x);
-    }
-
+//    private boolean switchDriveTrain(){
+//        if(_opMode.gamepad1.right_trigger != 0){
+//            _isGyro = !_isGyro;
+//        }
+//
+//        return _isGyro;
+//    }
+//
+//    private void checkDriveTrain() {
+//        if(switchDriveTrain()){
+//            _driveTrain = new MecanumDrive(_opMode.hardwareMap, _opMode.gamepad1, _usePinpoint);
+//        } else {
+////            _driveTrain = new GyroMecanumDrive(_opMode.hardwareMap, _opMode.gamepad1, _usePinpoint);/
+//        }
+//    }
 
     public Action runDrive() {
         return new Action() {
@@ -54,8 +46,8 @@ public class WooshMachine {
                 if (!initialized) {
                     initialized = _driveTrain != null;
                 } else {
-                    go();
-                    packet.put("is gyro", _isGyro);
+                    _driveTrain.reset();
+                    _driveTrain.drive();
                 }
                 return true;
             }

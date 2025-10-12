@@ -12,6 +12,7 @@ public class ColorVision {
     private int _green;
 
     private boolean _hasBall;
+    private boolean _currentlyHasBall;
 
     public ColorVision(LinearOpMode opMode) {
         _colorSensor = opMode.hardwareMap.get(ColorSensor.class, Constants.ColorVision.COLOR_CENTER_ID);
@@ -22,14 +23,34 @@ public class ColorVision {
         _green = _colorSensor.green();
         return this;
     }
+    public boolean getCurrentlyHasBall(){
+        return _currentlyHasBall;
+    }
+    public int getRed(){
+        return _colorSensor.red();
+    }
 
-    public boolean hasBall() {
-        return _blue > Constants.ColorVision.COLOR_THRESHOLD || _green > Constants.ColorVision.COLOR_THRESHOLD;
+    public int getBlue(){
+        return _colorSensor.blue();
+    }
+
+    public int getGreen(){
+        return _colorSensor.green();
+    }
+
+    public void hasBall() {
+        _currentlyHasBall = _blue > Constants.ColorVision.COLOR_THRESHOLD || _green > Constants.ColorVision.COLOR_THRESHOLD;
+    }
+
+    public void resetStateChange() {
+        _currentlyHasBall = false;
+        _hasBall = false;
     }
 
     public boolean hasStateChange() {
-        if (hasBall() != _hasBall) {
-            _hasBall = !_hasBall;;
+        hasBall();
+        if (_currentlyHasBall != _hasBall) {
+            _hasBall = !_hasBall;
             return true;
         }
 
