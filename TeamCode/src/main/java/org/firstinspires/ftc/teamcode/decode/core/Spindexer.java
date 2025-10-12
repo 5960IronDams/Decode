@@ -1,79 +1,208 @@
 package org.firstinspires.ftc.teamcode.decode.core;
 
-import static org.firstinspires.ftc.teamcode.decode.Constants.Spindexer.COLOR_THRESHOLD;
 import static org.firstinspires.ftc.teamcode.decode.Constants.Spindexer.Mode;
-import static org.firstinspires.ftc.teamcode.decode.Constants.Spindexer.TURN_TICKS;
-
 
 import androidx.annotation.NonNull;
 
 import org.firstinspires.ftc.teamcode.decode.Constants;
+import org.firstinspires.ftc.teamcode.decode.Pattern;
 
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.CRServo;
-import com.qualcomm.robotcore.hardware.ColorSensor;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 
+/**
+ * Will switch through the spindexer modes.<br>
+ *  <u>GAMEPAD 2</u>
+ *  <ul>
+ *      <li>B - Shoot</li>
+ *      <li>A - Intake Mode</li>
+ *  </ul>
+ */
 public class Spindexer {
     private final LinearOpMode _opMode;
+    private final Servo _spindexer;
 
     private final Intake _intake;
-    private boolean gotBall;
-    private boolean _gotBall;
-    private final Servo _spindexer;
-    private int rotationNumber = 1;
-    private double rotationPercentOne = 0;
-    private double rotationPercentTwo = 0.033;
-    private double rotationPercentThree = 0.066;
-    private double rotationPercentFour = 0.099;
-    private double rotationPercentFive = 0.132;
-    private double rotationPercentSix = 0.165;
-    private final ColorSensor _colorCenter;
+    private final ColorVision _colorVision;
+    private final Launcher _launcher;
+    private final Pattern _pattern;
+
+    private int _currentPos = 0;
+    private int _shootCount = 0;
 
     private Mode _mode = Mode.INTAKE;
-    private boolean _instakeModeHasBall = false;
-    private boolean _isRunning = false;
+    private boolean _isShooting;
 
-    private int _targetPos;
-    private int _ballCount;
-    private long _scanCycles;
-
-    private String[] pattern = new String[3];
-    private int _patternIndex = 0;
-
-    public Spindexer(LinearOpMode opMode, Intake intake) {
+    /**
+     * The brains for capturing, sorting & shooting the balls.
+     * @param opMode The current op mode.
+     * @param intake The intake object.
+     * @param colorVision The color vision object.
+     * @param launcher The launcher object.
+     * @param pattern The pattern object.
+     */
+    public Spindexer(LinearOpMode opMode,
+                     Intake intake,
+                     ColorVision colorVision,
+                     Launcher launcher,
+                     Pattern pattern) {
         _opMode = opMode;
-
         _intake = intake;
+        _colorVision = colorVision;
+        _launcher = launcher;
+        _pattern = pattern;
         _spindexer = opMode.hardwareMap.get(Servo.class, Constants.Spindexer.SPINDEXER_ID);
-        _colorCenter = opMode.hardwareMap.get(ColorSensor.class, Constants.Spindexer.COLOR_CENTER_ID);
-
-//        closeLauncher();
     }
 
-    public Spindexer playMode() {
-        _spindexer.setPosition(_opMode.gamepad2.left_stick_y);
+    /**
+     * Will rotate through the available patterns in teleop or read the qr code in autonomous.
+     * @return The spindexer object.
+     */
+    private Spindexer setPattern() {
+        _pattern
+            .rotatePatternId()
+            .readPatternId()
+            .setTargetPattern();
         return this;
     }
 
-    public Spindexer openLauncher() {
-        double openPos = 1.0;
+    private void runIntake() {
+        boolean isIntakeRunning = _intake.getPower() > 0;
+        _intake.setMode();
+        if (_intake.getMode() == Constants.Intake.Mode.ACTIVE) {
+            if (!isIntakeRunning) _intake.setPower();
+        }
+        else if (isIntakeRunning) {
+            _intake.stop();
+        }
+    }
+
+    /**
+     * Manages the logic for capturing the balls.
+     *  <ul>
+     *      <li>Starts the intake.</li>
+     *      <li>Detects the color of the ball.</li>
+     *      <li>Updates the pattern builder with the color of the ball.</li>
+     *      <li>Moves to the next position to accept another ball.</li>
+     *      <li>Switches to SORT &amp; stops the intake when it has captured the 3rd ball.</li>
+     *  </ul>
+     * @return The spindexer object.
+     */
+    private Spindexer runIntakeMode() {
+        if (_mode == Mode.INTAKE) {
+            runIntake();
+
+            boolean hasStateChanged = _colorVision.update().hasStateChange();
+            if (hasStateChanged) {
+                boolean hasBall = _colorVision.hasBall();
+                if (hasBall) {
+                    if (_currentPos == 0) {
+                        _pattern.updatePatternBuilder(2, _colorVision.getColorCode());
+                        _currentPos = 2;
+                        _spindexer.setPosition(Constants.Spindexer.Positions[2]);
+                    } else if (_currentPos == 2) {
+                        _pattern.updatePatternBuilder(0, _colorVision.getColorCode());
+                        _currentPos = 4;
+                        _spindexer.setPosition(Constants.Spindexer.Positions[4]);
+                    } else if (_currentPos == 4) {
+                        _pattern.updatePatternBuilder(1, _colorVision.getColorCode());
+                        _intake.stop();
+                        _mode = Mode.SORT;
+                    }
+                }
+            }
+        }
+
         return this;
     }
 
-    public Spindexer closeLauncher() {
-//        double closedPos = 0.0;
+    /**
+     * Manages the logic for sorting the balls.<br>
+     *  <ul>
+     *      <li>Compares the green balls actual location to the current location.</li>
+     *      <li>Moves the spindexer to shoot in the correct order.</li>
+     *      <li><i><b>If a green ball is not detected it will advance to shoot mode.</b></i></li>
+     *  </ul>
+     * @return The spindexer object.
+     */
+    public Spindexer runSortMode() {
+        if (_mode == Mode.SORT) {
+            int actualPos = _pattern.getGreenPosition();
+            int targetPos = _pattern.getGreenTarget();
+
+            if (actualPos != -1 && actualPos != targetPos) {
+                if (
+                    targetPos == 0 && actualPos == 1 ||
+                    targetPos == 1 && actualPos == 2 ||
+                    targetPos == 2 && actualPos == 0
+                ) {
+                    _currentPos = 0;
+                } else if (
+                    targetPos == 0 && actualPos == 2 ||
+                    targetPos == 1 && actualPos == 0 ||
+                    targetPos == 2 && actualPos == 1
+                ) {
+                    _currentPos = 2;
+                }
+
+                _spindexer.setPosition(Constants.Spindexer.Positions[_currentPos]);
+            }
+
+            _mode = Mode.SHOOT;
+        }
         return this;
     }
 
-    public Spindexer setPosition(double power) {
-        _spindexer.setPosition(power);
-        return this;
+    /**
+     * Allows player 2 to active the launcher.
+     *  <ul>
+     *      <li>Uses the b button on gamepad2.</li>
+     *      <li>Will advance the mode to SHOOT if it's not their.</li>
+     *  </ul>
+     */
+    private void playerShoot() {
+        if (_opMode.gamepad2.b) {
+            if (_mode != Mode.SHOOT) _mode = Mode.SHOOT;
+            _isShooting = true;
+            _opMode.sleep(Constants.WAIT_DURATION_MS);
+        }
+    }
+
+    /**
+     * Manages the logic for shooting the balls.
+     *  Opens the launcher door and starts the launcher.
+     *  Moves the spindexer to shoot in the correct order.
+     *  Will shoot 3x and then move back into INTAKE mode.
+     */
+    public void runShootMode() {
+        if (_mode == Mode.SHOOT) {
+            playerShoot();
+
+            if (_isShooting) {
+                if (_shootCount < 3) {
+                    if (_launcher.getPower() == 0) {
+                        _launcher.open().setPower();
+                        _opMode.sleep(Constants.WAIT_DURATION_MS);
+                    }
+
+                    if (_currentPos % 2 == 0) _currentPos += 1;
+                    else _currentPos += 2;
+
+                    _spindexer.setPosition(Constants.Spindexer.Positions[_currentPos]);
+                    _opMode.sleep(Constants.Launcher.BALL_DROP_DELAY);
+                    _shootCount++;
+                } else {
+                    _launcher.close().stop();
+                    _pattern.resetPatternBuilder();
+                    _shootCount = 0;
+                    _isShooting = false;
+                    _mode = Mode.INTAKE;
+                }
+            }
+        }
+
     }
 
     public Action runAction() {
@@ -85,54 +214,17 @@ public class Spindexer {
                 if (!initialized) {
                     initialized = true;
                 }
-                int blue = _colorCenter.blue();
-                int green = _colorCenter.green();
 
-                if(blue > COLOR_THRESHOLD || green > COLOR_THRESHOLD){
-                    gotBall = true;
-                }else{
-                    gotBall = false;
-                }
+                setPattern()
+                        .runIntakeMode()
+                        .runSortMode()
+                        .runShootMode();
 
-                if(rotationNumber == 1){
-                    _spindexer.setPosition(rotationPercentOne);
-                }else if(rotationNumber == 2){
-                    _spindexer.setPosition(rotationPercentTwo);
-                }else if(rotationNumber == 3){
-                    _spindexer.setPosition(rotationPercentThree);
-                }else if(rotationNumber == 4){
-                    _spindexer.setPosition(rotationPercentFour);
-                }else if(rotationNumber == 5){
-                    _spindexer.setPosition(rotationPercentFive);
-                }else if(rotationNumber == 6){
-                    _spindexer.setPosition(rotationPercentSix);
-                }
-
-                _intake.setPower(0.5);
-
-                if(gotBall && _gotBall == false){
-                    if (rotationNumber == 1){
-                        rotationNumber = 3;
-                        pattern[2] = green > blue ? "G" : "P";
-                    } else if (rotationNumber == 3){
-                        rotationNumber = 5;
-                        pattern[0] = green > blue ? "G" : "P";
-                    }else if(rotationNumber == 5){
-                        pattern[1] = green > blue ? "G" : "P";
-                    }
-                    _gotBall = true;
-                } else if (gotBall == false && _gotBall){
-                    _gotBall = false;
-                }
-
+                packet.put("Spindexer Mode", _mode);
+                packet.put("Intake Mode", _intake.getMode());
+                packet.put("Pattern Target", _pattern.getTarget());
+                packet.put("Pattern Actual", _pattern.getPattern());
                 packet.put("Servo pos", _spindexer.getPosition());
-                packet.put("rotationNumber", rotationNumber);
-                packet.put("got Ball", gotBall);
-                packet.put("_got Ball", _gotBall);
-                packet.put("pattern", String.join(", ", pattern));
-                packet.put("red", _colorCenter.red());
-                packet.put("blue", _colorCenter.blue());
-                packet.put("green", _colorCenter.green());
 
                 return true;
             }
