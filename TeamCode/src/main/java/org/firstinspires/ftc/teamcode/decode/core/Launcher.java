@@ -1,21 +1,25 @@
 package org.firstinspires.ftc.teamcode.decode.core;
 
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+
+import org.firstinspires.ftc.teamcode.decode.Constants;
 
 public class Launcher {
     private final Servo _servo;
     private final DcMotorEx _left;
     private final DcMotorEx _right;
+    private final LinearOpMode _opMode;
 
-    public Launcher(HardwareMap hardwareMap) {
-        _servo = hardwareMap.get(Servo.class, "launcher");
+    public Launcher(LinearOpMode opMode) {
+        _opMode = opMode;
+        _servo = opMode.hardwareMap.get(Servo.class, Constants.Launcher.LAUNCHER_ID);
 
-        _left = hardwareMap.get(DcMotorEx.class, "leftOut");
-        _right = hardwareMap.get(DcMotorEx.class, "rightOut");
+        _left = opMode.hardwareMap.get(DcMotorEx.class, Constants.Launcher.MOTOR_LEFT_ID);
+        _right = opMode.hardwareMap.get(DcMotorEx.class, Constants.Launcher.MOTOR_RIGHT_ID);
 
-        _right.setDirection(DcMotorEx.Direction.REVERSE);
+        _left.setDirection(DcMotorEx.Direction.REVERSE);
 
         _left.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
         _right.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
@@ -27,26 +31,26 @@ public class Launcher {
     }
 
     public Launcher open() {
-        double openPos = 0.5;
-        _servo.setPosition(openPos);
+        _servo.setPosition(Constants.Launcher.OPEN_POS);
         return this;
     }
 
     public Launcher close() {
-        double closedPos = 1.0;
-        _servo.setPosition(closedPos);
+        _servo.setPosition(Constants.Launcher.CLOSED_POS);
         return this;
     }
 
-    public Launcher run(double power) {
-        _left.setPower(power);
-        _right.setPower(power);
-        return this;
-    }
-
-    public Launcher stop() {
+    public void stop() {
         _left.setPower(0);
         _right.setPower(0);
-        return this;
+    }
+
+    public void setPower() {
+        _left.setPower(Constants.Launcher.MAX_POWER);
+        _right.setPower(Constants.Launcher.MAX_POWER);
+    }
+
+    public double getPower() {
+        return _left.getPower();
     }
 }
