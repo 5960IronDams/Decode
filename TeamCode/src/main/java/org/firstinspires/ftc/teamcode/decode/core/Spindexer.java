@@ -12,6 +12,7 @@ import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 /**
  * Will switch through the spindexer modes.<br>
@@ -32,6 +33,9 @@ public class Spindexer {
 
     private int _currentPos = 0;
     private int _shootCount = 0;
+
+    private final double _launchWaitTime = 1500;
+    private final ElapsedTime _launchTime = new ElapsedTime();
 
     private Mode _mode = Mode.INTAKE;
     private boolean _isShooting;
@@ -111,7 +115,6 @@ public class Spindexer {
                         _spindexer.setPosition(Constants.Spindexer.Positions[4]);
                     } else if (_currentPos == 4) {
                         _pattern.updatePatternBuilder(1, _colorVision.getColorCode());
-                        _intake.stop();
                         _mode = Mode.SORT;
                     }
                 }
@@ -173,6 +176,19 @@ public class Spindexer {
         }
     }
 
+    private void patternChange() {
+        if (_opMode.gamepad2.x) {
+            _launcher.close().stop();
+            _pattern.resetPatternBuilder();
+            _colorVision.resetStateChange();
+            _shootCount = 0;
+            _isShooting = false;
+            _mode = Mode.INTAKE;
+            _currentPos = 0;
+            _spindexer.setPosition(_currentPos);
+        }
+    }
+
     /**
      * Manages the logic for shooting the balls.
      *  Opens the launcher door and starts the launcher.
@@ -182,27 +198,34 @@ public class Spindexer {
     public void runShootMode() {
         if (_mode == Mode.SHOOT) {
             playerShoot();
+            patternChange();
 
             if (_isShooting) {
-                if (_shootCount < 3) {
-                    if (_launcher.getPower() == 0) {
-                        _launcher.open().setPower();
-                        _opMode.sleep(Constants.WAIT_DURATION_MS);
+                _intake.stop();
+                if (_shootCount < 4) {
+                    if (_launchTime.milliseconds() > _launchWaitTime + ((_shootCount == 0) ? 1000 : 0)) {
+                        if (_launcher.getPower() == 0) {
+                            _launcher.open().setPower();
+                            _opMode.sleep(Constants.WAIT_DURATION_MS);
+                        }
+
+                        if (_currentPos % 2 == 0) _currentPos += 1;
+                        else _currentPos += 2;
+
+                        _spindexer.setPosition(Constants.Spindexer.Positions[_currentPos]);
+//                    _opMode.sleep(Constants.Launcher.BALL_DROP_DELAY);
+                        _shootCount++;
+                        _launchTime.reset();
                     }
-
-                    if (_currentPos % 2 == 0) _currentPos += 1;
-                    else _currentPos += 2;
-
-                    _spindexer.setPosition(Constants.Spindexer.Positions[_currentPos]);
-                    _opMode.sleep(Constants.Launcher.BALL_DROP_DELAY);
-                    _shootCount++;
                 } else {
                     _launcher.close().stop();
                     _pattern.resetPatternBuilder();
+                    _colorVision.resetStateChange();
                     _shootCount = 0;
                     _isShooting = false;
                     _mode = Mode.INTAKE;
-                    _spindexer.setPosition(Constants.Spindexer.Positions[0]);
+                    _currentPos = 0;
+                    _spindexer.setPosition(_currentPos);
                 }
             }
         }
@@ -224,16 +247,26 @@ public class Spindexer {
                         .runSortMode()
                         .runShootMode();
 
+                _opMode.telemetry.addData("Spindex Mode", _mode);
+                _opMode.telemetry.addData("Intake Mode", _intake.getMode());
+                _opMode.telemetry.addData("Target Pattern", _pattern.getTarget());
+
                 packet.put("Spindexer Mode", _mode);
+                packet.put("Spindexer pos", _spindexer.getPosition());
+
                 packet.put("Intake Mode", _intake.getMode());
+
                 packet.put("Pattern Target G", _pattern.getGreenTarget());
                 packet.put("Pattern Actual G", _pattern.getGreenPosition());
                 packet.put("Pattern Target", _pattern.getTarget());
                 packet.put("Pattern Actual", _pattern.getPattern());
-                packet.put("Servo pos", _spindexer.getPosition());
-                packet.put("red", _colorVision.getRed());
-                packet.put("blue", _colorVision.getBlue());
-                packet.put("green", _colorVision.getGreen());
+                packet.put("Spindexer Shoot Timer", _launchTime.milliseconds());
+                packet.put("Spindexer Time Delay", _launchWaitTime);
+                packet.put("Spindexer Shoot Counter", _shootCount);
+
+                packet.put("CV red", _colorVision.getRed());
+                packet.put("CV blue", _colorVision.getBlue());
+                packet.put("CV green", _colorVision.getGreen());
 
                 return true;
             }

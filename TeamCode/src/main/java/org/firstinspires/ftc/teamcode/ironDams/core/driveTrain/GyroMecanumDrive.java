@@ -1,51 +1,86 @@
 package org.firstinspires.ftc.teamcode.ironDams.core.driveTrain;
 
-import com.qualcomm.robotcore.hardware.Gamepad;
-import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
-import org.firstinspires.ftc.teamcode.ironDams.core.odometry.IGyro;
-import org.firstinspires.ftc.teamcode.ironDams.core.odometry.Imu;
-import org.firstinspires.ftc.teamcode.ironDams.core.odometry.Pinpoint;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import org.firstinspires.ftc.teamcode.decode.Constants;
 
-public class GyroMecanumDrive
-        extends FourWheelDrive
-        implements IDriveTrain {
-    private final IGyro _gyro;
+public class GyroMecanumDrive {
+    private  LinearOpMode _opMode;
+    private DcMotor leftFrontDrive = null;
+    private DcMotor leftBackDrive = null;
+    private DcMotor rightFrontDrive = null;
+    private DcMotor rightBackDrive = null;
+    private BNO055IMU imu;
+    private BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+    private Orientation angles = new Orientation();
 
-    public GyroMecanumDrive(HardwareMap hardwareMap, Gamepad gamepad, boolean usePinpoint) {
-        super(hardwareMap);
+    private double initYaw;
+    private double adjustedYaw;
 
-        _gyro = usePinpoint ? new Pinpoint(hardwareMap, new Pose2D(DistanceUnit.INCH, 0, 0, AngleUnit.DEGREES, 0))
-                : new Imu(hardwareMap);
+    public GyroMecanumDrive(LinearOpMode opMode) {
+        _opMode = opMode;
+
+        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+        parameters.mode = BNO055IMU.SensorMode.IMU;
+        parameters.accelUnit           = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+        parameters.loggingEnabled      = false;
+
+        imu = opMode.hardwareMap.get(BNO055IMU.class, "imu2");
+
+        initImu();
+
+        leftFrontDrive = opMode.hardwareMap.get(DcMotor.class, "leftFront");
+        leftBackDrive = opMode.hardwareMap.get(DcMotor.class, "leftBack");
+        rightBackDrive = opMode.hardwareMap.get(DcMotor.class, "rightBack");
+        rightFrontDrive = opMode.hardwareMap.get(DcMotor.class, "rightFront");
+        leftFrontDrive.setDirection(DcMotor.Direction.FORWARD);
+        leftBackDrive.setDirection(DcMotor.Direction.FORWARD);
+        rightFrontDrive.setDirection(DcMotor.Direction.REVERSE);
+        rightBackDrive.setDirection(DcMotor.Direction.REVERSE);
+
+
+        leftFrontDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        leftBackDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightBackDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightFrontDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
+    public void initImu() {
+        imu.initialize(parameters);
+        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        initYaw = angles.firstAngle;
+    }
 
-    @Override
-    public void init() { }
+    public void reset() {
+        if (_opMode.gamepad1.b) {
+            initImu();
+            _opMode.sleep(Constants.WAIT_DURATION_MS);
+        }
+    }
 
-    @Override
-    public void drive(double powerX, double powerY, double powerTurn) {
-        double zeroedYaw = _gyro.update();
+    public void drive() {
+        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 
-        double x = powerX;
-        double y = powerY;
-        double turn = powerTurn;
+        adjustedYaw = angles.firstAngle - initYaw;
+
+        double zeroedYaw = -initYaw + angles.firstAngle;
+
+        double x = _opMode.gamepad1.right_stick_x;
+        double y = -_opMode.gamepad1.right_stick_y;
+        double turn = -_opMode.gamepad1.left_stick_x;
 
         double theta = Math.atan2(y, x) * 180 / Math.PI; // aka angle
 
         double realTheta;
 
         realTheta = (360 - zeroedYaw) + theta;
-
-//        if (_gamepad1.left_trigger != 0) {
-//            realTheta = Math.atan2(y, x) * 180 / Math.PI;
-//        } else if ((_gamepad1.right_trigger != 0)) {
-//            theta = Math.atan2(y, x) * 180 / Math.PI;
-//            realTheta = (360 - zeroedYaw + theta) % 360;
-//        }
         double power = Math.hypot(x, y);
 
         double sin = Math.sin((realTheta * (Math.PI / 180)) - (Math.PI / 4));
@@ -65,15 +100,9 @@ public class GyroMecanumDrive
             rightBack /= power - turn;
         }
 
-        _leftFrontDrive.setPower(leftFront);
-        _rightFrontDrive.setPower(rightFront);
-        _leftBackDrive.setPower(leftBack);
-        _rightBackDrive.setPower(rightBack);
-
-        // Buttons
-//        if (_gamepad1.b) {
-//            _gyro.reset();
-//        }
-        //TODO
+        leftFrontDrive.setPower(leftFront);
+        rightFrontDrive.setPower(rightFront);
+        leftBackDrive.setPower(leftBack);
+        rightBackDrive.setPower(rightBack);
     }
 }

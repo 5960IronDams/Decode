@@ -42,6 +42,11 @@ public class ColorVision {
         _currentlyHasBall = _blue > Constants.ColorVision.COLOR_THRESHOLD || _green > Constants.ColorVision.COLOR_THRESHOLD;
     }
 
+    public void resetStateChange() {
+        _currentlyHasBall = false;
+        _hasBall = false;
+    }
+
     public boolean hasStateChange() {
         hasBall();
         if (_currentlyHasBall != _hasBall) {
