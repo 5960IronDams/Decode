@@ -34,7 +34,7 @@ public class Spindexer {
     private int _currentPos = 0;
     private int _shootCount = 0;
 
-    private final double _launchWaitTime = 1500;
+    private final double _launchWaitTime = Constants.Launcher.BALL_DROP_DELAY;
     private final ElapsedTime _launchTime = new ElapsedTime();
 
     private Mode _mode = Mode.INTAKE;
@@ -171,6 +171,7 @@ public class Spindexer {
     private void playerShoot() {
         if (_opMode.gamepad2.a) {
             if (_mode != Mode.SHOOT) _mode = Mode.SHOOT;
+            _launchTime.reset();
             _isShooting = true;
             _opMode.sleep(Constants.WAIT_DURATION_MS);
         }
@@ -200,14 +201,18 @@ public class Spindexer {
             playerShoot();
             patternChange();
 
+            if(_launcher.getPower() == 0){
+                _launcher.open().setPower();
+            }
+
             if (_isShooting) {
                 _intake.stop();
                 if (_shootCount < 4) {
-                    if (_launchTime.milliseconds() > _launchWaitTime + ((_shootCount == 0) ? 1000 : 0)) {
-                        if (_launcher.getPower() == 0) {
-                            _launcher.open().setPower();
-                            _opMode.sleep(Constants.WAIT_DURATION_MS);
-                        }
+                    if (_launchTime.milliseconds() > _launchWaitTime) {
+//                        if (_launcher.getPower() == 0) {
+//                            _launcher.open().setPower();
+//                            _opMode.sleep(Constants.WAIT_DURATION_MS);
+//                        }
 
                         if (_currentPos % 2 == 0) _currentPos += 1;
                         else _currentPos += 2;
@@ -267,6 +272,30 @@ public class Spindexer {
                 packet.put("CV red", _colorVision.getRed());
                 packet.put("CV blue", _colorVision.getBlue());
                 packet.put("CV green", _colorVision.getGreen());
+
+                return true;
+            }
+        };
+    }
+
+    public Action runSpinner() {
+        return new Action() {
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                if (_opMode.gamepad2.x) {
+                    _currentPos = (_currentPos > (Constants.Spindexer.Positions.length - 2) ? 0 : _currentPos + 1);
+                    _spindexer.setPosition(Constants.Spindexer.Positions[_currentPos]);
+                    _opMode.sleep(250);
+                } else if (_opMode.gamepad2.y) {
+                    _spindexer.setPosition(_spindexer.getPosition() + 0.01);
+                    _opMode.sleep(250);
+                } else if (_opMode.gamepad2.a) {
+                    _spindexer.setPosition(_spindexer.getPosition() - 0.01);
+                    _opMode.sleep(250);
+                }
+
+                packet.put("Current Pos Index", _currentPos);
+                packet.put("Servo Pos", _spindexer.getPosition());
 
                 return true;
             }

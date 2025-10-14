@@ -31,9 +31,9 @@ public class WooshMachine {
 //
 //    private void checkDriveTrain() {
 //        if(switchDriveTrain()){
-//            _driveTrain = new MecanumDrive(_opMode.hardwareMap, _opMode.gamepad1, _usePinpoint);
+//            _driveTrain = new MecanumDrive(_opMode);
 //        } else {
-////            _driveTrain = new GyroMecanumDrive(_opMode.hardwareMap, _opMode.gamepad1, _usePinpoint);/
+//            _driveTrain = new GyroMecanumDrive(_opMode);
 //        }
 //    }
 
