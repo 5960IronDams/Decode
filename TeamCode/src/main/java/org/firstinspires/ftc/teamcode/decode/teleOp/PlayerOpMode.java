@@ -12,7 +12,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.decode.Pattern;
+import org.firstinspires.ftc.teamcode.decode.core.BallVision;
 import org.firstinspires.ftc.teamcode.decode.core.ColorVision;
 import org.firstinspires.ftc.teamcode.decode.core.Decoder;
 import org.firstinspires.ftc.teamcode.decode.core.Intake;
@@ -23,34 +23,15 @@ import java.time.LocalDate;
 
 @TeleOp(name = "PlayerOpMode", group = "_IronDams")
 public class PlayerOpMode extends LinearOpMode {
-    /**
-     * <ul>
-     *     <li>
-     *         GAMEPAD 1<br>
-     *         <ul>
-     *             <li></li>
-     *         </ul>
-     *     </li>
-     *     <li>
-     *         GAMEPAD 2<br>
-     *         <ul>
-     *             <li>Left Trigger - Intake.INACTIVE</li>
-     *             <li>Right Trigger - Intake.ACTIVE</li>
-     *             <li>X - Pattern Id Rotation</li>
-     *             <li>A - Activate Launcher</li>
-     *         </ul>
-     *     </li>
-     * </ul>
-     * @throws InterruptedException
-     */
     @Override
     public void runOpMode() throws InterruptedException {
+        Decoder _decoder = new Decoder(this);
+        BallVision _ballVision=new BallVision(hardwareMap,true);
         WooshMachine _drive = new WooshMachine(this, true);
-        Intake _intake = new Intake(this);
-        ColorVision _colorVision = new ColorVision(this);
-        Launcher _launcher =new Launcher(this);
-        Pattern _pattern = new Pattern(this);
-        Spindexer _spindexer = new Spindexer(this, _intake, _colorVision, _launcher, _pattern);
+        Intake _intake = new Intake(hardwareMap);
+        Spindexer _spindexer = new Spindexer(hardwareMap);
+        Launcher _launcher =new Launcher(hardwareMap);
+        ColorVision _colorVIsion = new ColorVision(this);
 
         /* The Drive Train will run based on controller motion
          * The intake and spindexer will run when there isn't 3 balls detected.
@@ -62,19 +43,39 @@ public class PlayerOpMode extends LinearOpMode {
          */
 
         waitForStart();
-
+        while (opModeIsActive()){
+            telemetry.addData("r", _colorVIsion.getRed());
+            telemetry.addData("g", _colorVIsion.getGreen());
+            telemetry.addData("b", _colorVIsion.getBlue());
+            telemetry.addData("a", _colorVIsion.getArgb());
+            telemetry.update();
+//            _drive.go();
+//            if (gamepad1.a)
+//                _intake.run(0.5);
+//            else _intake.stop();
+//
+//            if (gamepad1.b)
+//                _spindexer.run(0.5);
+//            else _spindexer.stop();
+//
+//            if (gamepad1.x) {
+//                _launcher.run(0.5).open();
+//            }
+//            else {
+//                _launcher.close().stop();
+//            }
+        }
         Actions.runBlocking(
             new ParallelAction(
                 _drive.runDrive(),
-                _spindexer.runAction(),
+                _decoder.setSequence(),
+                _ballVision.readTagAction(),
                 updateTelemetry()
             )
         );
 
         telemetry.addData("Completed", "");
         telemetry.update();
-
-        this.sleep(15000);
     }
 
     public Action updateTelemetry() {
