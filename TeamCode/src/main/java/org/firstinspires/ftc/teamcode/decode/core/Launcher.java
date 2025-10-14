@@ -70,8 +70,12 @@ public class Launcher {
                     initialized = true;
                 }
 
-                _servo.setPosition(Math.abs(_opMode.gamepad2.left_stick_y));
-                packet.put("pos", _servo.getPosition());
+//                _servo.setPosition(Math.abs(_opMode.gamepad2.left_stick_y));
+//                packet.put("pos", _servo.getPosition());
+                _left.setPower(0.525);
+                _right.setPower(0.525);
+                packet.put("Left V", _left.getVelocity());
+                packet.put("Right V", _right.getVelocity());
 
                 return true;
             }

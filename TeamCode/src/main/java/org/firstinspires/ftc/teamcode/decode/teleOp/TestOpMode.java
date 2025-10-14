@@ -60,6 +60,7 @@ public class TestOpMode extends LinearOpMode {
         Actions.runBlocking(
             new ParallelAction(
                 _spindexer.runSpinner(),
+                _launcher.runAction(),
                 updateTelemetry()
             )
         );
