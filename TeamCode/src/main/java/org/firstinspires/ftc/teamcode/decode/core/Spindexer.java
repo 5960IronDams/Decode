@@ -25,7 +25,9 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 public class Spindexer {
     private final LinearOpMode _opMode;
     private final Servo _spindexer;
-
+    private ElapsedTime _timerSpindexerChange;
+    private ElapsedTime _timerLauncher;
+    private ElapsedTime _timerSpindexer;
     private final Intake _intake;
     private final ColorVision _colorVision;
     private final Launcher _launcher;
@@ -169,16 +171,16 @@ public class Spindexer {
      *  </ul>
      */
     private void playerShoot() {
-        if (_opMode.gamepad2.a) {
+        if (_opMode.gamepad2.a && _timerLauncher.milliseconds() > Constants.WAIT_DURATION_MS) {
             if (_mode != Mode.SHOOT) _mode = Mode.SHOOT;
             _launchTime.reset();
             _isShooting = true;
-            _opMode.sleep(Constants.WAIT_DURATION_MS);
+            _timerLauncher.reset();
         }
     }
 
     private void patternChange() {
-        if (_opMode.gamepad2.x) {
+        if (_opMode.gamepad2.x && _timerLauncher.milliseconds() > Constants.WAIT_DURATION_MS) {
             _launcher.close().stop();
             _pattern.resetPatternBuilder();
             _colorVision.resetStateChange();
@@ -187,6 +189,7 @@ public class Spindexer {
             _mode = Mode.INTAKE;
             _currentPos = 0;
             _spindexer.setPosition(_currentPos);
+            _timerLauncher.reset();
         }
     }
 
@@ -282,16 +285,16 @@ public class Spindexer {
         return new Action() {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                if (_opMode.gamepad2.x) {
+                if (_opMode.gamepad2.x && _timerSpindexerChange.milliseconds() > Constants.WAIT_DURATION_MS) {
                     _currentPos = (_currentPos > (Constants.Spindexer.Positions.length - 2) ? 0 : _currentPos + 1);
                     _spindexer.setPosition(Constants.Spindexer.Positions[_currentPos]);
-                    _opMode.sleep(250);
-                } else if (_opMode.gamepad2.y) {
+                    _timerSpindexerChange.reset();
+                } else if (_opMode.gamepad2.y && _timerSpindexerChange.milliseconds() > Constants.WAIT_DURATION_MS) {
                     _spindexer.setPosition(_spindexer.getPosition() + 0.01);
-                    _opMode.sleep(250);
-                } else if (_opMode.gamepad2.a) {
+                    _timerSpindexerChange.reset();
+                } else if (_opMode.gamepad2.a && _timerSpindexerChange.milliseconds() > Constants.WAIT_DURATION_MS) {
                     _spindexer.setPosition(_spindexer.getPosition() - 0.01);
-                    _opMode.sleep(250);
+                    _timerSpindexerChange.reset();
                 }
 
                 packet.put("Current Pos Index", _currentPos);

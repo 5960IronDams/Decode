@@ -32,7 +32,7 @@ public final class Constants {
         public static final String MOTOR_LEFT_ID = "leftOut";
         public static final String MOTOR_RIGHT_ID = "rightOut";
 
-        public static final double MAX_POWER = 0.5;
+        public static final double MAX_POWER = 0.525;
         public static final double OPEN_POS = 0.27;
         public static final double CLOSED_POS = 0.0;
 

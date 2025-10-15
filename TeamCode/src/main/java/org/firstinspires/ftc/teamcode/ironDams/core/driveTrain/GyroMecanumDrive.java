@@ -4,6 +4,7 @@ import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
@@ -11,20 +12,17 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.teamcode.decode.Constants;
 
-public class GyroMecanumDrive {
+public class GyroMecanumDrive extends FourWheelDrive
+        implements IDriveTrain{
     private  LinearOpMode _opMode;
-    private DcMotor leftFrontDrive = null;
-    private DcMotor leftBackDrive = null;
-    private DcMotor rightFrontDrive = null;
-    private DcMotor rightBackDrive = null;
     private BNO055IMU imu;
     private BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
     private Orientation angles = new Orientation();
 
     private double initYaw;
-    private double adjustedYaw;
 
     public GyroMecanumDrive(LinearOpMode opMode) {
+        super(opMode.hardwareMap);
         _opMode = opMode;
 
         parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
@@ -35,21 +33,6 @@ public class GyroMecanumDrive {
         imu = opMode.hardwareMap.get(BNO055IMU.class, "imu2");
 
         initImu();
-
-        leftFrontDrive = opMode.hardwareMap.get(DcMotor.class, "leftFront");
-        leftBackDrive = opMode.hardwareMap.get(DcMotor.class, "leftBack");
-        rightBackDrive = opMode.hardwareMap.get(DcMotor.class, "rightBack");
-        rightFrontDrive = opMode.hardwareMap.get(DcMotor.class, "rightFront");
-        leftFrontDrive.setDirection(DcMotor.Direction.FORWARD);
-        leftBackDrive.setDirection(DcMotor.Direction.FORWARD);
-        rightFrontDrive.setDirection(DcMotor.Direction.REVERSE);
-        rightBackDrive.setDirection(DcMotor.Direction.REVERSE);
-
-
-        leftFrontDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        leftBackDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rightBackDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rightFrontDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
     public void initImu() {
@@ -68,13 +51,11 @@ public class GyroMecanumDrive {
     public void drive() {
         angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 
-        adjustedYaw = angles.firstAngle - initYaw;
-
         double zeroedYaw = -initYaw + angles.firstAngle;
 
         double x = _opMode.gamepad1.right_stick_x;
         double y = -_opMode.gamepad1.right_stick_y;
-        double turn = -_opMode.gamepad1.left_stick_x;
+        double turn = _opMode.gamepad1.left_stick_x;
 
         double theta = Math.atan2(y, x) * 180 / Math.PI; // aka angle
 
@@ -100,9 +81,11 @@ public class GyroMecanumDrive {
             rightBack /= power - turn;
         }
 
-        leftFrontDrive.setPower(leftFront);
-        rightFrontDrive.setPower(rightFront);
-        leftBackDrive.setPower(leftBack);
-        rightBackDrive.setPower(rightBack);
+        _leftFrontDrive.setPower(leftFront);
+        _rightFrontDrive.setPower(rightFront);
+        _leftBackDrive.setPower(leftBack);
+        _rightBackDrive.setPower(rightBack);
+
+        reset();
     }
 }
