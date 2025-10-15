@@ -3,26 +3,61 @@ package org.firstinspires.ftc.teamcode.decode.core;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 
-public class ColorVision {
-    private final ColorSensor _color;
+import org.firstinspires.ftc.teamcode.decode.Constants;
+
+public class ColorVision  {
+    private final ColorSensor _colorSensor;
+
+    private int _blue;
+    private int _green;
+
+    private boolean _hasBall;
+    private boolean _currentlyHasBall;
+
     public ColorVision(LinearOpMode opMode) {
-        _color = opMode.hardwareMap.get(ColorSensor.class, "color");
-        _color.enableLed(true);
+        _colorSensor = opMode.hardwareMap.get(ColorSensor.class, Constants.ColorVision.COLOR_CENTER_ID);
     }
 
-    public int getArgb() {
-        return _color.argb();
+    public ColorVision update() {
+        _blue = _colorSensor.blue();
+        _green = _colorSensor.green();
+        return this;
+    }
+    public boolean getCurrentlyHasBall(){
+        return _currentlyHasBall;
+    }
+    public int getRed(){
+        return _colorSensor.red();
     }
 
-    public int getGreen() {
-        return _color.green();
+    public int getBlue(){
+        return _colorSensor.blue();
     }
 
-    public int getRed() {
-        return _color.red();
+    public int getGreen(){
+        return _colorSensor.green();
     }
 
-    public int getBlue() {
-        return _color.blue();
+    public void hasBall() {
+        _currentlyHasBall = _blue > Constants.ColorVision.COLOR_THRESHOLD || _green > Constants.ColorVision.COLOR_THRESHOLD;
+    }
+
+    public void resetStateChange() {
+        _currentlyHasBall = false;
+        _hasBall = false;
+    }
+
+    public boolean hasStateChange() {
+        hasBall();
+        if (_currentlyHasBall != _hasBall) {
+            _hasBall = !_hasBall;
+            return true;
+        }
+
+        return false;
+    }
+
+    public String getColorCode() {
+        return _blue > _green ? "P" : "G";
     }
 }
