@@ -10,7 +10,9 @@ import org.firstinspires.ftc.teamcode.decode.Pattern;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 /**
  * Will switch through the spindexer modes.<br>
@@ -23,7 +25,9 @@ import com.qualcomm.robotcore.hardware.Servo;
 public class Spindexer {
     private final LinearOpMode _opMode;
     private final Servo _spindexer;
-
+    private ElapsedTime _timerSpindexerChange;
+    private ElapsedTime _timerLauncher;
+    private ElapsedTime _timerSpindexer;
     private final Intake _intake;
     private final ColorVision _colorVision;
     private final Launcher _launcher;
@@ -31,6 +35,9 @@ public class Spindexer {
 
     private int _currentPos = 0;
     private int _shootCount = 0;
+
+    private final double _launchWaitTime = Constants.Launcher.BALL_DROP_DELAY;
+    private final ElapsedTime _launchTime = new ElapsedTime();
 
     private Mode _mode = Mode.INTAKE;
     private boolean _isShooting;
@@ -54,6 +61,8 @@ public class Spindexer {
         _launcher = launcher;
         _pattern = pattern;
         _spindexer = opMode.hardwareMap.get(Servo.class, Constants.Spindexer.SPINDEXER_ID);
+
+        _spindexer.setPosition(Constants.Spindexer.Positions[0]);
     }
 
     /**
@@ -96,7 +105,7 @@ public class Spindexer {
 
             boolean hasStateChanged = _colorVision.update().hasStateChange();
             if (hasStateChanged) {
-                boolean hasBall = _colorVision.hasBall();
+                boolean hasBall = _colorVision.getCurrentlyHasBall();
                 if (hasBall) {
                     if (_currentPos == 0) {
                         _pattern.updatePatternBuilder(2, _colorVision.getColorCode());
@@ -108,7 +117,6 @@ public class Spindexer {
                         _spindexer.setPosition(Constants.Spindexer.Positions[4]);
                     } else if (_currentPos == 4) {
                         _pattern.updatePatternBuilder(1, _colorVision.getColorCode());
-                        _intake.stop();
                         _mode = Mode.SORT;
                     }
                 }
@@ -163,10 +171,25 @@ public class Spindexer {
      *  </ul>
      */
     private void playerShoot() {
-        if (_opMode.gamepad2.b) {
+        if (_opMode.gamepad2.a && _timerLauncher.milliseconds() > Constants.WAIT_DURATION_MS) {
             if (_mode != Mode.SHOOT) _mode = Mode.SHOOT;
+            _launchTime.reset();
             _isShooting = true;
-            _opMode.sleep(Constants.WAIT_DURATION_MS);
+            _timerLauncher.reset();
+        }
+    }
+
+    private void patternChange() {
+        if (_opMode.gamepad2.x && _timerLauncher.milliseconds() > Constants.WAIT_DURATION_MS) {
+            _launcher.close().stop();
+            _pattern.resetPatternBuilder();
+            _colorVision.resetStateChange();
+            _shootCount = 0;
+            _isShooting = false;
+            _mode = Mode.INTAKE;
+            _currentPos = 0;
+            _spindexer.setPosition(_currentPos);
+            _timerLauncher.reset();
         }
     }
 
@@ -179,26 +202,38 @@ public class Spindexer {
     public void runShootMode() {
         if (_mode == Mode.SHOOT) {
             playerShoot();
+            patternChange();
+
+            if(_launcher.getPower() == 0){
+                _launcher.open().setPower();
+            }
 
             if (_isShooting) {
-                if (_shootCount < 3) {
-                    if (_launcher.getPower() == 0) {
-                        _launcher.open().setPower();
-                        _opMode.sleep(Constants.WAIT_DURATION_MS);
+                _intake.stop();
+                if (_shootCount < 4) {
+                    if (_launchTime.milliseconds() > _launchWaitTime) {
+//                        if (_launcher.getPower() == 0) {
+//                            _launcher.open().setPower();
+//                            _opMode.sleep(Constants.WAIT_DURATION_MS);
+//                        }
+
+                        if (_currentPos % 2 == 0) _currentPos += 1;
+                        else _currentPos += 2;
+
+                        _spindexer.setPosition(Constants.Spindexer.Positions[_currentPos]);
+//                    _opMode.sleep(Constants.Launcher.BALL_DROP_DELAY);
+                        _shootCount++;
+                        _launchTime.reset();
                     }
-
-                    if (_currentPos % 2 == 0) _currentPos += 1;
-                    else _currentPos += 2;
-
-                    _spindexer.setPosition(Constants.Spindexer.Positions[_currentPos]);
-                    _opMode.sleep(Constants.Launcher.BALL_DROP_DELAY);
-                    _shootCount++;
                 } else {
                     _launcher.close().stop();
                     _pattern.resetPatternBuilder();
+                    _colorVision.resetStateChange();
                     _shootCount = 0;
                     _isShooting = false;
                     _mode = Mode.INTAKE;
+                    _currentPos = 0;
+                    _spindexer.setPosition(_currentPos);
                 }
             }
         }
@@ -220,11 +255,50 @@ public class Spindexer {
                         .runSortMode()
                         .runShootMode();
 
+                _opMode.telemetry.addData("Spindex Mode", _mode);
+                _opMode.telemetry.addData("Intake Mode", _intake.getMode());
+                _opMode.telemetry.addData("Target Pattern", _pattern.getTarget());
+
                 packet.put("Spindexer Mode", _mode);
+                packet.put("Spindexer pos", _spindexer.getPosition());
+
                 packet.put("Intake Mode", _intake.getMode());
+
+                packet.put("Pattern Target G", _pattern.getGreenTarget());
+                packet.put("Pattern Actual G", _pattern.getGreenPosition());
                 packet.put("Pattern Target", _pattern.getTarget());
                 packet.put("Pattern Actual", _pattern.getPattern());
-                packet.put("Servo pos", _spindexer.getPosition());
+                packet.put("Spindexer Shoot Timer", _launchTime.milliseconds());
+                packet.put("Spindexer Time Delay", _launchWaitTime);
+                packet.put("Spindexer Shoot Counter", _shootCount);
+
+                packet.put("CV red", _colorVision.getRed());
+                packet.put("CV blue", _colorVision.getBlue());
+                packet.put("CV green", _colorVision.getGreen());
+
+                return true;
+            }
+        };
+    }
+
+    public Action runSpinner() {
+        return new Action() {
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                if (_opMode.gamepad2.x && _timerSpindexerChange.milliseconds() > Constants.WAIT_DURATION_MS) {
+                    _currentPos = (_currentPos > (Constants.Spindexer.Positions.length - 2) ? 0 : _currentPos + 1);
+                    _spindexer.setPosition(Constants.Spindexer.Positions[_currentPos]);
+                    _timerSpindexerChange.reset();
+                } else if (_opMode.gamepad2.y && _timerSpindexerChange.milliseconds() > Constants.WAIT_DURATION_MS) {
+                    _spindexer.setPosition(_spindexer.getPosition() + 0.01);
+                    _timerSpindexerChange.reset();
+                } else if (_opMode.gamepad2.a && _timerSpindexerChange.milliseconds() > Constants.WAIT_DURATION_MS) {
+                    _spindexer.setPosition(_spindexer.getPosition() - 0.01);
+                    _timerSpindexerChange.reset();
+                }
+
+                packet.put("Current Pos Index", _currentPos);
+                packet.put("Servo Pos", _spindexer.getPosition());
 
                 return true;
             }
