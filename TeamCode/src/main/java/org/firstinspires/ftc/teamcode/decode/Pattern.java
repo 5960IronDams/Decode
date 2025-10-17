@@ -89,11 +89,11 @@ public class Pattern {
 
     public int getGreenTarget() {
         String[] pt = _target.split("");
-        if (pt[0].equals("G")) {
+        if (pt[1].equals("G")) {
             return 0;
-        } else if (pt[1].equals("G")) {
-            return 1;
         } else if (pt[2].equals("G")) {
+            return 1;
+        } else if (pt[3].equals("G")) {
             return 2;
         }
 

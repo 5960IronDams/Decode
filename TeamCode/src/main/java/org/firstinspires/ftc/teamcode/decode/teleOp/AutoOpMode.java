@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode.decode.teleOp;
 
-import android.os.Build;
-
 import androidx.annotation.NonNull;
 
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
@@ -11,27 +9,22 @@ import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.decode.core.BallVision;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+import org.firstinspires.ftc.teamcode.decode.Pattern;
 import org.firstinspires.ftc.teamcode.decode.core.ColorVision;
-import org.firstinspires.ftc.teamcode.decode.core.Decoder;
 import org.firstinspires.ftc.teamcode.decode.core.Intake;
 import org.firstinspires.ftc.teamcode.decode.core.Launcher;
 import org.firstinspires.ftc.teamcode.decode.core.Spindexer;
+import org.firstinspires.ftc.teamcode.ironDams.core.odometry.IGyro;
+import org.firstinspires.ftc.teamcode.ironDams.core.odometry.Pinpoint;
 
-import java.time.LocalDate;
-
-@TeleOp(name = "PlayerOpMode", group = "_IronDams")
-public class PlayerOpMode extends LinearOpMode {
+@TeleOp(name = "AutoOpMode", group = "_IronDams")
+public class AutoOpMode extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
-        WooshMachine _drive = new WooshMachine(this, true);
-        Intake _intake = new Intake(this);
-//        Decoder _decoder = new Decoder(this);
-        ColorVision _colorVision = new ColorVision(this);
-        Launcher _launcher =new Launcher(this);
-        Pattern _pattern = new Pattern(this);
-        Spindexer _spindexer = new Spindexer(this, _intake, _colorVision, _launcher, _pattern);
+        IGyro pinpoint = new Pinpoint(this.hardwareMap, new Pose2D(DistanceUnit.INCH, 0,0, AngleUnit.DEGREES, 0));
 
         /* The Drive Train will run based on controller motion
          * The intake and spindexer will run when there isn't 3 balls detected.
@@ -43,36 +36,18 @@ public class PlayerOpMode extends LinearOpMode {
          */
 
         waitForStart();
-        while (opModeIsActive()){
-            telemetry.addData("r", _colorVIsion.getRed());
-            telemetry.addData("g", _colorVIsion.getGreen());
-            telemetry.addData("b", _colorVIsion.getBlue());
-            telemetry.addData("a", _colorVIsion.getArgb());
+
+        while (opModeIsActive()) {
+            Pose2D pos = pinpoint.getPose();
+
+            telemetry.addData("posX", pos.getX(DistanceUnit.INCH));
+            telemetry.addData("posY", pos.getY(DistanceUnit.INCH));
+            telemetry.addData("heading", pos.getHeading(AngleUnit.DEGREES));
             telemetry.update();
-//            _drive.go();
-//            if (gamepad1.a)
-//                _intake.run(0.5);
-//            else _intake.stop();
-//
-//            if (gamepad1.b)
-//                _spindexer.run(0.5);
-//            else _spindexer.stop();
-//
-//            if (gamepad1.x) {
-//                _launcher.run(0.5).open();
-//            }
-//            else {
-//                _launcher.close().stop();
-//            }
         }
-        Actions.runBlocking(
-            new ParallelAction(
-                _spindexer.runAction(),
-                _drive.runDrive(),
-//                _decoder.setSequence(),
-                updateTelemetry()
-            )
-        );
+
+        telemetry.addData("Completed", "");
+        telemetry.update();
     }
 
     public Action updateTelemetry() {

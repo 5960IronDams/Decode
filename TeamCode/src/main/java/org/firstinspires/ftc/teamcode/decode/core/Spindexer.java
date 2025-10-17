@@ -12,7 +12,9 @@ import org.firstinspires.ftc.teamcode.ironDams.core.WaitFor;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 /**
  * Will switch through the spindexer modes.<br>
@@ -30,7 +32,9 @@ public class Spindexer {
 
     private final LinearOpMode _opMode;
     private final Servo _spindexer;
-
+    private ElapsedTime _timerSpindexerChange;
+    private ElapsedTime _timerLauncher;
+    private ElapsedTime _timerSpindexer;
     private final Intake _intake;
     private final ColorVision _colorVision;
     private final Launcher _launcher;
@@ -39,6 +43,9 @@ public class Spindexer {
     private int _currentPos = 0;
     private int _detectionPos = -1;
     private int _shootCount = 0;
+
+    private final double _launchWaitTime = Constants.Launcher.BALL_DROP_DELAY;
+    private final ElapsedTime _launchTime = new ElapsedTime();
 
     private Mode _mode = Mode.INTAKE;
     private boolean _isShooting;
@@ -121,7 +128,6 @@ public class Spindexer {
                         _spindexer.setPosition(Constants.Spindexer.Positions[4]);
                     } else if (_currentPos == 4) {
                         _pattern.updatePatternBuilder(1, _colorVision.getColorCode());
-                        _intake.stop();
                         _mode = Mode.SORT;
                     }
                 }
@@ -176,10 +182,25 @@ public class Spindexer {
      *  </ul>
      */
     private void playerShoot() {
-        if (_opMode.gamepad2.b) {
+        if (_opMode.gamepad2.a && _timerLauncher.milliseconds() > Constants.WAIT_DURATION_MS) {
             if (_mode != Mode.SHOOT) _mode = Mode.SHOOT;
+            _launchTime.reset();
             _isShooting = true;
-            _opMode.sleep(Constants.WAIT_DURATION_MS);
+            _timerLauncher.reset();
+        }
+    }
+
+    private void patternChange() {
+        if (_opMode.gamepad2.x && _timerLauncher.milliseconds() > Constants.WAIT_DURATION_MS) {
+            _launcher.close().stop();
+            _pattern.resetPatternBuilder();
+            _colorVision.resetStateChange();
+            _shootCount = 0;
+            _isShooting = false;
+            _mode = Mode.INTAKE;
+            _currentPos = 0;
+            _spindexer.setPosition(_currentPos);
+            _timerLauncher.reset();
         }
     }
 
@@ -197,6 +218,11 @@ public class Spindexer {
             }
 
             playerShoot();
+            patternChange();
+
+            if(_launcher.getPower() == 0){
+                _launcher.open().setPower();
+            }
 
             if (_isShooting) {
                 if (_shootCount < 4) {
@@ -211,12 +237,15 @@ public class Spindexer {
                 } else {
                     _launcher.close().stop();
                     _pattern.resetPatternBuilder();
+                    _colorVision.resetStateChange();
                     _shootCount = 0;
                     _currentPos = 0;
                     _detectionPos = -1;
                     _spindexer.setPosition(Constants.Spindexer.Positions[_currentPos]);
                     _isShooting = false;
                     _mode = Mode.INTAKE;
+                    _currentPos = 0;
+                    _spindexer.setPosition(_currentPos);
                 }
             }
         }
@@ -254,7 +283,12 @@ public class Spindexer {
                 }
 
                 packet.put("Spindexer Mode", _mode);
+                packet.put("Spindexer pos", _spindexer.getPosition());
+
                 packet.put("Intake Mode", _intake.getMode());
+
+                packet.put("Pattern Target G", _pattern.getGreenTarget());
+                packet.put("Pattern Actual G", _pattern.getGreenPosition());
                 packet.put("Pattern Target", _pattern.getTarget());
                 packet.put("Pattern Actual", _pattern.getPattern());
                 packet.put("Servo pos", _spindexer.getPosition());

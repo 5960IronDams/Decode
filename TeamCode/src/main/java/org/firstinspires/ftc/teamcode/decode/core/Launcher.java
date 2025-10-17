@@ -1,8 +1,13 @@
 package org.firstinspires.ftc.teamcode.decode.core;
 
+import androidx.annotation.NonNull;
+
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.teamcode.decode.Constants;
@@ -16,6 +21,7 @@ public class Launcher {
     public Launcher(LinearOpMode opMode) {
         _opMode = opMode;
         _servo = opMode.hardwareMap.get(Servo.class, Constants.Launcher.LAUNCHER_ID);
+        _servo.setDirection(Servo.Direction.REVERSE);
 
         _left = opMode.hardwareMap.get(DcMotorEx.class, Constants.Launcher.MOTOR_LEFT_ID);
         _right = opMode.hardwareMap.get(DcMotorEx.class, Constants.Launcher.MOTOR_RIGHT_ID);
