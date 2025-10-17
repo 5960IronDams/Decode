@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.teamcode.decode.Constants;
 
 public class Launcher {
@@ -52,5 +53,33 @@ public class Launcher {
 
     public double getPower() {
         return _left.getPower();
+    }
+
+    public double getLeftCurrent(CurrentUnit currentUnit) {
+        return _left.getCurrent(currentUnit);
+    }
+
+    public double getRightCurrent(CurrentUnit currentUnit) {
+        return _right.getCurrent(currentUnit);
+    }
+
+    public double getLeftVelocity() {
+        return _left.getVelocity();
+    }
+
+    public double getRightVelocity() {
+        return _right.getVelocity();
+    }
+
+    public boolean  IsInRange() {
+        double leftCurrent = getLeftCurrent(CurrentUnit.MILLIAMPS);
+        double rightCurrent = getRightCurrent(CurrentUnit.MILLIAMPS);
+
+        return leftCurrent < Constants.Launcher.MAX_LEFT_CURRENT &&
+                leftCurrent > Constants.Launcher.MIN_LEFT_CURRENT &&
+                rightCurrent < Constants.Launcher.MAX_RIGHT_CURRENT &&
+                rightCurrent > Constants.Launcher.MIN_RIGHT_CURRENT;
+
+
     }
 }

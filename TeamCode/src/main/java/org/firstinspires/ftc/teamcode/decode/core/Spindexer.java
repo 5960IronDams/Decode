@@ -4,8 +4,10 @@ import static org.firstinspires.ftc.teamcode.decode.Constants.Spindexer.Mode;
 
 import androidx.annotation.NonNull;
 
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.teamcode.decode.Constants;
 import org.firstinspires.ftc.teamcode.decode.Pattern;
+import org.firstinspires.ftc.teamcode.ironDams.core.WaitFor;
 
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
@@ -21,6 +23,11 @@ import com.qualcomm.robotcore.hardware.Servo;
  *  </ul>
  */
 public class Spindexer {
+    double minLeftCurrent = 0;
+    double minRightCurrent = 0;
+    double maxLeftCurrent = 0;
+    double maxRightCurrent = 0;
+
     private final LinearOpMode _opMode;
     private final Servo _spindexer;
 
@@ -30,10 +37,13 @@ public class Spindexer {
     private final Pattern _pattern;
 
     private int _currentPos = 0;
+    private int _detectionPos = -1;
     private int _shootCount = 0;
 
     private Mode _mode = Mode.INTAKE;
     private boolean _isShooting;
+
+    private final WaitFor _shootDelay = new WaitFor(Constants.Launcher.BALL_DROP_DELAY);
 
     /**
      * The brains for capturing, sorting & shooting the balls.
@@ -54,6 +64,8 @@ public class Spindexer {
         _launcher = launcher;
         _pattern = pattern;
         _spindexer = opMode.hardwareMap.get(Servo.class, Constants.Spindexer.SPINDEXER_ID);
+
+        _spindexer.setPosition(Constants.Spindexer.Positions[0]);
     }
 
     /**
@@ -97,7 +109,8 @@ public class Spindexer {
             boolean hasStateChanged = _colorVision.update().hasStateChange();
             if (hasStateChanged) {
                 boolean hasBall = _colorVision.hasBall();
-                if (hasBall) {
+                if (hasBall && _detectionPos != _currentPos) {
+                    _detectionPos = _currentPos;
                     if (_currentPos == 0) {
                         _pattern.updatePatternBuilder(2, _colorVision.getColorCode());
                         _currentPos = 2;
@@ -178,25 +191,30 @@ public class Spindexer {
      */
     public void runShootMode() {
         if (_mode == Mode.SHOOT) {
+            if (_launcher.getPower() == 0) {
+                _launcher.open().setPower();
+                _opMode.sleep(Constants.WAIT_DURATION_MS);
+            }
+
             playerShoot();
 
             if (_isShooting) {
-                if (_shootCount < 3) {
-                    if (_launcher.getPower() == 0) {
-                        _launcher.open().setPower();
-                        _opMode.sleep(Constants.WAIT_DURATION_MS);
+                if (_shootCount < 4) {
+                    if (_shootDelay.allowExec()) { //&& _launcher.IsInRange()) {
+                        if (_currentPos % 2 == 0) _currentPos += 1;
+                        else _currentPos += 2;
+
+                        _spindexer.setPosition(Constants.Spindexer.Positions[_currentPos]);
+                        _opMode.sleep(Constants.Launcher.BALL_DROP_DELAY);
+                        _shootCount++;
                     }
-
-                    if (_currentPos % 2 == 0) _currentPos += 1;
-                    else _currentPos += 2;
-
-                    _spindexer.setPosition(Constants.Spindexer.Positions[_currentPos]);
-                    _opMode.sleep(Constants.Launcher.BALL_DROP_DELAY);
-                    _shootCount++;
                 } else {
                     _launcher.close().stop();
                     _pattern.resetPatternBuilder();
                     _shootCount = 0;
+                    _currentPos = 0;
+                    _detectionPos = -1;
+                    _spindexer.setPosition(Constants.Spindexer.Positions[_currentPos]);
                     _isShooting = false;
                     _mode = Mode.INTAKE;
                 }
@@ -220,11 +238,33 @@ public class Spindexer {
                         .runSortMode()
                         .runShootMode();
 
+                double leftCurrent = _launcher.getLeftCurrent(CurrentUnit.MILLIAMPS);
+                double rightCurrent = _launcher.getRightCurrent(CurrentUnit.MILLIAMPS);
+
+                boolean startTracking =false;
+
+                if (leftCurrent > 1030 && rightCurrent > 1100) startTracking = true;
+
+
+                if (startTracking) {
+                    if (leftCurrent < minLeftCurrent || minLeftCurrent == 0) minLeftCurrent = leftCurrent;
+                    if (rightCurrent < minRightCurrent || minRightCurrent == 0) minRightCurrent = rightCurrent;
+                    if (leftCurrent > maxLeftCurrent) maxLeftCurrent = leftCurrent;
+                    if (rightCurrent > maxRightCurrent) maxRightCurrent = rightCurrent;
+                }
+
                 packet.put("Spindexer Mode", _mode);
                 packet.put("Intake Mode", _intake.getMode());
                 packet.put("Pattern Target", _pattern.getTarget());
                 packet.put("Pattern Actual", _pattern.getPattern());
                 packet.put("Servo pos", _spindexer.getPosition());
+                packet.put("Launcher RC", _launcher.getRightCurrent(CurrentUnit.MILLIAMPS));
+                packet.put("Launcher LC", _launcher.getLeftCurrent(CurrentUnit.MILLIAMPS));
+                packet.put("Launcher RCMax", maxRightCurrent);
+                packet.put("Launcher LCMax", maxLeftCurrent);
+                packet.put("Launcher RCMin", minRightCurrent);
+                packet.put("Launcher LCMin", minLeftCurrent);
+                packet.put("Launcher In Range", _launcher.IsInRange());
 
                 return true;
             }

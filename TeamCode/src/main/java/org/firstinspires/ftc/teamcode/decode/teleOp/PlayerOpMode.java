@@ -45,7 +45,7 @@ public class PlayerOpMode extends LinearOpMode {
      */
     @Override
     public void runOpMode() throws InterruptedException {
-//        WooshMachine _drive = new WooshMachine(this, true);
+        WooshMachine _drive = new WooshMachine(this, true);
         Intake _intake = new Intake(this);
 //        Decoder _decoder = new Decoder(this);
         ColorVision _colorVision = new ColorVision(this);
@@ -66,17 +66,12 @@ public class PlayerOpMode extends LinearOpMode {
 
         Actions.runBlocking(
             new ParallelAction(
-                    _spindexer.runAction(),
-//                _drive.runDrive(),
+                _spindexer.runAction(),
+                _drive.runDrive(),
 //                _decoder.setSequence(),
                 updateTelemetry()
             )
         );
-
-        telemetry.addData("Completed", "");
-        telemetry.update();
-
-        this.sleep(15000);
     }
 
     public Action updateTelemetry() {

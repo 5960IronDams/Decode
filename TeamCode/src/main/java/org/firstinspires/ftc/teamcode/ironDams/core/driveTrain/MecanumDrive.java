@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.ironDams.core.driveTrain;
 
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
@@ -14,39 +15,29 @@ public class MecanumDrive
         extends FourWheelDrive
         implements IDriveTrain {
 
-    public MecanumDrive(HardwareMap hardwareMap, Gamepad gamepad, boolean usePinpoint) {
-        super(hardwareMap);
+    private final LinearOpMode _opMode;
+    public MecanumDrive(LinearOpMode opMode)  {
+        super(opMode.hardwareMap);
+        _opMode = opMode;
     }
 
-
-    @Override
     public void init() { }
 
     @Override
-    public void drive(double powerX, double powerY, double powerTurn) {
+    public void drive() {
 
-        double x = powerX;
-        double y = powerY;
-        double turn = powerTurn;
-        double power = Math.hypot(x, y);
+        double vertical = -_opMode.gamepad1.right_stick_y;
+        double horizontal = _opMode.gamepad1.right_stick_x;
+        double pivot = _opMode.gamepad1.left_stick_x;
 
+        double flp = (pivot + vertical + horizontal);
+        double frp = (-pivot + (vertical - horizontal));
+        double rlp = (pivot + (vertical - horizontal));
+        double rrp = (-pivot + vertical + horizontal);
 
-        double leftFront = (power + turn);
-        double rightFront = (power - turn);
-        double leftBack = (power + turn);
-        double rightBack = (power - turn);
-
-
-        if ((power + Math.abs(turn)) > 1) {
-            leftFront /= power + turn;
-            rightFront /= power - turn;
-            leftBack /= power + turn;
-            rightBack /= power - turn;
-        }
-
-        _leftFrontDrive.setPower(leftFront);
-        _rightFrontDrive.setPower(rightFront);
-        _leftBackDrive.setPower(leftBack);
-        _rightBackDrive.setPower(rightBack);
+        _leftBackDrive.setPower(rlp);
+        _rightBackDrive.setPower(rrp);
+        _leftFrontDrive.setPower(flp);
+        _rightFrontDrive.setPower(frp);
     }
 }
