@@ -4,13 +4,17 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import org.firstinspires.ftc.teamcode.decode.Constants;
+import org.firstinspires.ftc.teamcode.ironDams.core.WaitFor;
 
 /**
  * Contains the logic for running the intake.
  */
 public class Intake {
-    private final LinearOpMode _opMode;
-    private final DcMotorEx _motor;
+    private final LinearOpMode OP_MODE;
+    private final DcMotorEx MOTOR;
+
+    private final WaitFor USER_BTN_DELAY = new WaitFor(Constants.WAIT_DURATION_MS);
+
     /**
      * The current mode of the intake. <b>ACTIVE, INACTIVE</b>
      */
@@ -21,12 +25,12 @@ public class Intake {
      * @param opMode The current op mode.
      */
     public Intake(LinearOpMode opMode) {
-        _opMode = opMode;
-        _motor = opMode.hardwareMap.get(DcMotorEx.class, Constants.Intake.INTAKE_ID);
+        OP_MODE = opMode;
+        MOTOR = opMode.hardwareMap.get(DcMotorEx.class, Constants.Intake.INTAKE_ID);
 
-        _motor.setDirection(DcMotorEx.Direction.REVERSE);
-        _motor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-        _motor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
+        MOTOR.setDirection(DcMotorEx.Direction.REVERSE);
+        MOTOR.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        MOTOR.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
     }
 
     /**
@@ -41,29 +45,25 @@ public class Intake {
      * Sets the mode of the intake.<br>
      * <u>GAMEPAD2</u>
      * <ul><li>Right Trigger - ACTIVE</li><li>Left Trigger - INACTIVE</li></ul>
-     * @return The intake object.
      */
-    public Intake setMode() {
-        if (_opMode.gamepad2.right_trigger != 0) {
+    public void setMode() {
+        if (OP_MODE.gamepad2.right_trigger != 0 && USER_BTN_DELAY.allowExec()) {
             _mode = Constants.Intake.Mode.ACTIVE;
-            _opMode.sleep(Constants.WAIT_DURATION_MS);
-        } else if (_opMode.gamepad2.left_trigger != 0) {
+        } else if (OP_MODE.gamepad2.left_trigger != 0 && USER_BTN_DELAY.allowExec()) {
             _mode = Constants.Intake.Mode.INACTIVE;
-            _opMode.sleep(Constants.WAIT_DURATION_MS);
         }
 
-        return this;
     }
 
     public void stop() {
-        _motor.setPower(0);
+        MOTOR.setPower(0);
     }
 
-    public void setPower() {
-        _motor.setPower(Constants.Intake.MAX_POWER);
+    public void setPower(double power) {
+        MOTOR.setPower(power);
     }
 
     public double getPower() {
-        return _motor.getPower();
+        return MOTOR.getPower();
     }
 }

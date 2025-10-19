@@ -4,19 +4,12 @@ import androidx.annotation.NonNull;
 
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
-import com.acmerobotics.roadrunner.ParallelAction;
-import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
-import org.firstinspires.ftc.teamcode.decode.Pattern;
-import org.firstinspires.ftc.teamcode.decode.core.ColorVision;
-import org.firstinspires.ftc.teamcode.decode.core.Intake;
-import org.firstinspires.ftc.teamcode.decode.core.Launcher;
-import org.firstinspires.ftc.teamcode.decode.core.Spindexer;
 import org.firstinspires.ftc.teamcode.ironDams.core.odometry.IGyro;
 import org.firstinspires.ftc.teamcode.ironDams.core.odometry.Pinpoint;
 

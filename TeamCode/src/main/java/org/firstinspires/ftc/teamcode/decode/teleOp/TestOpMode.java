@@ -13,7 +13,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.decode.Pattern;
 import org.firstinspires.ftc.teamcode.decode.core.ColorVision;
 import org.firstinspires.ftc.teamcode.decode.core.Intake;
-import org.firstinspires.ftc.teamcode.decode.core.Launcher;
+import org.firstinspires.ftc.teamcode.decode.core.Shooter;
 import org.firstinspires.ftc.teamcode.decode.core.Spindexer;
 
 @Disabled
@@ -44,7 +44,7 @@ public class TestOpMode extends LinearOpMode {
 //        WooshMachine _drive = new WooshMachine(this, true);
         Intake _intake = new Intake(this);
         ColorVision _colorVision = new ColorVision(this);
-        Launcher _launcher =new Launcher(this);
+        Shooter _launcher = new Shooter(this);
         Pattern _pattern = new Pattern(this);
         Spindexer _spindexer = new Spindexer(this, _intake, _colorVision, _launcher, _pattern);
 

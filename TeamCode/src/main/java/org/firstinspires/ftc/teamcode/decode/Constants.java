@@ -5,7 +5,7 @@ public final class Constants {
     public static final long WAIT_DURATION_MS = 250;
 
     public static final class ColorVision {
-        public static final int COLOR_THRESHOLD = 1000;
+        public static final int COLOR_THRESHOLD = 3000;
         public static final String COLOR_CENTER_ID = "colorC"; // Color Sensor
     }
 
@@ -21,27 +21,30 @@ public final class Constants {
     public static final class Intake {
         public static final String INTAKE_ID = "intake";
         public static final double MAX_POWER = 0.5;
+        public static final double SORT_POWER = 0.2;
 
         public enum Mode {
             ACTIVE, INACTIVE
         }
     }
 
-    public static final class Launcher {
+    public static final class Shooter {
         public static final String LAUNCHER_ID = "launcher";
         public static final String MOTOR_LEFT_ID = "leftOut";
         public static final String MOTOR_RIGHT_ID = "rightOut";
 
-        public static final double MAX_POWER = 0.58125;
+        public static final double MAX_POWER = 0.65;
         public static final double OPEN_POS = 0.37;
         public static final double CLOSED_POS = 0.0;
 
-        public static final int BALL_DROP_DELAY = 3000;
+        public static final int BALL_DROP_DELAY = 500;
 
-        public static final long MIN_LEFT_CURRENT = 1030;
-        public static final long MAX_LEFT_CURRENT = 1060;
+        public static final long MIN_LEFT_CURRENT = 695;
+        public static final long MAX_LEFT_CURRENT = 785;
 
-        public static final long MIN_RIGHT_CURRENT = 1100;
-        public static final long MAX_RIGHT_CURRENT = 1130;
+        public static final long MIN_RIGHT_CURRENT = 575;
+        public static final long MAX_RIGHT_CURRENT = 700;
+
+        public static final long BALL_DETECTION_CURRENT = 900;
     }
 }

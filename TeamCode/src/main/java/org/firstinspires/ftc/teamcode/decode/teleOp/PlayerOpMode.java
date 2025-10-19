@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode.decode.teleOp;
 
-import android.os.Build;
-
 import androidx.annotation.NonNull;
 
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
@@ -11,16 +9,11 @@ import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.decode.Pattern;
-import org.firstinspires.ftc.teamcode.decode.core.BallVision;
 import org.firstinspires.ftc.teamcode.decode.core.ColorVision;
-import org.firstinspires.ftc.teamcode.decode.core.Decoder;
 import org.firstinspires.ftc.teamcode.decode.core.Intake;
-import org.firstinspires.ftc.teamcode.decode.core.Launcher;
+import org.firstinspires.ftc.teamcode.decode.core.Shooter;
 import org.firstinspires.ftc.teamcode.decode.core.Spindexer;
-
-import java.time.LocalDate;
 
 @TeleOp(name = "PlayerOpMode", group = "_IronDams")
 public class PlayerOpMode extends LinearOpMode {
@@ -29,7 +22,7 @@ public class PlayerOpMode extends LinearOpMode {
         WooshMachine _drive = new WooshMachine(this, true);
         Intake _intake = new Intake(this);
         ColorVision _colorVision = new ColorVision(this);
-        Launcher _launcher = new Launcher(this);
+        Shooter _launcher = new Shooter(this);
         Pattern _pattern = new Pattern(this);
         Spindexer _spindexer = new Spindexer(this, _intake, _colorVision, _launcher, _pattern);
 

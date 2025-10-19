@@ -1,9 +1,5 @@
 package org.firstinspires.ftc.teamcode.decode.core;
 
-import androidx.annotation.NonNull;
-
-import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
-import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -11,7 +7,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.teamcode.decode.Constants;
 
-public class Launcher {
+public class Shooter {
     private final Servo _servo;
     private final DcMotorEx _left;
     private final DcMotorEx _right;
@@ -23,13 +19,13 @@ public class Launcher {
     private double _minRightCurrent;
     private double _maxRightCurrent;
 
-    public Launcher(LinearOpMode opMode) {
+    public Shooter(LinearOpMode opMode) {
         _opMode = opMode;
-        _servo = opMode.hardwareMap.get(Servo.class, Constants.Launcher.LAUNCHER_ID);
+        _servo = opMode.hardwareMap.get(Servo.class, Constants.Shooter.LAUNCHER_ID);
         _servo.setDirection(Servo.Direction.REVERSE);
 
-        _left = opMode.hardwareMap.get(DcMotorEx.class, Constants.Launcher.MOTOR_LEFT_ID);
-        _right = opMode.hardwareMap.get(DcMotorEx.class, Constants.Launcher.MOTOR_RIGHT_ID);
+        _left = opMode.hardwareMap.get(DcMotorEx.class, Constants.Shooter.MOTOR_LEFT_ID);
+        _right = opMode.hardwareMap.get(DcMotorEx.class, Constants.Shooter.MOTOR_RIGHT_ID);
 
         _right.setDirection(DcMotorEx.Direction.REVERSE);
 
@@ -42,13 +38,13 @@ public class Launcher {
         close();
     }
 
-    public Launcher open() {
-        _servo.setPosition(Constants.Launcher.OPEN_POS);
+    public Shooter open() {
+        _servo.setPosition(Constants.Shooter.OPEN_POS);
         return this;
     }
 
-    public Launcher close() {
-        _servo.setPosition(Constants.Launcher.CLOSED_POS);
+    public Shooter close() {
+        _servo.setPosition(Constants.Shooter.CLOSED_POS);
         return this;
     }
 
@@ -57,9 +53,9 @@ public class Launcher {
         _right.setPower(0);
     }
 
-    public void setPower() {
-        _left.setPower(Constants.Launcher.MAX_POWER);
-        _right.setPower(Constants.Launcher.MAX_POWER);
+    public void setPower(double power) {
+        _left.setPower(power);
+        _right.setPower(power);
     }
 
     public double getPower() {
@@ -74,22 +70,14 @@ public class Launcher {
         return _right.getCurrent(currentUnit);
     }
 
-    public double getLeftVelocity() {
-        return _left.getVelocity();
-    }
-
-    public double getRightVelocity() {
-        return _right.getVelocity();
-    }
-
     public boolean isInRange() {
         double leftCurrent = getLeftCurrent(CurrentUnit.MILLIAMPS);
         double rightCurrent = getRightCurrent(CurrentUnit.MILLIAMPS);
 
-        return leftCurrent < Constants.Launcher.MAX_LEFT_CURRENT &&
-                leftCurrent > Constants.Launcher.MIN_LEFT_CURRENT &&
-                rightCurrent < Constants.Launcher.MAX_RIGHT_CURRENT &&
-                rightCurrent > Constants.Launcher.MIN_RIGHT_CURRENT;
+        return leftCurrent < Constants.Shooter.MAX_LEFT_CURRENT &&
+                leftCurrent > Constants.Shooter.MIN_LEFT_CURRENT &&
+                rightCurrent < Constants.Shooter.MAX_RIGHT_CURRENT &&
+                rightCurrent > Constants.Shooter.MIN_RIGHT_CURRENT;
 
 
     }

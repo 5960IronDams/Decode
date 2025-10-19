@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.decode;
 
+import androidx.annotation.NonNull;
+
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.decode.core.Decoder;
@@ -23,6 +25,14 @@ public class Pattern {
         DECODER = decoder;
     }
 
+    public void makeActualMatchTarget() {
+        String[] target = getTarget().split("");
+        _actualPattern[0] = target[1];
+        _actualPattern[1] = target[2];
+        _actualPattern[2] = target[3];
+        _actualGreenPos = _targetGreenPos;
+    }
+
     public int getGreenTargetPos() {
         return _targetGreenPos;
     }
@@ -35,8 +45,12 @@ public class Pattern {
         return _targetGreenPos == 0 ? "GPP" : _targetGreenPos == 1 ? "PGP" : _targetGreenPos == 2 ? "PPG" : "UUU";
     }
 
-    public String getPattern() {
+    public String getActual() {
         return String.join("", _actualPattern) ;
+    }
+
+    public String[] getActualPattern() {
+        return _actualPattern;
     }
 
     /**
@@ -76,7 +90,7 @@ public class Pattern {
         && !_actualPattern[2].isEmpty();
     }
 
-    public void updateActualPattern(int index, String value) {
+    public void updateActualPattern(int index, @NonNull String value) {
         if (value.equals("G")) _actualGreenPos = index;
         _actualPattern[index] = value;
     }
