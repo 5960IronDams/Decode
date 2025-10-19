@@ -6,6 +6,7 @@ import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.ftc.Actions;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -15,6 +16,7 @@ import org.firstinspires.ftc.teamcode.decode.core.Intake;
 import org.firstinspires.ftc.teamcode.decode.core.Launcher;
 import org.firstinspires.ftc.teamcode.decode.core.Spindexer;
 
+@Disabled
 @TeleOp(name = "TestOpMode", group = "_IronDams")
 public class TestOpMode extends LinearOpMode {
     /**
@@ -59,8 +61,7 @@ public class TestOpMode extends LinearOpMode {
 
         Actions.runBlocking(
             new ParallelAction(
-                _spindexer.runSpinner(),
-                _launcher.runAction(),
+                _spindexer.runAction(),
                 updateTelemetry()
             )
         );

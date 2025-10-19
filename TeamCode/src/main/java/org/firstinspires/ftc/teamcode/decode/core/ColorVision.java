@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.ColorSensor;
 import org.firstinspires.ftc.teamcode.decode.Constants;
 
 public class ColorVision  {
-    private final ColorSensor _colorSensor;
+    private final ColorSensor COLOR_SENSOR;
 
     private int _blue;
     private int _green;
@@ -15,31 +15,32 @@ public class ColorVision  {
     private boolean _currentlyHasBall;
 
     public ColorVision(LinearOpMode opMode) {
-        _colorSensor = opMode.hardwareMap.get(ColorSensor.class, Constants.ColorVision.COLOR_CENTER_ID);
+        COLOR_SENSOR = opMode.hardwareMap.get(ColorSensor.class, Constants.ColorVision.COLOR_CENTER_ID);
     }
 
     public ColorVision update() {
-        _blue = _colorSensor.blue();
-        _green = _colorSensor.green();
+        _blue = COLOR_SENSOR.blue();
+        _green = COLOR_SENSOR.green();
         return this;
     }
     public boolean getCurrentlyHasBall(){
         return _currentlyHasBall;
     }
     public int getRed(){
-        return _colorSensor.red();
+        return COLOR_SENSOR.red();
     }
 
     public int getBlue(){
-        return _colorSensor.blue();
+        return COLOR_SENSOR.blue();
     }
 
     public int getGreen(){
-        return _colorSensor.green();
+        return COLOR_SENSOR.green();
     }
 
-    public void hasBall() {
+    public boolean hasBall() {
         _currentlyHasBall = _blue > Constants.ColorVision.COLOR_THRESHOLD || _green > Constants.ColorVision.COLOR_THRESHOLD;
+        return _currentlyHasBall;
     }
 
     public void resetStateChange() {
@@ -58,6 +59,7 @@ public class ColorVision  {
     }
 
     public String getColorCode() {
-        return _blue > _green ? "P" : "G";
+        return _blue > Constants.ColorVision.COLOR_THRESHOLD && _blue > _green ? "P" :
+                _green > Constants.ColorVision.COLOR_THRESHOLD && _green > _blue ? "G" : "U";
     }
 }
