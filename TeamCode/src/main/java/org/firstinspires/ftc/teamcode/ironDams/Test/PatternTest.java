@@ -6,7 +6,7 @@ import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-import org.firstinspires.ftc.teamcode.decode.Pattern;
+import org.firstinspires.ftc.teamcode.decode.core.Pattern;
 
 public class PatternTest {
     private final Pattern PATTERN;

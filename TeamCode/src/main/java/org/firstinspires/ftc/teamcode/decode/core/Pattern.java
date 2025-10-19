@@ -1,10 +1,8 @@
-package org.firstinspires.ftc.teamcode.decode;
+package org.firstinspires.ftc.teamcode.decode.core;
 
 import androidx.annotation.NonNull;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-
-import org.firstinspires.ftc.teamcode.decode.core.Decoder;
 
 public class Pattern {
     private final LinearOpMode OP_MODE;

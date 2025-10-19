@@ -7,7 +7,7 @@ import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.decode.Constants;
-import org.firstinspires.ftc.teamcode.decode.Pattern;
+import org.firstinspires.ftc.teamcode.decode.core.Pattern;
 import org.firstinspires.ftc.teamcode.decode.core.ColorVision;
 import org.firstinspires.ftc.teamcode.decode.core.Intake;
 import org.firstinspires.ftc.teamcode.decode.core.Shooter;
@@ -31,7 +31,7 @@ public class SpindexerTest {
     /**
      * 0: Position, 1: Intake
      */
-    private int _testMode = 1;
+    private int _testMode = 0;
 
     public SpindexerTest(LinearOpMode opMode) {
         OP_MODE = opMode;

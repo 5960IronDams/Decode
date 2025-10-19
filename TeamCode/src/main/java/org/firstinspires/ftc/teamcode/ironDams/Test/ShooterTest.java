@@ -9,7 +9,6 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.teamcode.decode.Constants;
 import org.firstinspires.ftc.teamcode.decode.core.Shooter;
-import org.firstinspires.ftc.teamcode.decode.core.Spindexer;
 import org.firstinspires.ftc.teamcode.ironDams.core.WaitFor;
 
 public class ShooterTest {

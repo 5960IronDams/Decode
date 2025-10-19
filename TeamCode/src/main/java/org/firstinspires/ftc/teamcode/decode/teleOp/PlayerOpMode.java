@@ -9,7 +9,7 @@ import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.teamcode.decode.Pattern;
+import org.firstinspires.ftc.teamcode.decode.core.Pattern;
 import org.firstinspires.ftc.teamcode.decode.core.ColorVision;
 import org.firstinspires.ftc.teamcode.decode.core.Intake;
 import org.firstinspires.ftc.teamcode.decode.core.Shooter;

@@ -33,18 +33,18 @@ public final class Constants {
         public static final String MOTOR_LEFT_ID = "leftOut";
         public static final String MOTOR_RIGHT_ID = "rightOut";
 
-        public static final double MAX_POWER = 0.65;
+        public static final double MAX_POWER = 0.68;
         public static final double OPEN_POS = 0.37;
         public static final double CLOSED_POS = 0.0;
 
         public static final int BALL_DROP_DELAY = 500;
 
-        public static final long MIN_LEFT_CURRENT = 695;
-        public static final long MAX_LEFT_CURRENT = 785;
+        public static final long MIN_LEFT_CURRENT = 600;
+        public static final long MAX_LEFT_CURRENT = 750;
 
-        public static final long MIN_RIGHT_CURRENT = 575;
-        public static final long MAX_RIGHT_CURRENT = 700;
+        public static final long MIN_RIGHT_CURRENT = 630;
+        public static final long MAX_RIGHT_CURRENT = 750;
 
-        public static final long BALL_DETECTION_CURRENT = 900;
+        public static final long BALL_DETECTION_CURRENT = 850;
     }
 }

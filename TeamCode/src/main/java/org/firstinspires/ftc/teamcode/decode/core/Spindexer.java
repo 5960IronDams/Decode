@@ -6,14 +6,12 @@ import androidx.annotation.NonNull;
 
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.teamcode.decode.Constants;
-import org.firstinspires.ftc.teamcode.decode.Pattern;
 import org.firstinspires.ftc.teamcode.ironDams.core.WaitFor;
 
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 /**
  * Will switch through the spindexer modes.<br>
@@ -285,10 +283,10 @@ public class Spindexer {
             patternChange();
 
             if (_isShooting) {
+                if (INTAKE.getPower() != 0) INTAKE.stop();
                 if (_shootCount < 4) {
-                    /*  The shooter is within the current limit && We have wait a set of time to ensure
+                    /*  The shooter is within the current limit
                      *  We are allowing the ball to escape. */
-                    //TODO: Use current instead of delay.
                     if (_waitToDetectShot) {
                         _waitToDetectShot = !(SHOOTER.getLeftCurrent(CurrentUnit.MILLIAMPS) > Constants.Shooter.BALL_DETECTION_CURRENT);
                     }
@@ -309,6 +307,7 @@ public class Spindexer {
                     _shootCount = 0;
                     _currentPos = 0;
                     _detectionPos = -1;
+                    _waitToDetectShot = false;
                     SPINDEXER.setPosition(Constants.Spindexer.Positions[_currentPos]);
                     _isShooting = false;
                     _mode = Mode.INTAKE;
@@ -357,6 +356,7 @@ public class Spindexer {
                 packet.put("Spindexer Mode", _mode);
                 packet.put("Spindexer pos", SPINDEXER.getPosition());
                 packet.put("Spindexer Pattern Change", _isPatternChanging);
+                packet.put("Wait for shot", _waitToDetectShot);
                 packet.put("Spindexer Shoot Count", _shootCount);
 
                 packet.put("Intake Mode", INTAKE.getMode());
