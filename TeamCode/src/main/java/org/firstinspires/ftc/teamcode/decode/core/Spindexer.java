@@ -4,15 +4,14 @@ import static org.firstinspires.ftc.teamcode.decode.Constants.Spindexer.Mode;
 
 import androidx.annotation.NonNull;
 
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.teamcode.decode.Constants;
-import org.firstinspires.ftc.teamcode.decode.Pattern;
+import org.firstinspires.ftc.teamcode.ironDams.core.WaitFor;
 
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 /**
  * Will switch through the spindexer modes.<br>
@@ -23,24 +22,49 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  *  </ul>
  */
 public class Spindexer {
-    private final LinearOpMode _opMode;
-    private final Servo _spindexer;
-    private ElapsedTime _timerSpindexerChange;
-    private ElapsedTime _timerLauncher;
-    private ElapsedTime _timerSpindexer;
-    private final Intake _intake;
-    private final ColorVision _colorVision;
-    private final Launcher _launcher;
-    private final Pattern _pattern;
+    private final LinearOpMode OP_MODE;
+    private final Servo SPINDEXER;
+    private final Intake INTAKE;
+    private final ColorVision COLOR_VISION;
+    private final Shooter SHOOTER;
+    private final Pattern PATTERN;
+
+    private final WaitFor USER_BTN_DELAY = new WaitFor(Constants.WAIT_DURATION_MS);
 
     private int _currentPos = 0;
+    private int _detectionPos = -1;
     private int _shootCount = 0;
 
-    private final double _launchWaitTime = Constants.Launcher.BALL_DROP_DELAY;
-    private final ElapsedTime _launchTime = new ElapsedTime();
 
-    private Mode _mode = Mode.INTAKE;
+    private Mode _mode;
     private boolean _isShooting;
+    private boolean _waitToDetectShot;
+
+
+    private boolean _isPatternChanging;
+    private final WaitFor PATTERN_CHANGE_DELAY = new WaitFor(1000);
+
+    private boolean startTracking = false;
+    /**
+     * Tracks the shooters left motor current.
+     */
+    double minLeftCurrent = 0;
+    /**
+     * Tracks the shooters right motor current.
+     */
+    double minRightCurrent = 0;
+    /**
+     * Tracks the shooters left motor current.
+     */
+    double maxLeftCurrent = 0;
+    /**
+     * Tracks the shooters right motor current.
+     */
+    double maxRightCurrent = 0;
+
+    private final WaitFor SHOOTER_CURRENT_TRACKER = new WaitFor(5000);
+
+    private final WaitFor SHOOT_DELAY_TIMER = new WaitFor(Constants.Shooter.BALL_DROP_DELAY);
 
     /**
      * The brains for capturing, sorting & shooting the balls.
@@ -53,16 +77,25 @@ public class Spindexer {
     public Spindexer(LinearOpMode opMode,
                      Intake intake,
                      ColorVision colorVision,
-                     Launcher launcher,
+                     Shooter launcher,
                      Pattern pattern) {
-        _opMode = opMode;
-        _intake = intake;
-        _colorVision = colorVision;
-        _launcher = launcher;
-        _pattern = pattern;
-        _spindexer = opMode.hardwareMap.get(Servo.class, Constants.Spindexer.SPINDEXER_ID);
+        OP_MODE = opMode;
+        INTAKE = intake;
+        COLOR_VISION = colorVision;
+        SHOOTER = launcher;
+        PATTERN = pattern;
+        SPINDEXER = opMode.hardwareMap.get(Servo.class, Constants.Spindexer.SPINDEXER_ID);
 
-        _spindexer.setPosition(Constants.Spindexer.Positions[0]);
+        SPINDEXER.setPosition(Constants.Spindexer.Positions[0]);
+        switchMode(Mode.INTAKE);
+    }
+
+    private void switchMode(Mode mode) {
+        _mode = mode;
+    }
+
+    public Mode getMode() {
+        return _mode;
     }
 
     /**
@@ -70,22 +103,76 @@ public class Spindexer {
      * @return The spindexer object.
      */
     private Spindexer setPattern() {
-        _pattern
-            .rotatePatternId()
-            .readPatternId()
-            .setTargetPattern();
+        PATTERN
+            .setTargetPattern()
+            .readPatternId();
+
+//        switchMode(PATTERN.hasActualPattern() ? Mode.INTAKE : Mode.SORT);
         return this;
     }
 
+    /**
+     * INTAKE: Starts the intake if the Intake mode is Active.
+     */
     private void runIntake() {
-        boolean isIntakeRunning = _intake.getPower() > 0;
-        _intake.setMode();
-        if (_intake.getMode() == Constants.Intake.Mode.ACTIVE) {
-            if (!isIntakeRunning) _intake.setPower();
+        boolean isIntakeRunning = INTAKE.getPower() == Constants.Intake.MAX_POWER;
+        INTAKE.setMode();
+        if (INTAKE.getMode() == Constants.Intake.Mode.ACTIVE) {
+            if (!isIntakeRunning) INTAKE.setPower(Constants.Intake.MAX_POWER);
         }
         else if (isIntakeRunning) {
-            _intake.stop();
+            INTAKE.stop();
         }
+    }
+
+    /**
+     * Intake: Reads the color & determines if a ball has been captured and is ready for processing.
+     * @return True if a ball has been captured and is ready for processing.
+     */
+    private boolean canProcessBallPattern() {
+        return COLOR_VISION.update()
+                    .hasStateChange() &&
+                COLOR_VISION.hasBall() &&
+                _detectionPos != _currentPos;
+    }
+
+    /**
+     * Intake: Sets the detection position to prevent us from processing the same ball twice.
+     * @param currentPos The position the spindexer is in right now.
+     */
+    private void setDetectionPos(int currentPos) {
+        _detectionPos = currentPos;
+    }
+
+    /**
+     * Intake: Will update the pattern array that is used for sorting the balls.
+     * @param patternIndex The index in the array to update.
+     */
+    public String updatePattern(int patternIndex) {
+        String colorCode = COLOR_VISION.getColorCode();
+        PATTERN.updateActualPattern(patternIndex, colorCode);
+        return colorCode;
+    }
+
+    public void changePosition(double pos) {
+        SPINDEXER.setPosition(pos);
+    }
+
+    public void changePosition(int index) {
+        SPINDEXER.setPosition(Constants.Spindexer.Positions[index]);
+    }
+
+    public double getPosition() {
+        return SPINDEXER.getPosition();
+    }
+
+    /**
+     * Intake: Will index the ball and update the actual pattern. Assumes ball consumption starts at pos 0
+     */
+    private void processBall(int patternIndex) {
+        _currentPos += 2;
+        updatePattern(patternIndex);
+        changePosition(_currentPos);
     }
 
     /**
@@ -99,26 +186,23 @@ public class Spindexer {
      *  </ul>
      * @return The spindexer object.
      */
-    private Spindexer runIntakeMode() {
+    public Spindexer runIntakeMode(boolean switchToSort) {
         if (_mode == Mode.INTAKE) {
             runIntake();
 
-            boolean hasStateChanged = _colorVision.update().hasStateChange();
-            if (hasStateChanged) {
-                boolean hasBall = _colorVision.getCurrentlyHasBall();
-                if (hasBall) {
-                    if (_currentPos == 0) {
-                        _pattern.updatePatternBuilder(2, _colorVision.getColorCode());
-                        _currentPos = 2;
-                        _spindexer.setPosition(Constants.Spindexer.Positions[2]);
-                    } else if (_currentPos == 2) {
-                        _pattern.updatePatternBuilder(0, _colorVision.getColorCode());
-                        _currentPos = 4;
-                        _spindexer.setPosition(Constants.Spindexer.Positions[4]);
-                    } else if (_currentPos == 4) {
-                        _pattern.updatePatternBuilder(1, _colorVision.getColorCode());
-                        _mode = Mode.SORT;
-                    }
+            if (canProcessBallPattern()) {
+                setDetectionPos(_currentPos);
+                switch (_currentPos) {
+                    case 0:
+                        processBall(2);
+                        break;
+                    case 2:
+                        processBall(0);
+                        break;
+                    case 4:
+                        updatePattern(1);
+                        if (switchToSort) switchMode(Mode.SORT);
+                        break;
                 }
             }
         }
@@ -135,30 +219,21 @@ public class Spindexer {
      *  </ul>
      * @return The spindexer object.
      */
-    public Spindexer runSortMode() {
+    public Spindexer runSortMode(boolean switchToShoot) {
         if (_mode == Mode.SORT) {
-            int actualPos = _pattern.getGreenPosition();
-            int targetPos = _pattern.getGreenTarget();
+            _isPatternChanging = false;
+            if (INTAKE.getPower() != Constants.Intake.SORT_POWER) INTAKE.setPower(Constants.Intake.SORT_POWER);
+            int actualPos = PATTERN.getGreenActualPos();
+            int targetPos = PATTERN.getGreenTargetPos();
 
-            if (actualPos != -1 && actualPos != targetPos) {
-                if (
-                    targetPos == 0 && actualPos == 1 ||
-                    targetPos == 1 && actualPos == 2 ||
-                    targetPos == 2 && actualPos == 0
-                ) {
-                    _currentPos = 0;
-                } else if (
-                    targetPos == 0 && actualPos == 2 ||
-                    targetPos == 1 && actualPos == 0 ||
-                    targetPos == 2 && actualPos == 1
-                ) {
-                    _currentPos = 2;
-                }
-
-                _spindexer.setPosition(Constants.Spindexer.Positions[_currentPos]);
+            if (targetPos != -1 && actualPos != -1 && targetPos != actualPos) {
+                int distance = actualPos - targetPos;
+                _currentPos = _currentPos + distance * 2;
+                SPINDEXER.setPosition(Constants.Spindexer.Positions[_currentPos]);
+                PATTERN.makeActualMatchTarget();
             }
 
-            _mode = Mode.SHOOT;
+            if (switchToShoot) switchMode(Mode.SHOOT);
         }
         return this;
     }
@@ -171,25 +246,23 @@ public class Spindexer {
      *  </ul>
      */
     private void playerShoot() {
-        if (_opMode.gamepad2.a && _timerLauncher.milliseconds() > Constants.WAIT_DURATION_MS) {
+        if (OP_MODE.gamepad2.dpad_down && USER_BTN_DELAY.allowExec()) {
             if (_mode != Mode.SHOOT) _mode = Mode.SHOOT;
-            _launchTime.reset();
             _isShooting = true;
-            _timerLauncher.reset();
         }
     }
 
     private void patternChange() {
-        if (_opMode.gamepad2.x && _timerLauncher.milliseconds() > Constants.WAIT_DURATION_MS) {
-            _launcher.close().stop();
-            _pattern.resetPatternBuilder();
-            _colorVision.resetStateChange();
-            _shootCount = 0;
+        if ((OP_MODE.gamepad2.x || OP_MODE.gamepad2.a || OP_MODE.gamepad2.b) && _mode == Mode.SHOOT) {
+            SHOOTER.close().stop();
             _isShooting = false;
-            _mode = Mode.INTAKE;
-            _currentPos = 0;
-            _spindexer.setPosition(_currentPos);
-            _timerLauncher.reset();
+            _isPatternChanging = true;
+            PATTERN_CHANGE_DELAY.reset();
+        }
+
+        if (_isPatternChanging && PATTERN_CHANGE_DELAY.allowExec()) {
+            _isPatternChanging = false;
+            switchMode(Mode.SORT);
         }
     }
 
@@ -201,39 +274,43 @@ public class Spindexer {
      */
     public void runShootMode() {
         if (_mode == Mode.SHOOT) {
+            if (SHOOTER.getPower() == 0 && !_isPatternChanging) {
+                SHOOTER.open().setPower(Constants.Shooter.MAX_POWER);
+                OP_MODE.sleep(Constants.WAIT_DURATION_MS);
+            }
+
             playerShoot();
             patternChange();
 
-            if(_launcher.getPower() == 0){
-                _launcher.open().setPower();
-            }
-
             if (_isShooting) {
-                _intake.stop();
+                if (INTAKE.getPower() != 0) INTAKE.stop();
                 if (_shootCount < 4) {
-                    if (_launchTime.milliseconds() > _launchWaitTime) {
-//                        if (_launcher.getPower() == 0) {
-//                            _launcher.open().setPower();
-//                            _opMode.sleep(Constants.WAIT_DURATION_MS);
-//                        }
-
+                    /*  The shooter is within the current limit
+                     *  We are allowing the ball to escape. */
+                    if (_waitToDetectShot) {
+                        _waitToDetectShot = !(SHOOTER.getLeftCurrent(CurrentUnit.MILLIAMPS) > Constants.Shooter.BALL_DETECTION_CURRENT);
+                    }
+                    else if (SHOOTER.isInRange()) { // && SHOOT_DELAY_TIMER.allowExec()) {
+                        _waitToDetectShot = true;
                         if (_currentPos % 2 == 0) _currentPos += 1;
                         else _currentPos += 2;
 
-                        _spindexer.setPosition(Constants.Spindexer.Positions[_currentPos]);
-//                    _opMode.sleep(Constants.Launcher.BALL_DROP_DELAY);
+
+                        SPINDEXER.setPosition(Constants.Spindexer.Positions[_currentPos]);
+//                        OP_MODE.sleep(Constants.Shooter.BALL_DROP_DELAY);
                         _shootCount++;
-                        _launchTime.reset();
                     }
                 } else {
-                    _launcher.close().stop();
-                    _pattern.resetPatternBuilder();
-                    _colorVision.resetStateChange();
+                    SHOOTER.close().stop();
+                    PATTERN.clearActualPattern();
+                    COLOR_VISION.resetStateChange();
                     _shootCount = 0;
+                    _currentPos = 0;
+                    _detectionPos = -1;
+                    _waitToDetectShot = false;
+                    SPINDEXER.setPosition(Constants.Spindexer.Positions[_currentPos]);
                     _isShooting = false;
                     _mode = Mode.INTAKE;
-                    _currentPos = 0;
-                    _spindexer.setPosition(_currentPos);
                 }
             }
         }
@@ -251,54 +328,52 @@ public class Spindexer {
                 }
 
                 setPattern()
-                        .runIntakeMode()
-                        .runSortMode()
+                        .runIntakeMode(true)
+                        .runSortMode(true)
                         .runShootMode();
 
-                _opMode.telemetry.addData("Spindex Mode", _mode);
-                _opMode.telemetry.addData("Intake Mode", _intake.getMode());
-                _opMode.telemetry.addData("Target Pattern", _pattern.getTarget());
+                double leftCurrent = SHOOTER.getLeftCurrent(CurrentUnit.MILLIAMPS);
+                double rightCurrent = SHOOTER.getRightCurrent(CurrentUnit.MILLIAMPS);
 
-                packet.put("Spindexer Mode", _mode);
-                packet.put("Spindexer pos", _spindexer.getPosition());
-
-                packet.put("Intake Mode", _intake.getMode());
-
-                packet.put("Pattern Target G", _pattern.getGreenTarget());
-                packet.put("Pattern Actual G", _pattern.getGreenPosition());
-                packet.put("Pattern Target", _pattern.getTarget());
-                packet.put("Pattern Actual", _pattern.getPattern());
-                packet.put("Spindexer Shoot Timer", _launchTime.milliseconds());
-                packet.put("Spindexer Time Delay", _launchWaitTime);
-                packet.put("Spindexer Shoot Counter", _shootCount);
-
-                packet.put("CV red", _colorVision.getRed());
-                packet.put("CV blue", _colorVision.getBlue());
-                packet.put("CV green", _colorVision.getGreen());
-
-                return true;
-            }
-        };
-    }
-
-    public Action runSpinner() {
-        return new Action() {
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                if (_opMode.gamepad2.x && _timerSpindexerChange.milliseconds() > Constants.WAIT_DURATION_MS) {
-                    _currentPos = (_currentPos > (Constants.Spindexer.Positions.length - 2) ? 0 : _currentPos + 1);
-                    _spindexer.setPosition(Constants.Spindexer.Positions[_currentPos]);
-                    _timerSpindexerChange.reset();
-                } else if (_opMode.gamepad2.y && _timerSpindexerChange.milliseconds() > Constants.WAIT_DURATION_MS) {
-                    _spindexer.setPosition(_spindexer.getPosition() + 0.01);
-                    _timerSpindexerChange.reset();
-                } else if (_opMode.gamepad2.a && _timerSpindexerChange.milliseconds() > Constants.WAIT_DURATION_MS) {
-                    _spindexer.setPosition(_spindexer.getPosition() - 0.01);
-                    _timerSpindexerChange.reset();
+                if (SHOOTER.getPower() != 0 && SHOOT_DELAY_TIMER.allowExec()) {
+                    startTracking = true;
+                    minLeftCurrent = 10000;
+                    minRightCurrent = 10000;
+                    maxLeftCurrent = 0;
+                    maxRightCurrent = 0;
+                } else if (SHOOTER.getPower() == 0) {
+                    startTracking = false;
                 }
 
-                packet.put("Current Pos Index", _currentPos);
-                packet.put("Servo Pos", _spindexer.getPosition());
+
+                if (startTracking) {
+                    if (leftCurrent < minLeftCurrent || minLeftCurrent == 0) minLeftCurrent = leftCurrent;
+                    if (rightCurrent < minRightCurrent || minRightCurrent == 0) minRightCurrent = rightCurrent;
+                    if (leftCurrent > maxLeftCurrent) maxLeftCurrent = leftCurrent;
+                    if (rightCurrent > maxRightCurrent) maxRightCurrent = rightCurrent;
+                }
+
+                packet.put("Spindexer Mode", _mode);
+                packet.put("Spindexer pos", SPINDEXER.getPosition());
+                packet.put("Spindexer Pattern Change", _isPatternChanging);
+                packet.put("Wait for shot", _waitToDetectShot);
+                packet.put("Spindexer Shoot Count", _shootCount);
+
+                packet.put("Intake Mode", INTAKE.getMode());
+
+                packet.put("Pattern Target G", PATTERN.getGreenTargetPos());
+                packet.put("Pattern Actual G", PATTERN.getGreenActualPos());
+                packet.put("Pattern Target", PATTERN.getTarget());
+                packet.put("Pattern Actual", PATTERN.getActual());
+                packet.put("Servo pos", SPINDEXER.getPosition());
+                packet.put("Launcher RC", SHOOTER.getRightCurrent(CurrentUnit.MILLIAMPS));
+                packet.put("Launcher LC", SHOOTER.getLeftCurrent(CurrentUnit.MILLIAMPS));
+                packet.put("Launcher RCMax", maxRightCurrent);
+                packet.put("Launcher LCMax", maxLeftCurrent);
+                packet.put("Launcher RCMin", minRightCurrent);
+                packet.put("Launcher LCMin", minLeftCurrent);
+                packet.put("Launcher In Range", SHOOTER.isInRange());
+
 
                 return true;
             }

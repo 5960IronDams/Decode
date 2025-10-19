@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -15,17 +16,16 @@ public class Pinpoint implements IGyro {
     private final GoBildaPinpointDriver _pinpoint;
     private double _initYaw;
 
-    public Pinpoint(HardwareMap hardwareMap, Pose2D pose) {
-        _pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
-        init(pose);
+    public Pinpoint(LinearOpMode opMode) {
+        _pinpoint = opMode.hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
+        init();
     }
 
-    private void init(Pose2D pose) {
+    private void init() {
         _pinpoint.setOffsets(0.0, 0.0, DistanceUnit.INCH);
         _pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
-        _pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.FORWARD);
+        _pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.REVERSED);
         _pinpoint.resetPosAndIMU();
-        _pinpoint.setPosition(pose);
 
         _initYaw = getPose().getHeading(AngleUnit.DEGREES);
 

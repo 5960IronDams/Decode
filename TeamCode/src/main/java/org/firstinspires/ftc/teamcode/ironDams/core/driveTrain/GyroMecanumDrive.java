@@ -12,7 +12,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.teamcode.decode.Constants;
 
-public class GyroMecanumDrive extends FourWheelDrive
+public class GyroMecanumDrive
         implements IDriveTrain{
     private  LinearOpMode _opMode;
     private BNO055IMU imu;
@@ -22,8 +22,9 @@ public class GyroMecanumDrive extends FourWheelDrive
     private double initYaw;
 
     public GyroMecanumDrive(LinearOpMode opMode) {
-        super(opMode.hardwareMap);
         _opMode = opMode;
+
+        FourWheelDrive.init(opMode.hardwareMap);
 
         parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
         parameters.mode = BNO055IMU.SensorMode.IMU;
@@ -48,14 +49,10 @@ public class GyroMecanumDrive extends FourWheelDrive
         }
     }
 
-    public void drive() {
+    public void drive(double x, double y, double turn) {
         angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 
         double zeroedYaw = -initYaw + angles.firstAngle;
-
-        double x = _opMode.gamepad1.right_stick_x;
-        double y = -_opMode.gamepad1.right_stick_y;
-        double turn = _opMode.gamepad1.left_stick_x;
 
         double theta = Math.atan2(y, x) * 180 / Math.PI; // aka angle
 
@@ -81,10 +78,10 @@ public class GyroMecanumDrive extends FourWheelDrive
             rightBack /= power - turn;
         }
 
-        _leftFrontDrive.setPower(leftFront);
-        _rightFrontDrive.setPower(rightFront);
-        _leftBackDrive.setPower(leftBack);
-        _rightBackDrive.setPower(rightBack);
+        FourWheelDrive._leftFrontDrive.setPower(leftFront);
+        FourWheelDrive._rightFrontDrive.setPower(rightFront);
+        FourWheelDrive._leftBackDrive.setPower(leftBack);
+        FourWheelDrive._rightBackDrive.setPower(rightBack);
 
         reset();
     }
