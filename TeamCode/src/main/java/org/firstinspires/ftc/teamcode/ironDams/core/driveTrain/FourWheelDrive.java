@@ -5,12 +5,12 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class FourWheelDrive {
-    final DcMotor _leftFrontDrive;
-    final DcMotor _leftBackDrive;
-    final DcMotor _rightFrontDrive;
-    final DcMotor _rightBackDrive;
+    static DcMotor _leftFrontDrive;
+    static DcMotor _leftBackDrive;
+    static DcMotor _rightFrontDrive;
+    static DcMotor _rightBackDrive;
 
-    FourWheelDrive(HardwareMap hardwareMap) {
+    static void init(HardwareMap hardwareMap) {
         _leftFrontDrive = hardwareMap.get(DcMotor.class, "leftFront");
         _leftBackDrive = hardwareMap.get(DcMotor.class, "leftBack");
         _rightBackDrive = hardwareMap.get(DcMotor.class, "rightBack");

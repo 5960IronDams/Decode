@@ -12,32 +12,25 @@ import org.firstinspires.ftc.teamcode.ironDams.core.odometry.Imu;
 import org.firstinspires.ftc.teamcode.ironDams.core.odometry.Pinpoint;
 
 public class MecanumDrive
-        extends FourWheelDrive
         implements IDriveTrain {
 
     private final LinearOpMode _opMode;
     public MecanumDrive(LinearOpMode opMode)  {
-        super(opMode.hardwareMap);
         _opMode = opMode;
     }
 
     public void init() { }
 
     @Override
-    public void drive() {
-
-        double vertical = -_opMode.gamepad1.right_stick_y;
-        double horizontal = _opMode.gamepad1.right_stick_x;
-        double pivot = _opMode.gamepad1.left_stick_x;
-
+    public void drive(double horizontal, double vertical, double pivot) {
         double flp = (pivot + vertical + horizontal);
         double frp = (-pivot + (vertical - horizontal));
         double rlp = (pivot + (vertical - horizontal));
         double rrp = (-pivot + vertical + horizontal);
 
-        _leftBackDrive.setPower(rlp);
-        _rightBackDrive.setPower(rrp);
-        _leftFrontDrive.setPower(flp);
-        _rightFrontDrive.setPower(frp);
+        FourWheelDrive._leftBackDrive.setPower(rlp);
+        FourWheelDrive._rightBackDrive.setPower(rrp);
+        FourWheelDrive._leftFrontDrive.setPower(flp);
+        FourWheelDrive._rightFrontDrive.setPower(frp);
     }
 }
