@@ -42,9 +42,9 @@ public final class Constants {
         public static final long MIN_LEFT_CURRENT = 600;
         public static final long MAX_LEFT_CURRENT = 750;
 
-        public static final long MIN_RIGHT_CURRENT = 630;
-        public static final long MAX_RIGHT_CURRENT = 750;
+        public static final long MIN_RIGHT_CURRENT = 870;
+        public static final long MAX_RIGHT_CURRENT = 1015;
 
-        public static final long BALL_DETECTION_CURRENT = 850;
+        public static final long BALL_DETECTION_CURRENT = 1250;
     }
 }
