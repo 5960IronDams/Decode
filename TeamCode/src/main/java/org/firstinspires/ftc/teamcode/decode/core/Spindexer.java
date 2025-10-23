@@ -43,7 +43,7 @@ public class Spindexer {
 
     private boolean _isPatternChanging;
     private final WaitFor PATTERN_CHANGE_DELAY = new WaitFor(1000);
-
+    private final WaitFor BALL_LAUNCH_DELAY = new WaitFor(250);
     private boolean startTracking = false;
     /**
      * Tracks the shooters left motor current.
@@ -289,8 +289,9 @@ public class Spindexer {
                      *  We are allowing the ball to escape. */
                     if (_waitToDetectShot) {
                         _waitToDetectShot = !(SHOOTER.getLeftCurrent(CurrentUnit.MILLIAMPS) > Constants.Shooter.BALL_DETECTION_CURRENT);
+                        SHOOT_DELAY_TIMER.reset();
                     }
-                    else if (SHOOTER.isInRange()) { // && SHOOT_DELAY_TIMER.allowExec()) {
+                    else if (SHOOTER.isInRange() && SHOOT_DELAY_TIMER.allowExec()) {
                         _waitToDetectShot = true;
                         if (_currentPos % 2 == 0) _currentPos += 1;
                         else _currentPos += 2;
