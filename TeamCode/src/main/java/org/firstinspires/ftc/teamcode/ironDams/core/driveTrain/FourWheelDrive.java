@@ -11,6 +11,8 @@ public class FourWheelDrive {
     static DcMotor _rightBackDrive;
 
     static void init(HardwareMap hardwareMap) {
+        if (_leftFrontDrive != null) return;
+
         _leftFrontDrive = hardwareMap.get(DcMotor.class, "leftFront");
         _leftBackDrive = hardwareMap.get(DcMotor.class, "leftBack");
         _rightBackDrive = hardwareMap.get(DcMotor.class, "rightBack");
