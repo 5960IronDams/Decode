@@ -13,10 +13,8 @@ import org.firstinspires.ftc.teamcode.ironDams.core.odometry.Pinpoint;
 
 public class MecanumDrive
         implements IDriveTrain {
-
-    private final LinearOpMode _opMode;
     public MecanumDrive(LinearOpMode opMode)  {
-        _opMode = opMode;
+        FourWheelDrive.init(opMode.hardwareMap);
     }
 
     public void init() { }
