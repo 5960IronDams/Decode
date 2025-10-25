@@ -10,11 +10,13 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.teamcode.decode.core.GreenBallPosition;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 import java.util.List;
+import java.util.function.BooleanSupplier;
 
 public class AprilTagReader {
 
@@ -23,7 +25,9 @@ public class AprilTagReader {
     private final VisionPortal LEFT_VISION_PORTAL;
     private final VisionPortal RIGHT_VISION_PORTAL;
 
-    public AprilTagReader(HardwareMap hardwareMap) {
+    private final GreenBallPosition GREEN_BALL_POSITION;
+
+    public AprilTagReader(HardwareMap hardwareMap, GreenBallPosition greenBallPosition) {
 
         int[] viewIds = VisionPortal.makeMultiPortalView(2, VisionPortal.MultiPortalLayout.VERTICAL);
         int leftPortalViewId = viewIds[0];
@@ -43,8 +47,7 @@ public class AprilTagReader {
                 .addProcessor(RIGHT_PROCESSOR)
                 .build();
 
-//        RIGHT_VISION_PORTAL.resumeStreaming();
-//        LEFT_VISION_PORTAL.resumeStreaming();
+        GREEN_BALL_POSITION = greenBallPosition;
     }
 
     public boolean isInitialized() {
@@ -63,5 +66,55 @@ public class AprilTagReader {
         List<AprilTagDetection> detections = LEFT_PROCESSOR.getDetections();
         detections.addAll(RIGHT_PROCESSOR.getDetections());
         return detections;
+    }
+
+    public Action readTag(BooleanSupplier driveComplete) {
+        return new Action() {
+            private boolean initialized = false;
+
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                if (!initialized) {
+                    initialized = true;
+                }
+
+                int id = -1;
+
+                List<AprilTagDetection> left = readLeft();
+                List<AprilTagDetection> right = readRight();
+
+                if (!left.isEmpty()) id = left.get(0).id;
+                else if (!right.isEmpty()) id = right.get(0).id;
+
+                switch (id) {
+                    case 21:
+                        GREEN_BALL_POSITION.setTargetIndex(0);
+                        packet.put("Webcam Target Index", GREEN_BALL_POSITION.getTargetIndex());
+                        packet.put("Status Webcam Read Tag", "Finished");
+                        return false;
+                    case 22:
+                        GREEN_BALL_POSITION.setTargetIndex(1);
+                        packet.put("Webcam Target Index", GREEN_BALL_POSITION.getTargetIndex());
+                        packet.put("Status Webcam Read Tag", "Finished");
+                        return false;
+                    case 23:
+                        GREEN_BALL_POSITION.setTargetIndex(2);
+                        packet.put("Webcam Target Index", GREEN_BALL_POSITION.getTargetIndex());
+                        packet.put("Status Webcam Read Tag", "Finished");
+                        return false;
+                    default: packet.put("Webcam Target Index", GREEN_BALL_POSITION.getTargetIndex());
+                }
+
+                if (GREEN_BALL_POSITION.getTargetIndex() != -1) {
+                    packet.put("Status Webcam Read Tag", "Finished");
+                    return false;
+                }
+                else {
+                    if (driveComplete.getAsBoolean()) packet.put("Status Webcam Read Tag", "Finished");
+                    else packet.put("Status Webcam Read Tag", "Running");
+                    return !driveComplete.getAsBoolean();
+                }
+            }
+        };
     }
 }

@@ -15,7 +15,7 @@ public final class Constants {
         public static final double[] Positions = { 0.022, 0.053, 0.085, 0.1195, 0.1475, 0.1795, 0.2145, 0.2500, 0.2825, 0.3145, 0.3445, 0.3795, 0.4135, 0.4465, 0.4845, 0.5165, 0.5515,  0.5855, 0.6205, 0.6550, 0.6865, 0.7185, 0.7505, 0.7865, 0.8174, 0.8514, 0.8825, 0.9145, 0.9455, 0.9825 };
 
         public enum Mode {
-            INTAKE, SORT, SHOOT
+            INDEX, SORT, SHOOT
         }
     }
     public static final class Intake {
