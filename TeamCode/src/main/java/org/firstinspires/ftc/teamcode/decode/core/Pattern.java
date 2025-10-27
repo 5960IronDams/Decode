@@ -6,15 +6,14 @@ import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
-import org.firstinspires.ftc.teamcode.ironDams.autonomus.subsystems.VisionReader;
+import org.firstinspires.ftc.teamcode.ironDams.autonomus.subsystems.HuskyReader;
 
 import java.util.function.BooleanSupplier;
 
 public class Pattern {
     private final LinearOpMode OP_MODE;
-    private final Decoder DECODER;
-    private final VisionReader VISION;
+//    private final Decoder DECODER;
+    private final HuskyReader VISION;
 
 
     private int _targetGreenPos = -1;
@@ -24,13 +23,13 @@ public class Pattern {
 
     public Pattern(LinearOpMode opMode) {
         OP_MODE = opMode;
-        DECODER = null;
+//        DECODER = null;
         VISION = null;
     }
 
-    public Pattern(LinearOpMode opMode, VisionReader reader, Decoder decoder) {
+    public Pattern(LinearOpMode opMode, HuskyReader reader) {
         OP_MODE = opMode;
-        DECODER = decoder;
+//        DECODER = decoder;
         VISION = reader;
     }
 
@@ -79,22 +78,22 @@ public class Pattern {
         }
     }
 
-    private void setTargetWithDecoder() {
-        assert DECODER != null;
-        int tagId = DECODER.readQr();
-
-        switch (tagId) {
-            case 22:
-                _targetGreenPos = 1;
-                break;
-            case 23:
-                _targetGreenPos = 2;
-                break;
-            case 21:
-                _targetGreenPos = 0;
-                break;
-        }
-    }
+//    private void setTargetWithDecoder() {
+//        assert DECODER != null;
+//        int tagId = DECODER.readQr();
+//
+//        switch (tagId) {
+//            case 22:
+//                _targetGreenPos = 1;
+//                break;
+//            case 23:
+//                _targetGreenPos = 2;
+//                break;
+//            case 21:
+//                _targetGreenPos = 0;
+//                break;
+//        }
+//    }
 
     private void setTargetWithPlayer() {
         assert OP_MODE != null;
@@ -113,9 +112,9 @@ public class Pattern {
         if (VISION != null) {
             setTargetWithHusky();
         }
-        else if (DECODER != null) {
-            setTargetWithDecoder();
-        }
+//        else if (DECODER != null) {
+//            setTargetWithDecoder();
+//        }
         else if (OP_MODE != null) {
             setTargetWithPlayer();
         }
@@ -179,11 +178,11 @@ public class Pattern {
                     initialized = true;
                 }
 
-                if (DECODER == null) return false;
+//                if (DECODER == null) return false;
 
-                setTargetWithDecoder();
+//                setTargetWithDecoder();
 
-                packet.put("Decoder Vision Id", DECODER.readQr());
+//                packet.put("Decoder Vision Id", DECODER.readQr());
                 packet.put("Decoder Target Green", _targetGreenPos);
 
                 return _targetGreenPos < 0 || !driveComplete.getAsBoolean();

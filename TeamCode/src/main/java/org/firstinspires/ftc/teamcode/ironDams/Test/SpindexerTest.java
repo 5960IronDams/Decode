@@ -7,6 +7,7 @@ import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.decode.Constants;
+import org.firstinspires.ftc.teamcode.decode.core.GreenBallPosition;
 import org.firstinspires.ftc.teamcode.decode.core.Pattern;
 import org.firstinspires.ftc.teamcode.decode.core.ColorVision;
 import org.firstinspires.ftc.teamcode.decode.core.Intake;
@@ -38,7 +39,7 @@ public class SpindexerTest {
         USER_BTN_DELAY = new WaitFor(Constants.WAIT_DURATION_MS, opMode);
         INTAKE = new Intake(opMode);
         COLOR_VISION = new ColorVision(opMode);
-        SHOOTER = new Shooter(opMode);
+        SHOOTER = new Shooter(opMode, new GreenBallPosition());
         PATTERN = new Pattern(opMode);
         SPINDEXER = new Spindexer(opMode,
                 INTAKE,

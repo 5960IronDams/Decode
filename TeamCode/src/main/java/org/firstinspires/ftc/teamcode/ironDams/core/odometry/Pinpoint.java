@@ -30,6 +30,7 @@ public class Pinpoint implements IGyro {
         _initYaw = getPose().getHeading(AngleUnit.DEGREES);
 
     }
+
     public double update() {
         return -_initYaw + getPose().getHeading(AngleUnit.DEGREES);
     }

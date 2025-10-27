@@ -1,5 +1,9 @@
 package org.firstinspires.ftc.teamcode.decode.core;
 
+import androidx.annotation.NonNull;
+
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
@@ -55,15 +59,45 @@ public class Intake {
 
     }
 
-    public void stop() {
-        MOTOR.setPower(0);
-    }
-
     public void setPower(double power) {
         MOTOR.setPower(power);
     }
 
     public double getPower() {
         return MOTOR.getPower();
+    }
+
+    public Action run(double pow) {
+        return new Action() {
+            private boolean initialized = false;
+
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                if (!initialized) {
+                    initialized = true;
+                }
+
+                setPower(pow);
+
+                return false;
+            }
+        };
+    }
+
+    public Action stop() {
+        return new Action() {
+            private boolean initialized = false;
+
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                if (!initialized) {
+                    initialized = true;
+                }
+
+                setPower(0);
+
+                return false;
+            }
+        };
     }
 }

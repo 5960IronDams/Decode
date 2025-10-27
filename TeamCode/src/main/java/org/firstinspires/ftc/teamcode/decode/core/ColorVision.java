@@ -1,15 +1,23 @@
 package org.firstinspires.ftc.teamcode.decode.core;
 
+import androidx.annotation.NonNull;
+
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 
 import org.firstinspires.ftc.teamcode.decode.Constants;
+
+import java.util.function.BooleanSupplier;
 
 /**
  * Responsible for detecting the balls that are entering the spindexer system.
  */
 public class ColorVision  {
     private final ColorSensor COLOR_SENSOR;
+
+    private final GreenBallPosition GREEN_BALL_POSITION;
 
     private int _blue;
     private int _green;
@@ -23,6 +31,12 @@ public class ColorVision  {
      */
     public ColorVision(LinearOpMode opMode) {
         COLOR_SENSOR = opMode.hardwareMap.get(ColorSensor.class, Constants.ColorVision.COLOR_CENTER_ID);
+        GREEN_BALL_POSITION = new GreenBallPosition();
+    }
+
+    public ColorVision(LinearOpMode opMode, GreenBallPosition greenBallPosition) {
+        COLOR_SENSOR = opMode.hardwareMap.get(ColorSensor.class, Constants.ColorVision.COLOR_CENTER_ID);
+        GREEN_BALL_POSITION = greenBallPosition;
     }
 
     /**
@@ -96,6 +110,76 @@ public class ColorVision  {
      */
     public String getColorCode() {
         return _blue > Constants.ColorVision.COLOR_THRESHOLD && _blue > _green ? "P" :
-                _green > Constants.ColorVision.COLOR_THRESHOLD && _green > _blue ? "G" : "U";
+                _green > Constants.ColorVision.COLOR_THRESHOLD && _green > _blue ? "G" : "";
+    }
+
+    public boolean canProcessBall() {
+        update();
+        return hasStateChange() &&
+                hasBall() &&
+                !GREEN_BALL_POSITION.getMoveSpindexer() &&
+                GREEN_BALL_POSITION.getSpindexerDetectionPos() != GREEN_BALL_POSITION.getSpindexerCurrentPos();
+    }
+
+    public Action indexBalls(BooleanSupplier driveComplete) {
+        return new Action() {
+            private boolean initialized = false;
+
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                if (!initialized) {
+                    initialized = true;
+                }
+
+                packet.put("Color Actual Patter", String.join(", ", GREEN_BALL_POSITION.getActualPattern()));
+                packet.put("Color Actual Index", GREEN_BALL_POSITION.getActualIndex());
+                packet.put("Color Detected", getColorCode());
+                packet.put("Color Current Pos", GREEN_BALL_POSITION.getSpindexerCurrentPos());
+                packet.put("Color IsSpinning", GREEN_BALL_POSITION.getMoveSpindexer());
+                packet.put("Color IsLoaded", GREEN_BALL_POSITION.isLoaded());
+
+                if (!canProcessBall()) {
+                    if (GREEN_BALL_POSITION.isLoaded()) {
+                        packet.put("Status Color  Index Balls", "Finished");
+                        return false;
+                    }
+                    else {
+                        if (driveComplete.getAsBoolean()) packet.put("Status Color  Index Balls", "Finished");
+                        else packet.put("Status Color Index Balls", "Running");
+                        return !driveComplete.getAsBoolean();
+                    }
+                }
+
+                int currentPos = GREEN_BALL_POSITION.getSpindexerCurrentPos();
+
+                GREEN_BALL_POSITION.setSpindexerDetectionPos(currentPos);
+
+                switch (currentPos) {
+                    case 0:
+                        GREEN_BALL_POSITION.setActualColor(getColorCode(), 2);
+                        GREEN_BALL_POSITION.setSpindexerCurrentPos(currentPos + 2);
+                        GREEN_BALL_POSITION.setMoveSpindexer(true);
+                        break;
+                    case 2:
+                        GREEN_BALL_POSITION.setActualColor(getColorCode(), 0);
+                        GREEN_BALL_POSITION.setSpindexerCurrentPos(currentPos + 2);
+                        GREEN_BALL_POSITION.setMoveSpindexer(true);
+                        break;
+                    case 4:
+                        GREEN_BALL_POSITION.setActualColor(getColorCode(), 1);
+                        break;
+                }
+
+                if (GREEN_BALL_POSITION.isLoaded()) {
+                    packet.put("Status Color Index Balls", "Finished");
+                    return false;
+                }
+                else {
+                    if (driveComplete.getAsBoolean()) packet.put("Status Color  Index Balls", "Finished");
+                    else packet.put("Status Color Index Balls", "Running");
+                    return !driveComplete.getAsBoolean();
+                }
+            }
+        };
     }
 }

@@ -88,7 +88,7 @@ public class Spindexer {
         SPINDEXER = opMode.hardwareMap.get(Servo.class, Constants.Spindexer.SPINDEXER_ID);
 
         SPINDEXER.setPosition(Constants.Spindexer.Positions[0]);
-        switchMode(Mode.INTAKE);
+        switchMode(Mode.INDEX);
     }
 
     private void switchMode(Mode mode) {
@@ -186,7 +186,7 @@ public class Spindexer {
      * @return The spindexer object.
      */
     public Spindexer runIntakeMode(boolean switchToSort) {
-        if (_mode == Mode.INTAKE) {
+        if (_mode == Mode.INDEX) {
             runIntake();
 
             if (canProcessBallPattern()) {
@@ -311,7 +311,7 @@ public class Spindexer {
                     _waitToDetectShot = false;
                     SPINDEXER.setPosition(Constants.Spindexer.Positions[_currentPos]);
                     _isShooting = false;
-                    _mode = Mode.INTAKE;
+                    _mode = Mode.INDEX;
                 }
             }
         }

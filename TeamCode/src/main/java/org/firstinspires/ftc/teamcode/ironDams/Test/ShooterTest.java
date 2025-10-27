@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.teamcode.decode.Constants;
+import org.firstinspires.ftc.teamcode.decode.core.GreenBallPosition;
 import org.firstinspires.ftc.teamcode.decode.core.Shooter;
 import org.firstinspires.ftc.teamcode.ironDams.core.WaitFor;
 
@@ -27,7 +28,7 @@ public class ShooterTest {
 
     public ShooterTest(LinearOpMode opMode) {
         OP_MODE = opMode;
-        SHOOTER = new Shooter(opMode);
+        SHOOTER = new Shooter(opMode, new GreenBallPosition());
     }
 
     public Action runTest() {
