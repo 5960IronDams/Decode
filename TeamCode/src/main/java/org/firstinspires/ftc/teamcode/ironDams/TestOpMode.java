@@ -14,6 +14,8 @@ import org.firstinspires.ftc.teamcode.ironDams.Test.PatternTest;
 import org.firstinspires.ftc.teamcode.ironDams.Test.ShooterTest;
 import org.firstinspires.ftc.teamcode.ironDams.Test.SpindexerTest;
 import org.firstinspires.ftc.teamcode.ironDams.Test.WaitForTest;
+import org.firstinspires.ftc.teamcode.ironDams.core.odometry.IGyro;
+import org.firstinspires.ftc.teamcode.ironDams.core.odometry.Pinpoint;
 
 @TeleOp(name = "TestOpMode", group = "_IronDams")
 public class TestOpMode extends LinearOpMode {
@@ -24,11 +26,12 @@ public class TestOpMode extends LinearOpMode {
         PatternTest patternTest = new PatternTest(this);
         ShooterTest shooterTest = new ShooterTest(this);
         SpindexerTest spindexerTest = new SpindexerTest(this);
+        Pinpoint pinpoint = new Pinpoint(this);
 
         int testMode = 0;
 
         while (opModeInInit()) {
-            if (this.gamepad1.right_trigger != 0 && testMode < 4) {
+            if (this.gamepad1.right_trigger != 0 && testMode < 5) {
                 testMode++;
                 sleep(250);
             } else if (this.gamepad1.left_trigger != 0 && testMode > 0) {
@@ -56,6 +59,8 @@ public class TestOpMode extends LinearOpMode {
                     // gamepad1.a -= pos, gamepad1.y += pos
                     telemetry.addData("Mode", "Spindexer");
                     break;
+                case 5:
+                    telemetry.addData("Mode", "Pinpoint");
             }
 
             telemetry.update();
@@ -82,6 +87,8 @@ public class TestOpMode extends LinearOpMode {
                 // gamepad1.a -= pos, gamepad1.y += pos
                 Actions.runBlocking(new ParallelAction(spindexerTest.runTest(), updateTelemetry()));
                 break;
+            case 5:
+                Actions.runBlocking(pinpoint.pinpointTelemetry());
         }
     }
 

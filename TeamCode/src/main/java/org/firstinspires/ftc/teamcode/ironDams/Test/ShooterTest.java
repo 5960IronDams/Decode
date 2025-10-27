@@ -43,7 +43,7 @@ public class ShooterTest {
 
                 if (OP_MODE.gamepad2.dpad_down && USER_DELAY.allowExec()) {
                     if (SHOOTER.getPower() == 0) {
-                        SHOOTER.open().setPower(Constants.Shooter.MAX_POWER);
+                        SHOOTER.open().setPower(1);
                         TRACKING_DELAY.reset();
                     } else {
                         SHOOTER.close().stop();
@@ -80,6 +80,12 @@ public class ShooterTest {
                 packet.put("Min LC", _minLeftCurrent);
                 packet.put("Max RC", _maxRightCurrent);
                 packet.put("Min RC", _minRightCurrent);
+
+                packet.put("Ticks LPS", SHOOTER.getTicksPerSecondLeft());
+                packet.put("Ticks RPS", SHOOTER.getTicksPerSecondRight());
+
+                packet.put("Ticks LEC", SHOOTER.getEncoderLeft());
+                packet.put("Ticks REC", SHOOTER.getEncoderRight());
 
                 packet.put("Max TR", _maxTrueRight);
                 packet.put("Max TL", _maxTrueLeft);

@@ -68,6 +68,16 @@ public class AprilTagReader {
         return detections;
     }
 
+    public void resumeStreaming() {
+        LEFT_VISION_PORTAL.resumeStreaming();
+        RIGHT_VISION_PORTAL.resumeStreaming();
+    }
+
+    public void stopStreaming() {
+        LEFT_VISION_PORTAL.stopStreaming();
+        RIGHT_VISION_PORTAL.stopStreaming();
+    }
+
     public Action readTag(BooleanSupplier driveComplete) {
         return new Action() {
             private boolean initialized = false;
@@ -91,22 +101,26 @@ public class AprilTagReader {
                         GREEN_BALL_POSITION.setTargetIndex(0);
                         packet.put("Webcam Target Index", GREEN_BALL_POSITION.getTargetIndex());
                         packet.put("Status Webcam Read Tag", "Finished");
+                        stopStreaming();
                         return false;
                     case 22:
                         GREEN_BALL_POSITION.setTargetIndex(1);
                         packet.put("Webcam Target Index", GREEN_BALL_POSITION.getTargetIndex());
                         packet.put("Status Webcam Read Tag", "Finished");
+                        stopStreaming();
                         return false;
                     case 23:
                         GREEN_BALL_POSITION.setTargetIndex(2);
                         packet.put("Webcam Target Index", GREEN_BALL_POSITION.getTargetIndex());
                         packet.put("Status Webcam Read Tag", "Finished");
+                        stopStreaming();
                         return false;
                     default: packet.put("Webcam Target Index", GREEN_BALL_POSITION.getTargetIndex());
                 }
 
                 if (GREEN_BALL_POSITION.getTargetIndex() != -1) {
                     packet.put("Status Webcam Read Tag", "Finished");
+                    stopStreaming();
                     return false;
                 }
                 else {
@@ -114,6 +128,40 @@ public class AprilTagReader {
                     else packet.put("Status Webcam Read Tag", "Running");
                     return !driveComplete.getAsBoolean();
                 }
+            }
+        };
+    }
+
+    public Action stopStreamingAction() {
+        return new Action() {
+            private boolean initialized = false;
+
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                if (!initialized) {
+                    initialized = true;
+                }
+
+                stopStreaming();
+
+                return false;
+            }
+        };
+    }
+
+    public Action resumeStreamingAction() {
+        return new Action() {
+            private boolean initialized = false;
+
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                if (!initialized) {
+                    initialized = true;
+                }
+
+                resumeStreaming();
+
+                return false;
             }
         };
     }

@@ -56,7 +56,6 @@ public class Intake {
         } else if (OP_MODE.gamepad2.left_trigger != 0 && USER_BTN_DELAY.allowExec()) {
             _mode = Constants.Intake.Mode.INACTIVE;
         }
-
     }
 
     public void setPower(double power) {

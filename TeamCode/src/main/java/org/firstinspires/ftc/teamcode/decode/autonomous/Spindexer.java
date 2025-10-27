@@ -19,7 +19,7 @@ public class Spindexer {
     private final Servo SERVO;
 
     private final GreenBallPosition GREEN_BALL_POSITION;
-    private final WaitFor MOVE_DELAY = new WaitFor(500);
+    private final WaitFor MOVE_DELAY = new WaitFor(1500);
     private final WaitFor PATTERN_SORT_DELAY = new WaitFor(500);
 
     private Constants.Spindexer.Mode _mode = Constants.Spindexer.Mode.INDEX;
@@ -42,7 +42,7 @@ public class Spindexer {
                     initialized = true;
                 }
 
-                packet.put("Spindexer Actual Patter", String.join(", ", GREEN_BALL_POSITION.getActualPattern()));
+                packet.put("Spindexer Actual Pattern", String.join(", ", GREEN_BALL_POSITION.getActualPattern()));
                 packet.put("Spindexer Actual Index", GREEN_BALL_POSITION.getActualIndex());
                 packet.put("Spindexer Detected", GREEN_BALL_POSITION.getColorDetected());
                 packet.put("Spindexer IsSpinning", GREEN_BALL_POSITION.getMoveSpindexer());
@@ -52,6 +52,7 @@ public class Spindexer {
                     MOVE_DELAY.reset();
                     if (GREEN_BALL_POSITION.isLoaded()) {
                         packet.put("Status Spindex Index Balls", "Finished");
+                        SERVO.setPosition(Constants.Spindexer.Positions[0]);
                         return false;
                     } else {
                         if (driveComplete.getAsBoolean()) packet.put("Status Spindex Sort Balls", "Finished");
@@ -68,6 +69,7 @@ public class Spindexer {
 
                 if (GREEN_BALL_POSITION.isLoaded()) {
                     packet.put("Status Spindex Index Balls", "Finished");
+                    SERVO.setPosition(Constants.Spindexer.Positions[0]);
                     return false;
                 }
                 else {
@@ -124,7 +126,7 @@ public class Spindexer {
 
                 if (!GREEN_BALL_POSITION.getMoveSpindexer()) {
                     MOVE_DELAY.reset();
-                    if (shootComplete.getAsBoolean()) packet.put("Status Spindex Index Balls", "Finished");
+                    if (shootComplete.getAsBoolean()) packet.put("Status Spindex Shoot Balls", "Finished");
                     else packet.put("Status Spindex Shoot Balls", "Running");
                     return !shootComplete.getAsBoolean();
                 }

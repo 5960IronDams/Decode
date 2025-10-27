@@ -24,7 +24,7 @@ public class Pinpoint implements IGyro {
     private void init() {
         _pinpoint.setOffsets(0.0, 0.0, DistanceUnit.INCH);
         _pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
-        _pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.REVERSED);
+        _pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.REVERSED);
         _pinpoint.resetPosAndIMU();
 
         _initYaw = getPose().getHeading(AngleUnit.DEGREES);
@@ -44,6 +44,7 @@ public class Pinpoint implements IGyro {
         return _pinpoint.getPosition();
 
     }
+
     public Action pinpointTelemetry() {
         return new Action() {
             private boolean initialized = false;
@@ -54,9 +55,10 @@ public class Pinpoint implements IGyro {
                     initialized = true;
                 }
                 _pinpoint.update();
-                packet.put("x", _pinpoint.getEncoderX());
-                packet.put("y", _pinpoint.getEncoderY());
-                packet.put("Z", _pinpoint.getHeading(AngleUnit.DEGREES));
+                Pose2D pos = getPose();
+                packet.put("x", pos.getX(DistanceUnit.INCH));
+                packet.put("y", pos.getY(DistanceUnit.INCH));
+                packet.put("heading", pos.getHeading(AngleUnit.DEGREES));
                 return true;
             }
         };

@@ -106,16 +106,19 @@ public class Pattern {
         else if (OP_MODE.gamepad2.b) {
             _targetGreenPos = 2;
         }
+
+        OP_MODE.telemetry.addData("Pattern",  _targetGreenPos == 0 ? "GPP" : _targetGreenPos == 1 ? "PGP" : _targetGreenPos == 2 ? "PPG" : "");
     }
 
     public Pattern setTargetPattern() {
-        if (VISION != null) {
-            setTargetWithHusky();
-        }
+//        if (VISION != null) {
+//            setTargetWithHusky();
+//        }
 //        else if (DECODER != null) {
 //            setTargetWithDecoder();
 //        }
-        else if (OP_MODE != null) {
+//        else
+            if (OP_MODE != null) {
             setTargetWithPlayer();
         }
 

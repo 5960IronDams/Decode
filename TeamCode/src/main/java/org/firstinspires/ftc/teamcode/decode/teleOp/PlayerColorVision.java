@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.decode.core;
+package org.firstinspires.ftc.teamcode.decode.teleOp;
 
 import androidx.annotation.NonNull;
 
@@ -8,13 +8,14 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 
 import org.firstinspires.ftc.teamcode.decode.Constants;
+import org.firstinspires.ftc.teamcode.decode.core.GreenBallPosition;
 
 import java.util.function.BooleanSupplier;
 
 /**
  * Responsible for detecting the balls that are entering the spindexer system.
  */
-public class ColorVision  {
+public class PlayerColorVision {
     private final ColorSensor COLOR_SENSOR;
 
     private final GreenBallPosition GREEN_BALL_POSITION;
@@ -25,16 +26,8 @@ public class ColorVision  {
     private boolean _hasBall;
     private boolean _currentlyHasBall;
 
-    /**
-     * Initializes the color sensor.
-     * @param opMode The current op mode.
-     */
-    public ColorVision(LinearOpMode opMode) {
-        COLOR_SENSOR = opMode.hardwareMap.get(ColorSensor.class, Constants.ColorVision.COLOR_CENTER_ID);
-        GREEN_BALL_POSITION = new GreenBallPosition();
-    }
 
-    public ColorVision(LinearOpMode opMode, GreenBallPosition greenBallPosition) {
+    public PlayerColorVision(LinearOpMode opMode, GreenBallPosition greenBallPosition) {
         COLOR_SENSOR = opMode.hardwareMap.get(ColorSensor.class, Constants.ColorVision.COLOR_CENTER_ID);
         GREEN_BALL_POSITION = greenBallPosition;
     }
@@ -43,7 +36,7 @@ public class ColorVision  {
      * Updated the blue & green colors from the sensor.
      * @return The color vision object.
      */
-    public ColorVision update() {
+    public PlayerColorVision update() {
         _blue = COLOR_SENSOR.blue();
         _green = COLOR_SENSOR.green();
         return this;
@@ -121,7 +114,7 @@ public class ColorVision  {
                 GREEN_BALL_POSITION.getSpindexerDetectionPos() != GREEN_BALL_POSITION.getSpindexerCurrentPos();
     }
 
-    public Action indexBalls(BooleanSupplier driveComplete) {
+    public Action indexBallsAction() {
         return new Action() {
             private boolean initialized = false;
 
@@ -137,48 +130,35 @@ public class ColorVision  {
                 packet.put("Color Current Pos", GREEN_BALL_POSITION.getSpindexerCurrentPos());
                 packet.put("Color IsSpinning", GREEN_BALL_POSITION.getMoveSpindexer());
                 packet.put("Color IsLoaded", GREEN_BALL_POSITION.isLoaded());
+                packet.put("Color Can Process", canProcessBall());
+                packet.put("Color _r", COLOR_SENSOR.red());
+                packet.put("Color _g", COLOR_SENSOR.green());
+                packet.put("Color _b", COLOR_SENSOR.blue());
 
-                if (!canProcessBall()) {
-                    if (GREEN_BALL_POSITION.isLoaded()) {
-                        packet.put("Status Color  Index Balls", "Finished");
-                        return false;
+                if (canProcessBall()) {
+                    int currentPos = GREEN_BALL_POSITION.getSpindexerCurrentPos();
+
+                    switch (currentPos) {
+                        case 0:
+                            GREEN_BALL_POSITION.setSpindexerDetectionPos(currentPos);
+                            GREEN_BALL_POSITION.setActualColor(getColorCode(), 2);
+                            GREEN_BALL_POSITION.setSpindexerCurrentPos(currentPos + 2);
+                            GREEN_BALL_POSITION.setMoveSpindexer(true);
+                            break;
+                        case 2:
+                            GREEN_BALL_POSITION.setSpindexerDetectionPos(currentPos);
+                            GREEN_BALL_POSITION.setActualColor(getColorCode(), 0);
+                            GREEN_BALL_POSITION.setSpindexerCurrentPos(currentPos + 2);
+                            GREEN_BALL_POSITION.setMoveSpindexer(true);
+                            break;
+                        case 4:
+                            GREEN_BALL_POSITION.setSpindexerDetectionPos(currentPos);
+                            GREEN_BALL_POSITION.setActualColor(getColorCode(), 1);
+                            break;
                     }
-                    else {
-                        if (driveComplete.getAsBoolean()) packet.put("Status Color  Index Balls", "Finished");
-                        else packet.put("Status Color Index Balls", "Running");
-                        return !driveComplete.getAsBoolean();
-                    }
                 }
 
-                int currentPos = GREEN_BALL_POSITION.getSpindexerCurrentPos();
-
-                GREEN_BALL_POSITION.setSpindexerDetectionPos(currentPos);
-
-                switch (currentPos) {
-                    case 0:
-                        GREEN_BALL_POSITION.setActualColor(getColorCode(), 2);
-                        GREEN_BALL_POSITION.setSpindexerCurrentPos(currentPos + 2);
-                        GREEN_BALL_POSITION.setMoveSpindexer(true);
-                        break;
-                    case 2:
-                        GREEN_BALL_POSITION.setActualColor(getColorCode(), 0);
-                        GREEN_BALL_POSITION.setSpindexerCurrentPos(currentPos + 2);
-                        GREEN_BALL_POSITION.setMoveSpindexer(true);
-                        break;
-                    case 4:
-                        GREEN_BALL_POSITION.setActualColor(getColorCode(), 1);
-                        break;
-                }
-
-                if (GREEN_BALL_POSITION.isLoaded()) {
-                    packet.put("Status Color Index Balls", "Finished");
-                    return false;
-                }
-                else {
-                    if (driveComplete.getAsBoolean()) packet.put("Status Color  Index Balls", "Finished");
-                    else packet.put("Status Color Index Balls", "Running");
-                    return !driveComplete.getAsBoolean();
-                }
+                return true;
             }
         };
     }

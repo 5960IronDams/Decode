@@ -9,7 +9,8 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
-import org.firstinspires.ftc.teamcode.ironDams.core.Acceleration;
+import org.firstinspires.ftc.teamcode.decode.core.GreenBallPosition;
+import org.firstinspires.ftc.teamcode.ironDams.autonomus.Acceleration;
 import org.firstinspires.ftc.teamcode.ironDams.core.driveTrain.IDriveTrain;
 import org.firstinspires.ftc.teamcode.ironDams.core.odometry.IGyro;
 
@@ -47,6 +48,11 @@ public class AutoDrive {
         return heading;
     }
 
+    double normalizeAngle(double angle) {
+        while (angle <= -Math.PI) angle += 2 * Math.PI;
+        while (angle > Math.PI) angle -= 2 * Math.PI;
+        return angle;
+    }
 
     public void setStartingYPos() {
         Pose2D pos = PINPOINT.getPose();
@@ -62,56 +68,7 @@ public class AutoDrive {
         _startPos = normalizeHeading(PINPOINT.getPose().getHeading(AngleUnit.DEGREES));
     }
 
-    public Action turnLeft(double targetPos, double accelToDistance, double decelAtDistance, double minPower, double maxPower) {
-        return new Action() {
-            private boolean initialized = false;
-
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                if (!initialized) {
-                    initialized = true;
-                }
-
-                Pose2D pos = PINPOINT.getPose();
-                double currentPos = pos.getHeading(AngleUnit.DEGREES);
-
-                packet.put("Turn Right Start Pos", _startPos);
-                packet.put("Turn Right Target Pos", targetPos);
-                packet.put("Turn Right Current Pos", currentPos);
-
-                if (currentPos < targetPos) {
-                    pos = PINPOINT.getPose();
-                    currentPos = pos.getHeading(AngleUnit.DEGREES);
-
-                    double pow = minPower;
-
-                    if (currentPos >= _startPos) {
-                        pow = Acceleration.getPower(
-                                targetPos,
-                                currentPos,
-                                _startPos,
-                                accelToDistance,
-                                decelAtDistance,
-                                minPower,
-                                maxPower);
-                    }
-
-                    packet.put("Turn Left Start Pos", _startPos);
-                    packet.put("Turn Left Target Pos", targetPos);
-                    packet.put("Turn Left Current Pos", currentPos);
-                    packet.put("Turn Left Power", pow);
-
-                    DRIVE_TRAIN.drive(0, 0, -pow);
-                    return true;
-                } else {
-                    DRIVE_TRAIN.drive(0,0,0);
-                    return false;
-                }
-            }
-        };
-    }
-
-    public Action turnRight(double targetPos, double accelToDistance, double decelAtDistance, double minPower, double maxPower) {
+    public Action turnTo(double targetPos, double accelToDistance, double decelAtDistance, double minPower, double maxPower) {
         return new Action() {
             private boolean initialized = false;
 
@@ -123,11 +80,12 @@ public class AutoDrive {
 
                 double currentPos = normalizeHeading(PINPOINT.getPose().getHeading(AngleUnit.DEGREES));
 
-                packet.put("Turn Right Start Pos", _startPos);
-                packet.put("Turn Right Target Pos", targetPos);
-                packet.put("Turn Right Current Pos", currentPos);
+                if ((currentPos > targetPos + TOLERANCE) || (currentPos < targetPos - TOLERANCE)) {
+                    double current = normalizeAngle(Math.toRadians(currentPos));
+                    double target = normalizeAngle(Math.toRadians(targetPos));
+                    double delta = normalizeAngle(target - current); // shortest angular distance
+                    double direction = Math.signum(delta);
 
-                if (currentPos > targetPos + TOLERANCE) {
                     double pow = Acceleration.getPower(
                             targetPos,
                             currentPos,
@@ -138,18 +96,28 @@ public class AutoDrive {
                             maxPower);
 
                     pow = Math.max(minPower, Math.min(pow, maxPower));
+                    double turnPower = direction * pow;
 
-                    packet.put("Turn Right Start Pos", _startPos);
-                    packet.put("Turn Right Target Pos", targetPos);
-                    packet.put("Turn Right Current Pos", currentPos);
-                    packet.put("Turn Right Power", pow);
+                    packet.put("Turn Start Pos", _startPos);
+                    packet.put("Turn Target Pos", targetPos);
+                    packet.put("Turn Current Pos", currentPos);
+                    packet.put("Turn Power", turnPower);
+                    packet.put("Turn Direction", direction);
+                    packet.put("Turn Delta", delta);
 
-                    DRIVE_TRAIN.drive(0, 0, pow);
+                    DRIVE_TRAIN.drive(0, 0, -turnPower);
 
                     packet.put("Status Drive Turn Right", "Running");
                     return true;
                 } else {
+
+                    packet.put("Turn Right Start Pos", _startPos);
+                    packet.put("Turn Right Target Pos", targetPos);
+                    packet.put("Turn Right Current Pos", currentPos);
+                    packet.put("Turn Right Power", 0);
+
                     DRIVE_TRAIN.drive(0,0,0);
+                    setDriveCompleted(true);
                     packet.put("Status Drive Turn Right", "Finished");
                     return false;
                 }
@@ -225,143 +193,7 @@ public class AutoDrive {
         };
     }
 
-    public Action driveForward(double targetPos, double accelToDistance, double decelAtDistance, double minPower, double maxPower) {
-        return new Action() {
-            private boolean initialized = false;
-
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                if (!initialized) {
-                    initialized = true;
-                }Pose2D pos = PINPOINT.getPose();
-                double currentPos = pos.getY(DistanceUnit.INCH);
-
-                if (currentPos < targetPos) {
-                    pos = PINPOINT.getPose();
-                    currentPos = pos.getY(DistanceUnit.INCH);
-
-                    double pow = Acceleration.getPower(
-                            targetPos,
-                            currentPos,
-                            _startPos,
-                            accelToDistance,
-                            decelAtDistance,
-                            minPower,
-                            maxPower);
-
-                    DRIVE_TRAIN.drive(0, pow, 0);
-                    return true;
-                } else {
-                    DRIVE_TRAIN.drive(0,0,0);
-                    return false;
-                }
-            }
-        };
-    }
-
-    public Action driveTurnLeftBackward(double targetPos, double accelToDistance, double decelAtDistance, double minPower, double maxPower) {
-        return new Action() {
-            private boolean initialized = false;
-
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                if (!initialized) {
-                    initialized = true;
-                }Pose2D pos = PINPOINT.getPose();
-                double currentPos = pos.getY(DistanceUnit.INCH);
-
-                if (currentPos > targetPos) {
-                    pos = PINPOINT.getPose();
-                    currentPos = pos.getY(DistanceUnit.INCH);
-
-                    double pow = Acceleration.getPower(
-                            targetPos,
-                            currentPos,
-                            _startPos,
-                            accelToDistance,
-                            decelAtDistance,
-                            minPower,
-                            maxPower);
-
-                    DRIVE_TRAIN.drive(0, -pow, -pow);
-                    return true;
-                } else {
-                    DRIVE_TRAIN.drive(0,0,0);
-                    return false;
-                }
-            }
-        };
-    }
-
-    public Action driveTurnRightBackward(double targetPos, double accelToDistance, double decelAtDistance, double minPower, double maxPower) {
-        return new Action() {
-            private boolean initialized = false;
-
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                if (!initialized) {
-                    initialized = true;
-                }Pose2D pos = PINPOINT.getPose();
-                double currentPos = pos.getY(DistanceUnit.INCH);
-
-                if (currentPos > targetPos) {
-                    pos = PINPOINT.getPose();
-                    currentPos = pos.getY(DistanceUnit.INCH);
-
-                    double pow = Acceleration.getPower(
-                            targetPos,
-                            currentPos,
-                            _startPos,
-                            accelToDistance,
-                            decelAtDistance,
-                            minPower,
-                            maxPower);
-
-                    DRIVE_TRAIN.drive(0, -pow, pow);
-                    return true;
-                } else {
-                    DRIVE_TRAIN.drive(0,0,0);
-                    return false;
-                }
-            }
-        };
-    }
-
-    public Action driveBackward(double targetPos, double accelToDistance, double decelAtDistance, double minPower, double maxPower) {
-        return new Action() {
-            private boolean initialized = false;
-
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                if (!initialized) {
-                    initialized = true;
-                }Pose2D pos = PINPOINT.getPose();
-                double currentPos = pos.getY(DistanceUnit.INCH);
-
-                if (currentPos > targetPos) {
-                    pos = PINPOINT.getPose();
-                    currentPos = pos.getY(DistanceUnit.INCH);
-
-                    double pow = Acceleration.getPower(
-                            targetPos,
-                            currentPos,
-                            _startPos,
-                            accelToDistance,
-                            decelAtDistance,
-                            minPower,
-                            maxPower);
-
-                    DRIVE_TRAIN.drive(0, -pow, 0);
-                    return true;
-                } else {
-                    DRIVE_TRAIN.drive(0,0,0);
-                    return false;
-                }
-            }
-        };
-    }
-
-    public Action strafeLeft(double targetPos, double accelToDistance, double decelAtDistance, double minPower, double maxPower) {
+    public Action driveTo(double targetPos, double accelToDistance, double decelAtDistance, double minPower, double maxPower) {
         return new Action() {
             private boolean initialized = false;
 
@@ -373,44 +205,37 @@ public class AutoDrive {
 
                 Pose2D pos = PINPOINT.getPose();
                 double currentPos = pos.getX(DistanceUnit.INCH);
+                double direction = Math.signum(targetPos - currentPos);
+                double pow = 0;
 
-                packet.put("Strafe Left Start Pos", _startPos);
-                packet.put("Strafe Left Target Pos", targetPos);
-                packet.put("Strafe Left Current Pos", currentPos);
+                if ((currentPos > targetPos + TOLERANCE) || (currentPos < targetPos - TOLERANCE)) {
+                    pow = Acceleration.getPower(
+                            targetPos,
+                            currentPos,
+                            _startPos,
+                            accelToDistance,
+                            decelAtDistance,
+                            minPower,
+                            maxPower);
 
-                if (currentPos < targetPos) {
-                    pos = PINPOINT.getPose();
-                    currentPos = pos.getX(DistanceUnit.INCH);
-
-                    double pow = minPower;
-
-                    if (currentPos >= _startPos) {
-                        pow = Acceleration.getPower(
-                                targetPos,
-                                currentPos,
-                                _startPos,
-                                accelToDistance,
-                                decelAtDistance,
-                                minPower,
-                                maxPower);
-                    }
-
-                    packet.put("Strafe Left Start Pos", _startPos);
-                    packet.put("Strafe Left Target Pos", targetPos);
-                    packet.put("Strafe Left Current Pos", currentPos);
-                    packet.put("Strafe Left Power", pow);
-
-                    DRIVE_TRAIN.drive(pow, 0, 0);
-                    return true;
-                } else {
-                    DRIVE_TRAIN.drive(0,0,0);
-                    return false;
+                    pow = Math.max(minPower, Math.min(pow, maxPower));
                 }
+
+                DRIVE_TRAIN.drive(0, pow * direction, 0);
+
+                packet.put("Drive Dir", direction);
+                packet.put("Drive Pow", pow * direction);
+                packet.put("Drive Start", _startPos);
+                packet.put("Drive Target", targetPos);
+                packet.put("Drive Current", currentPos);
+
+                setDriveCompleted(pow == 0);
+                return pow != 0;
             }
         };
     }
 
-    public Action strafeRight(double targetPos, double accelToDistance, double decelAtDistance, double minPower, double maxPower) {
+    public Action strafeTo(double targetPos, double accelToDistance, double decelAtDistance, double minPower, double maxPower) {
         return new Action() {
             private boolean initialized = false;
 
@@ -421,41 +246,76 @@ public class AutoDrive {
                 }
 
                 Pose2D pos = PINPOINT.getPose();
-                double currentPos = pos.getX(DistanceUnit.INCH);
+                double currentPos = pos.getY(DistanceUnit.INCH);
+                double direction = Math.signum(targetPos - currentPos);
 
-                packet.put("Strafe Right Start Pos", _startPos);
-                packet.put("Strafe Right Target Pos", targetPos);
-                packet.put("Strafe Right Current Pos", currentPos);
+                double pow = 0;
 
-                if (currentPos < targetPos) {
-                    pos = PINPOINT.getPose();
-                    currentPos = pos.getX(DistanceUnit.INCH);
+                if ((currentPos > targetPos + TOLERANCE) || (currentPos < targetPos - TOLERANCE)) {
+                    pow = Acceleration.getPower(
+                            targetPos,
+                            currentPos,
+                            _startPos,
+                            accelToDistance,
+                            decelAtDistance,
+                            minPower,
+                            maxPower);
 
-                    double pow = minPower;
-
-                    if (currentPos >= _startPos) {
-                        pow = Acceleration.getPower(
-                                targetPos,
-                                currentPos,
-                                _startPos,
-                                accelToDistance,
-                                decelAtDistance,
-                                minPower,
-                                maxPower);
-                    }
-
-                    packet.put("Strafe Right Start Pos", _startPos);
-                    packet.put("Strafe Right Target Pos", targetPos);
-                    packet.put("Strafe Right Current Pos", currentPos);
-                    packet.put("Strafe Right Power", pow);
-
-                    DRIVE_TRAIN.drive(-pow, 0, 0);
-                    return true;
-                } else {
-                    DRIVE_TRAIN.drive(0,0,0);
-                    return false;
+                    pow = Math.max(minPower, Math.min(pow, maxPower));
                 }
+
+                DRIVE_TRAIN.drive(pow * direction, 0, 0);
+
+                packet.put("Strafe Dir", direction);
+                packet.put("Strafe Pow", pow * direction);
+                packet.put("Strafe Start", _startPos);
+                packet.put("Strafe Target", targetPos);
+                packet.put("Strafe Current", currentPos);
+
+                setDriveCompleted(pow == 0);
+                return pow != 0;
             }
         };
     }
+
+//    public Action driveTurnTo(double targetPos, double accelToDistance, double decelAtDistance, double minPower, double maxPower) {
+//        return new Action() {
+//            private boolean initialized = false;
+//
+//            @Override
+//            public boolean run(@NonNull TelemetryPacket packet) {
+//                if (!initialized) {
+//                    initialized = true;
+//                }
+//
+//                Pose2D pos = PINPOINT.getPose();
+//                double currentPos = pos.getX(DistanceUnit.INCH);
+//                double direction = Math.signum(targetPos - currentPos);
+//                double pow = 0;
+//
+//                if ((currentPos > targetPos + TOLERANCE) || (currentPos < targetPos - TOLERANCE)) {
+//                    pow = Acceleration.getPower(
+//                            targetPos,
+//                            currentPos,
+//                            _startPos,
+//                            accelToDistance,
+//                            decelAtDistance,
+//                            minPower,
+//                            maxPower);
+//
+//                    pow = Math.max(minPower, Math.min(pow, maxPower));
+//                }
+//
+//                DRIVE_TRAIN.drive(0, pow * direction, -(pow * direction));
+//
+//                packet.put("Drive Dir", direction);
+//                packet.put("Drive Pow", pow * direction);
+//                packet.put("Drive Start", _startPos);
+//                packet.put("Drive Target", targetPos);
+//                packet.put("Drive Current", currentPos);
+//
+//                return pow != 0;
+//            }
+//        };
+//    }
 }

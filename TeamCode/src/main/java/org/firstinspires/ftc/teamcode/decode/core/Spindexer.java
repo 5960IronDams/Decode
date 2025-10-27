@@ -114,12 +114,11 @@ public class Spindexer {
      * INTAKE: Starts the intake if the Intake mode is Active.
      */
     private void runIntake() {
-        boolean isIntakeRunning = INTAKE.getPower() == Constants.Intake.MAX_POWER;
         INTAKE.setMode();
         if (INTAKE.getMode() == Constants.Intake.Mode.ACTIVE) {
-            if (!isIntakeRunning) INTAKE.setPower(Constants.Intake.MAX_POWER);
+            if (INTAKE.getPower() != Constants.Intake.MAX_POWER) INTAKE.setPower(Constants.Intake.MAX_POWER);
         }
-        else if (isIntakeRunning) {
+        else if (INTAKE.getPower() != 0) {
             INTAKE.stop();
         }
     }
@@ -246,7 +245,7 @@ public class Spindexer {
      *  </ul>
      */
     private void playerShoot() {
-        if (OP_MODE.gamepad2.dpad_down && USER_BTN_DELAY.allowExec()) {
+        if (OP_MODE.gamepad2.dpad_down) {
             if (_mode != Mode.SHOOT) _mode = Mode.SHOOT;
             _isShooting = true;
         }
@@ -353,6 +352,10 @@ public class Spindexer {
                     if (leftCurrent > maxLeftCurrent) maxLeftCurrent = leftCurrent;
                     if (rightCurrent > maxRightCurrent) maxRightCurrent = rightCurrent;
                 }
+
+                packet.put("Color R", COLOR_VISION.getRed());
+                packet.put("Color B", COLOR_VISION.getBlue());
+                packet.put("Color G", COLOR_VISION.getGreen());
 
                 packet.put("Spindexer Mode", _mode);
                 packet.put("Spindexer pos", SPINDEXER.getPosition());

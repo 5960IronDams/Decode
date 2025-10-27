@@ -1,30 +1,33 @@
-package org.firstinspires.ftc.teamcode.decode.core;
+package org.firstinspires.ftc.teamcode.decode.teleOp;
 
 import androidx.annotation.NonNull;
 
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.teamcode.decode.Constants;
+import org.firstinspires.ftc.teamcode.decode.core.GreenBallPosition;
 import org.firstinspires.ftc.teamcode.ironDams.core.WaitFor;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BooleanSupplier;
 
-public class Shooter {
+public class PlayerShooter {
     private final Servo _servo;
     private final DcMotorEx _left;
     private final DcMotorEx _right;
     private final GreenBallPosition GREEN_BALL_POSITION;
     private final WaitFor SHOT_DELAY = new WaitFor(1500);
 
+    private final Gamepad GAME_PAD_2;
+
     private final AtomicBoolean shootComplete = new AtomicBoolean(false);
-    private int _shotCount = 0;
+    private int _shotCount = 4;
 
     public void setShootComplete(boolean driveCompleted) {
         shootComplete.set(driveCompleted);
@@ -34,7 +37,7 @@ public class Shooter {
         return shootComplete::get;
     }
 
-    public Shooter(LinearOpMode opMode, GreenBallPosition greenBallPosition) {
+    public PlayerShooter(LinearOpMode opMode, GreenBallPosition greenBallPosition) {
         _servo = opMode.hardwareMap.get(Servo.class, Constants.Shooter.LAUNCHER_ID);
         _servo.setDirection(Servo.Direction.REVERSE);
 
@@ -54,15 +57,30 @@ public class Shooter {
 
         close();
 
+        GAME_PAD_2 = opMode.gamepad2;
         GREEN_BALL_POSITION = greenBallPosition;
     }
 
-    public Shooter open() {
-        _servo.setPosition(Constants.Shooter.OPEN_POS);
-        return this;
+    /**
+     * The controls are also listened to in PlayerSpindexer
+     */
+    public void open() {
+        if (GAME_PAD_2.dpad_up) {
+            _shotCount = 4;
+            _servo.setPosition(Constants.Shooter.OPEN_POS);
+            _left.setPower(Constants.Shooter.MAX_POWER);
+            _right.setPower(Constants.Shooter.MAX_POWER);
+        } else if (GAME_PAD_2.dpad_down) {
+            _shotCount = 0;
+            _servo.setPosition(Constants.Shooter.OPEN_POS);
+            _left.setPower(Constants.Shooter.MAX_POWER);
+            _right.setPower(Constants.Shooter.MAX_POWER);
+        } else if (GAME_PAD_2.dpad_left) {
+            close().stop();
+        }
     }
 
-    public Shooter close() {
+    public PlayerShooter close() {
         _servo.setPosition(Constants.Shooter.CLOSED_POS);
         return this;
     }
@@ -112,26 +130,7 @@ public class Shooter {
 
     }
 
-    public Action start(BooleanSupplier driveComplete) {
-        return new Action() {
-            private boolean initialized = false;
-
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                if (!initialized) {
-                    initialized = true;
-                }
-
-                open().setPower(Constants.Shooter.MAX_POWER + 0.22);
-                _shotCount = 0;
-                setShootComplete(false);
-                SHOT_DELAY.reset();
-                return false;
-            }
-        };
-    }
-
-    public Action shoot() {
+    public Action shootAction() {
         return new Action() {
             private boolean initialized = false;
 
@@ -147,7 +146,7 @@ public class Shooter {
                 packet.put("Left Current", _left.getCurrent(CurrentUnit.MILLIAMPS));
                 packet.put("Right Current", _right.getCurrent(CurrentUnit.MILLIAMPS));
 
-                if (SHOT_DELAY.allowExec() && !GREEN_BALL_POSITION.getMoveSpindexer()) {
+                if (SHOT_DELAY.allowExec() && !GREEN_BALL_POSITION.getMoveSpindexer() && _shotCount < 4) {
                     if (_shotCount == 0) GREEN_BALL_POSITION.setSpindexerCurrentPos(GREEN_BALL_POSITION.getSpindexerCurrentPos() + 1);
                     else GREEN_BALL_POSITION.setSpindexerCurrentPos(GREEN_BALL_POSITION.getSpindexerCurrentPos() + 2);
                     GREEN_BALL_POSITION.setMoveSpindexer(true);
@@ -156,17 +155,24 @@ public class Shooter {
                 }
 
                 boolean isComplete = _shotCount > 3;
-                setShootComplete(isComplete);
+
+                if (isComplete) {
+                    close().stop();
+                }
+
 
                 packet.put("Is In Range", isInRange());
                 packet.put("Is Moving", GREEN_BALL_POSITION.getMoveSpindexer());
                 packet.put("Shot Count", _shotCount);
+                packet.put("Shot UP", GAME_PAD_2.dpad_up);
+                packet.put("Shot LEFT", GAME_PAD_2.dpad_left);
+                packet.put("Shot DOWN", GAME_PAD_2.dpad_down);
+                packet.put("Shot RIGHT", GAME_PAD_2.dpad_right);
+                packet.put("Shot Count", _shotCount);
                 packet.put("Left Current", _left.getCurrent(CurrentUnit.MILLIAMPS));
                 packet.put("Right Current", _right.getCurrent(CurrentUnit.MILLIAMPS));
 
-                if (isComplete) packet.put("Status Shooter shoot", "Finished");
-                else packet.put("Status Shooter shoot", "Running");
-                return !isComplete;
+               return true;
             }
         };
     }

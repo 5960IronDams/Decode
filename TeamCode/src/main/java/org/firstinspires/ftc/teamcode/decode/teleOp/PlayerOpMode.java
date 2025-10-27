@@ -6,6 +6,7 @@ import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.ftc.Actions;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -16,6 +17,7 @@ import org.firstinspires.ftc.teamcode.decode.core.Intake;
 import org.firstinspires.ftc.teamcode.decode.core.Shooter;
 import org.firstinspires.ftc.teamcode.decode.core.Spindexer;
 
+@Disabled
 @TeleOp(name = "PlayerOpMode", group = "_IronDams")
 public class PlayerOpMode extends LinearOpMode {
     @Override
