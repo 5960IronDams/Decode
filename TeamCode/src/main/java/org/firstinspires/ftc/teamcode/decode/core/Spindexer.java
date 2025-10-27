@@ -30,6 +30,7 @@ public class Spindexer {
     private final Pattern PATTERN;
 
     private final WaitFor USER_BTN_DELAY = new WaitFor(Constants.WAIT_DURATION_MS);
+    private final WaitFor PATTERN_SORT_DELAY = new WaitFor(500);
 
     private int _currentPos = 0;
     private int _detectionPos = -1;
@@ -43,7 +44,7 @@ public class Spindexer {
 
     private boolean _isPatternChanging;
     private final WaitFor PATTERN_CHANGE_DELAY = new WaitFor(1000);
-
+    private final WaitFor BALL_LAUNCH_DELAY = new WaitFor(250);
     private boolean startTracking = false;
     /**
      * Tracks the shooters left motor current.
@@ -103,9 +104,7 @@ public class Spindexer {
      * @return The spindexer object.
      */
     private Spindexer setPattern() {
-        PATTERN
-            .setTargetPattern()
-            .readPatternId();
+        PATTERN.setTargetPattern();
 
 //        switchMode(PATTERN.hasActualPattern() ? Mode.INTAKE : Mode.SORT);
         return this;
@@ -227,13 +226,14 @@ public class Spindexer {
             int targetPos = PATTERN.getGreenTargetPos();
 
             if (targetPos != -1 && actualPos != -1 && targetPos != actualPos) {
+                PATTERN_SORT_DELAY.reset();
                 int distance = actualPos - targetPos;
                 _currentPos = _currentPos + distance * 2;
                 SPINDEXER.setPosition(Constants.Spindexer.Positions[_currentPos]);
                 PATTERN.makeActualMatchTarget();
             }
 
-            if (switchToShoot) switchMode(Mode.SHOOT);
+            if (switchToShoot && PATTERN_SORT_DELAY.allowExec()) switchMode(Mode.SHOOT);
         }
         return this;
     }
@@ -289,8 +289,9 @@ public class Spindexer {
                      *  We are allowing the ball to escape. */
                     if (_waitToDetectShot) {
                         _waitToDetectShot = !(SHOOTER.getLeftCurrent(CurrentUnit.MILLIAMPS) > Constants.Shooter.BALL_DETECTION_CURRENT);
+                        SHOOT_DELAY_TIMER.reset();
                     }
-                    else if (SHOOTER.isInRange()) { // && SHOOT_DELAY_TIMER.allowExec()) {
+                    else if (SHOOTER.isInRange() && SHOOT_DELAY_TIMER.allowExec()) {
                         _waitToDetectShot = true;
                         if (_currentPos % 2 == 0) _currentPos += 1;
                         else _currentPos += 2;

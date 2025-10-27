@@ -2,11 +2,20 @@ package org.firstinspires.ftc.teamcode.decode.core;
 
 import androidx.annotation.NonNull;
 
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
+import org.firstinspires.ftc.teamcode.ironDams.autonomus.subsystems.VisionReader;
+
+import java.util.function.BooleanSupplier;
 
 public class Pattern {
     private final LinearOpMode OP_MODE;
     private final Decoder DECODER;
+    private final VisionReader VISION;
+
 
     private int _targetGreenPos = -1;
     private int _actualGreenPos = -1;
@@ -16,11 +25,13 @@ public class Pattern {
     public Pattern(LinearOpMode opMode) {
         OP_MODE = opMode;
         DECODER = null;
+        VISION = null;
     }
 
-    public Pattern(Decoder decoder) {
-        OP_MODE = null;
+    public Pattern(LinearOpMode opMode, VisionReader reader, Decoder decoder) {
+        OP_MODE = opMode;
         DECODER = decoder;
+        VISION = reader;
     }
 
     public void makeActualMatchTarget() {
@@ -51,42 +62,79 @@ public class Pattern {
         return _actualPattern;
     }
 
-    /**
-     * Allows player 2 to rotate the pattern ids.<br>
-     * <u>GAMEPAD2 x, a, b</u>
-     * <li>X - 21:GPP</li>
-     * <li>A - 22:PGP</li>
-     * <li>B - 23:PPG</li>
-     * @return The pattern object.
-     */
-    public Pattern setTargetPattern() {
-        if (OP_MODE != null) {
-            if (OP_MODE.gamepad2.x) {
-                _targetGreenPos = 0;
-            }
-            else if (OP_MODE.gamepad2.a) {
-                _targetGreenPos = 1;
-            }
-            else if (OP_MODE.gamepad2.b) {
+    private void setTargetWithHusky() {
+        assert VISION != null;
+        int huskyId = VISION.getFirstId();
+
+        switch (huskyId) {
+            case 1:
                 _targetGreenPos = 2;
-            }
+                break;
+            case 2:
+                _targetGreenPos = 0;
+                break;
+            case 3:
+                _targetGreenPos = 1;
+                break;
+        }
+    }
+
+    private void setTargetWithDecoder() {
+        assert DECODER != null;
+        int tagId = DECODER.readQr();
+
+        switch (tagId) {
+            case 22:
+                _targetGreenPos = 1;
+                break;
+            case 23:
+                _targetGreenPos = 2;
+                break;
+            case 21:
+                _targetGreenPos = 0;
+                break;
+        }
+    }
+
+    private void setTargetWithPlayer() {
+        assert OP_MODE != null;
+        if (OP_MODE.gamepad2.x) {
+            _targetGreenPos = 0;
+        }
+        else if (OP_MODE.gamepad2.a) {
+            _targetGreenPos = 1;
+        }
+        else if (OP_MODE.gamepad2.b) {
+            _targetGreenPos = 2;
+        }
+    }
+
+    public Pattern setTargetPattern() {
+        if (VISION != null) {
+            setTargetWithHusky();
+        }
+        else if (DECODER != null) {
+            setTargetWithDecoder();
+        }
+        else if (OP_MODE != null) {
+            setTargetWithPlayer();
         }
 
         return this;
     }
 
-    public void readPatternId() {
-        if (DECODER != null) {
-            int patternId = DECODER.readQr();
-            _targetGreenPos = patternId == 21 ? 0 : patternId == 22 ? 1 : patternId == 23 ? 2 : -1;
-        }
-    }
+//    public void readPatternId() {
+//        if (DECODER != null) {
+//            int patternId = DECODER.readQr();
+//            _targetGreenPos = patternId == 21 ? 0 : patternId == 22 ? 1 : patternId == 23 ? 2 : -1;
+//        }
+//    }
 
-    public boolean hasActualPattern(){
-        return !_actualPattern[0].isEmpty()
-        && !_actualPattern[1].isEmpty()
-        && !_actualPattern[2].isEmpty();
-    }
+//    public boolean hasActualPattern(){
+//        return !_actualPattern[0].isEmpty()
+//        && !_actualPattern[1].isEmpty()
+//        && !_actualPattern[2].isEmpty();
+//    }
 
     public void updateActualPattern(int index, @NonNull String value) {
         if (value.equals("G")) _actualGreenPos = index;
@@ -96,5 +144,50 @@ public class Pattern {
     public void clearActualPattern() {
         _actualGreenPos = -1;
         _actualPattern = new String[] { "", "", "" };
+    }
+
+    public Action runHuskyLens(BooleanSupplier driveComplete) {
+        return new Action() {
+            private boolean initialized = false;
+
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                if (!initialized) {
+                    initialized = true;
+                }
+
+                if (VISION == null) return false;
+
+                setTargetWithHusky();
+
+                packet.put("Husky Id", VISION.getFirstId());
+                packet.put("Husky Target Green", _targetGreenPos);
+                packet.put("Husky IsDriveComplete", driveComplete.getAsBoolean());
+
+                return _targetGreenPos < 0 || !driveComplete.getAsBoolean();
+            }
+        };
+    }
+
+    public Action runWebcam(BooleanSupplier driveComplete) {
+        return new Action() {
+            private boolean initialized = false;
+
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                if (!initialized) {
+                    initialized = true;
+                }
+
+                if (DECODER == null) return false;
+
+                setTargetWithDecoder();
+
+                packet.put("Decoder Vision Id", DECODER.readQr());
+                packet.put("Decoder Target Green", _targetGreenPos);
+
+                return _targetGreenPos < 0 || !driveComplete.getAsBoolean();
+            }
+        };
     }
 }
