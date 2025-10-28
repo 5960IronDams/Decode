@@ -5,114 +5,96 @@ import androidx.annotation.NonNull;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.teamcode.decode.Constants;
+import org.firstinspires.ftc.teamcode.decode.SharedData;
+import org.firstinspires.ftc.teamcode.ironDams.Config;
 import org.firstinspires.ftc.teamcode.ironDams.core.WaitFor;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BooleanSupplier;
 
 public class Shooter {
-    private final Servo _servo;
-    private final DcMotorEx _left;
-    private final DcMotorEx _right;
-    private final GreenBallPosition GREEN_BALL_POSITION;
-    private final WaitFor SHOT_DELAY = new WaitFor(1500);
+    private final Servo SERVO;
+    private final VoltageSensor VOLTAGE_SENSOR;
+    private final DcMotorEx LEFT;
+    private final DcMotorEx RIGHT;
+    private final PIDFCoefficients LEFT_PIDF;
+    private final PIDFCoefficients RIGHT_PIDF;
+    private final SharedData DATA;
+    private final WaitFor USER_DELAY = new WaitFor(Config.USER_DELAY_MS);
+    private final WaitFor SORT_DELAY = new WaitFor(500);
 
-    private final AtomicBoolean shootComplete = new AtomicBoolean(false);
-    private int _shotCount = 0;
+    private final Gamepad GAMEPAD2;
 
-    public void setShootComplete(boolean driveCompleted) {
-        shootComplete.set(driveCompleted);
+    public Shooter(LinearOpMode opMode, SharedData data) {
+        SERVO = opMode.hardwareMap.get(Servo.class, Config.Hardware.Servos.Shooter.LEVER_ID);
+        SERVO.setDirection(Servo.Direction.REVERSE);
+
+        VOLTAGE_SENSOR = opMode.hardwareMap.voltageSensor.iterator().next();
+
+
+        LEFT = opMode.hardwareMap.get(DcMotorEx.class, Config.Hardware.Motors.Shooter.LEFT_MOTOR_ID);
+        RIGHT = opMode.hardwareMap.get(DcMotorEx.class, Config.Hardware.Motors.Shooter.RIGHT_MOTOR_ID);
+
+        RIGHT.setDirection(DcMotorEx.Direction.REVERSE);
+
+        LEFT.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        RIGHT.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+
+        LEFT_PIDF = new PIDFCoefficients(
+                0, 0, 0.0005, (32767 / Constants.Shooter.LEFT_TPS) * (Constants.Shooter.TARGET_VOLT / VOLTAGE_SENSOR.getVoltage())
+        );
+
+        RIGHT_PIDF = new PIDFCoefficients(
+                0, 0, 0.0005, (32767 / Constants.Shooter.RIGHT_TPS) * (Constants.Shooter.TARGET_VOLT / VOLTAGE_SENSOR.getVoltage())
+        );
+
+        LEFT.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
+        RIGHT.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
+
+        SERVO.setPosition(Constants.Shooter.CLOSE_POS);
+
+        GAMEPAD2 = opMode.gamepad2;
+        DATA = data;
     }
 
-    public BooleanSupplier getShootComplete() {
-        return shootComplete::get;
+    public void start() {
+        double voltage = VOLTAGE_SENSOR.getVoltage();
+        SERVO.setPosition(Constants.Shooter.OPEN_POS);
+        LEFT_PIDF.f = (32767 / Constants.Shooter.LEFT_TPS) * (Constants.Shooter.TARGET_VOLT / voltage);
+        RIGHT_PIDF.f = (32767 / Constants.Shooter.LEFT_TPS) * (Constants.Shooter.TARGET_VOLT / voltage);
+        LEFT.setVelocity(Constants.Shooter.TARGET_VELOCITY);
+        RIGHT.setVelocity(Constants.Shooter.TARGET_VELOCITY);
     }
 
-    public Shooter(LinearOpMode opMode, GreenBallPosition greenBallPosition) {
-        _servo = opMode.hardwareMap.get(Servo.class, Constants.Shooter.LAUNCHER_ID);
-        _servo.setDirection(Servo.Direction.REVERSE);
-
-        _left = opMode.hardwareMap.get(DcMotorEx.class, Constants.Shooter.MOTOR_LEFT_ID);
-        _right = opMode.hardwareMap.get(DcMotorEx.class, Constants.Shooter.MOTOR_RIGHT_ID);
-
-        _right.setDirection(DcMotorEx.Direction.REVERSE);
-
-        _left.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
-        _right.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
-
-//        _left.setVelocity(450);
-//        _right.setVelocity(450);
-
-        _left.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
-        _right.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
-
-        close();
-
-        GREEN_BALL_POSITION = greenBallPosition;
-    }
-
-    public Shooter open() {
-        _servo.setPosition(Constants.Shooter.OPEN_POS);
-        return this;
+    public boolean readyForSort() {
+        SERVO.setPosition(Constants.Shooter.CLOSE_POS);
+        return SORT_DELAY.allowExec();
     }
 
     public Shooter close() {
-        _servo.setPosition(Constants.Shooter.CLOSED_POS);
+        SERVO.setPosition(Constants.Shooter.CLOSE_POS);
         return this;
     }
 
-    public void setPower(double power) {
-        _left.setPower(power);
-        _right.setPower(power);
+    public Shooter open() {
+        SERVO.setPosition(Constants.Shooter.OPEN_POS);
+        return this;
     }
 
-    public double getPower() {
-        return _left.getPower();
+    public void stop() {
+        LEFT.setVelocity(0);
+        RIGHT.setVelocity(0);
     }
 
-    public double getLeftCurrent(CurrentUnit currentUnit) {
-        return _left.getCurrent(currentUnit);
-    }
-
-    public double getRightCurrent(CurrentUnit currentUnit) {
-        return _right.getCurrent(currentUnit);
-    }
-
-    public double getTicksPerSecondLeft() {
-        return _left.getVelocity();
-    }
-
-    public double getTicksPerSecondRight() {
-        return _right.getVelocity();
-    }
-
-    public double getEncoderLeft() {
-        return _left.getCurrentPosition();
-    }
-
-    public double getEncoderRight() {
-        return _right.getCurrentPosition();
-    }
-
-    public boolean isInRange() {
-        double leftCurrent = getLeftCurrent(CurrentUnit.MILLIAMPS);
-        double rightCurrent = getRightCurrent(CurrentUnit.MILLIAMPS);
-
-        return leftCurrent < Constants.Shooter.MAX_LEFT_CURRENT &&
-                leftCurrent > Constants.Shooter.MIN_LEFT_CURRENT &&
-                rightCurrent < Constants.Shooter.MAX_RIGHT_CURRENT &&
-                rightCurrent > Constants.Shooter.MIN_RIGHT_CURRENT;
-
-
-    }
-
-    public Action start(BooleanSupplier driveComplete) {
+    public Action playerShootAction(BooleanSupplier requestSort) {
         return new Action() {
             private boolean initialized = false;
 
@@ -122,67 +104,48 @@ public class Shooter {
                     initialized = true;
                 }
 
-                open().setPower(Constants.Shooter.MAX_POWER + 0.22);
-                _shotCount = 0;
-                setShootComplete(false);
-                SHOT_DELAY.reset();
-                return false;
-            }
-        };
-    }
+                double voltage = VOLTAGE_SENSOR.getVoltage();
 
-    public Action shoot() {
-        return new Action() {
-            private boolean initialized = false;
+                packet.put("Shooter Current Left", LEFT.getCurrent(CurrentUnit.MILLIAMPS));
+                packet.put("Shooter Current Right", RIGHT.getCurrent(CurrentUnit.MILLIAMPS));
+                packet.put("Shooter Velocity Right", RIGHT.getVelocity());
+                packet.put("Shooter Velocity Left", LEFT.getVelocity());
+                packet.put("Shooter Pow Left", LEFT.getPower());
+                packet.put("Shooter Pow Right", RIGHT.getPower());
+                packet.put("Shooter Target Velocity", Constants.Shooter.TARGET_VELOCITY);
+                packet.put("Shooter DP DOWN", GAMEPAD2.dpad_down);
+                packet.put("Shooter Voltage", voltage);
+                packet.put("Shooter Sort Request", DATA.getHasPatternChanged().getAsBoolean());
 
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                if (!initialized) {
-                    initialized = true;
+                if (DATA.getSpindexerMode() == Constants.Spindexer.Mode.PRE_SHOOT) {
+                    SERVO.setPosition(Constants.Shooter.OPEN_POS);
+                    LEFT_PIDF.f = (32767 / Constants.Shooter.LEFT_TPS) * (Constants.Shooter.TARGET_VOLT / voltage);
+                    RIGHT_PIDF.f = (32767 / Constants.Shooter.LEFT_TPS) * (Constants.Shooter.TARGET_VOLT / voltage);
+                    LEFT.setVelocity(Constants.Shooter.TARGET_VELOCITY);
+                    RIGHT.setVelocity(Constants.Shooter.TARGET_VELOCITY);
+
+                    if (requestSort.getAsBoolean()) {
+                        SERVO.setPosition(Constants.Shooter.CLOSE_POS);
+                        if (SORT_DELAY.allowExec()) {
+                            DATA.setSpindexerMode(Constants.Spindexer.Mode.SORT);
+                            DATA.setHasPatternChanged(false);
+                            DATA.setReadyToSort(true);
+                        }
+                    } else {
+                        SORT_DELAY.reset();
+
+                        if (GAMEPAD2.dpad_down && USER_DELAY.allowExec()) {
+                            DATA.setSpindexerMode(Constants.Spindexer.Mode.SHOOT);
+                            DATA.setSpindexerState(Constants.Spindexer.Mode.SHOOT.ordinal());
+                            packet.put("Shooter SM", DATA.getSpindexerMode());
+                        }
+                    }
+                } else if (DATA.getSpindexerMode() == Constants.Spindexer.Mode.INDEX) {
+                    LEFT.setVelocity(0);
+                    RIGHT.setVelocity(0);
                 }
 
-                packet.put("Is In Range", isInRange());
-                packet.put("Is Moving", GREEN_BALL_POSITION.getMoveSpindexer());
-                packet.put("Shot Count", _shotCount);
-                packet.put("Left Current", _left.getCurrent(CurrentUnit.MILLIAMPS));
-                packet.put("Right Current", _right.getCurrent(CurrentUnit.MILLIAMPS));
-
-                if (SHOT_DELAY.allowExec() && !GREEN_BALL_POSITION.getMoveSpindexer()) {
-                    if (_shotCount == 0) GREEN_BALL_POSITION.setSpindexerCurrentPos(GREEN_BALL_POSITION.getSpindexerCurrentPos() + 1);
-                    else GREEN_BALL_POSITION.setSpindexerCurrentPos(GREEN_BALL_POSITION.getSpindexerCurrentPos() + 2);
-                    GREEN_BALL_POSITION.setMoveSpindexer(true);
-
-                    _shotCount++;
-                }
-
-                boolean isComplete = _shotCount > 3;
-                setShootComplete(isComplete);
-
-                packet.put("Is In Range", isInRange());
-                packet.put("Is Moving", GREEN_BALL_POSITION.getMoveSpindexer());
-                packet.put("Shot Count", _shotCount);
-                packet.put("Left Current", _left.getCurrent(CurrentUnit.MILLIAMPS));
-                packet.put("Right Current", _right.getCurrent(CurrentUnit.MILLIAMPS));
-
-                if (isComplete) packet.put("Status Shooter shoot", "Finished");
-                else packet.put("Status Shooter shoot", "Running");
-                return !isComplete;
-            }
-        };
-    }
-
-    public Action stop() {
-        return new Action() {
-            private boolean initialized = false;
-
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                if (!initialized) {
-                    initialized = true;
-                }
-
-                close().setPower(0);
-                return false;
+                return true;
             }
         };
     }
