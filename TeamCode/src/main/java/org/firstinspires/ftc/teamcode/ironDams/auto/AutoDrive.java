@@ -1,14 +1,18 @@
 package org.firstinspires.ftc.teamcode.ironDams.auto;
 
 import androidx.annotation.NonNull;
+
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.ironDams.core.Acceleration;
 import org.firstinspires.ftc.teamcode.ironDams.core.driveTrain.IDriveTrain;
 import org.firstinspires.ftc.teamcode.ironDams.core.odometry.IGyro;
+
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BooleanSupplier;
 
@@ -19,7 +23,8 @@ public class AutoDrive {
 
     private double _startPos = 0;
 
-    private final AtomicBoolean DRIVE_COMPLETE = new AtomicBoolean(false);
+
+    private final AtomicBoolean driveComplete = new AtomicBoolean(false);
 
     public AutoDrive(IDriveTrain drive, IGyro pinpoint) {
         DRIVE_TRAIN = drive;
@@ -27,11 +32,11 @@ public class AutoDrive {
     }
 
     public void setDriveCompleted(boolean driveCompleted) {
-        DRIVE_COMPLETE.set(driveCompleted);
+        driveComplete.set(driveCompleted);
     }
 
-    public BooleanSupplier getDriveCompleted() {
-        return DRIVE_COMPLETE::get;
+    public BooleanSupplier getDriveComplete() {
+        return driveComplete::get;
     }
 
     private double normalizeHeading(double heading) {
@@ -256,7 +261,7 @@ public class AutoDrive {
                     pow = Math.max(minPower, Math.min(pow, maxPower));
                 }
 
-                DRIVE_TRAIN.drive(pow * direction, 0, 0);
+                DRIVE_TRAIN.drive(-(pow * direction), 0, 0);
 
                 packet.put("Strafe Dir", direction);
                 packet.put("Strafe Pow", pow * direction);
@@ -269,45 +274,4 @@ public class AutoDrive {
             }
         };
     }
-
-//    public Action driveTurnTo(double targetPos, double accelToDistance, double decelAtDistance, double minPower, double maxPower) {
-//        return new Action() {
-//            private boolean initialized = false;
-//
-//            @Override
-//            public boolean run(@NonNull TelemetryPacket packet) {
-//                if (!initialized) {
-//                    initialized = true;
-//                }
-//
-//                Pose2D pos = PINPOINT.getPose();
-//                double currentPos = pos.getX(DistanceUnit.INCH);
-//                double direction = Math.signum(targetPos - currentPos);
-//                double pow = 0;
-//
-//                if ((currentPos > targetPos + TOLERANCE) || (currentPos < targetPos - TOLERANCE)) {
-//                    pow = Acceleration.getPower(
-//                            targetPos,
-//                            currentPos,
-//                            _startPos,
-//                            accelToDistance,
-//                            decelAtDistance,
-//                            minPower,
-//                            maxPower);
-//
-//                    pow = Math.max(minPower, Math.min(pow, maxPower));
-//                }
-//
-//                DRIVE_TRAIN.drive(0, pow * direction, -(pow * direction));
-//
-//                packet.put("Drive Dir", direction);
-//                packet.put("Drive Pow", pow * direction);
-//                packet.put("Drive Start", _startPos);
-//                packet.put("Drive Target", targetPos);
-//                packet.put("Drive Current", currentPos);
-//
-//                return pow != 0;
-//            }
-//        };
-//    }
 }

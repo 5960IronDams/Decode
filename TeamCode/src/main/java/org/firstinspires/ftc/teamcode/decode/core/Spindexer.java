@@ -13,13 +13,15 @@ import org.firstinspires.ftc.teamcode.ironDams.Config;
 import org.firstinspires.ftc.teamcode.ironDams.core.WaitFor;
 
 import java.util.function.BooleanSupplier;
-import java.util.function.IntSupplier;
 
 public class Spindexer {
     private final SharedData DATA;
     private final Servo SERVO;
     private final WaitFor MOVE_DELAY = new WaitFor(1500);
-    private final WaitFor PATTERN_SORT_DELAY = new WaitFor(500);
+    private final WaitFor INDEX_DELAY = new WaitFor(500);
+
+    private int _currentIndex = 0;
+    private int _detectionIndex = -1;
 
     public Spindexer(LinearOpMode opMode, SharedData data) {
         DATA = data;
@@ -35,24 +37,40 @@ public class Spindexer {
         SERVO.setPosition(pos);
     }
 
+    public void moveDistance(int distance) {
+        _detectionIndex = _currentIndex;
+        _currentIndex += distance;
+        double pos = Constants.Spindexer.Positions[_currentIndex];
+
+        SERVO.setPosition(pos);
+    }
+
+    public void moveIndex(int index) {
+        _detectionIndex = _currentIndex;
+        _currentIndex = index;
+        SERVO.setPosition(Constants.Spindexer.Positions[index]);
+    }
+
     public void sort() {
         if (DATA.getGreenBallTargetIndex() != -1 &&
                 DATA.getGreenBallActualIndex() != -1) {
             int distance = DATA.getGreenBallActualIndex() - DATA.getGreenBallTargetIndex();
-            DATA.setSpindexerCurrentIndex(DATA.getSpindexerCurrentIndex() + distance * 2);
-            SERVO.setPosition(Constants.Spindexer.Positions[DATA.getSpindexerCurrentIndex()]);
+
+            _detectionIndex = _currentIndex;
+            _currentIndex = _currentIndex + distance * 2;
+            SERVO.setPosition(Constants.Spindexer.Positions[_currentIndex]);
             DATA.setGreenBallActualIndex(DATA.getGreenBallTargetIndex());
         }
     }
 
     public void shoot() {
-        int distance = DATA.getSpindexerCurrentIndex() % 2 == 0 ? 1 : 2;
-        DATA.setSpindexerCurrentIndex(DATA.getSpindexerCurrentIndex() + distance);
-        SERVO.setPosition(Constants.Spindexer.Positions[DATA.getSpindexerCurrentIndex()]);
+        int distance = _currentIndex % 2 == 0 ? 1 : 2;
+        _currentIndex = _currentIndex + distance;
+        SERVO.setPosition(Constants.Spindexer.Positions[_currentIndex]);
         DATA.setShotCount(DATA.getShotCount() + 1);
     }
 
-    public Action indexAction() {
+    public Action indexAction(BooleanSupplier driveComplete) {
         return new Action() {
             private boolean initialized = false;
 
@@ -62,62 +80,20 @@ public class Spindexer {
                     initialized = true;
                 }
 
-                if (DATA.isSpindexerLoaded()) {
-                    DATA.setSpindexerState(Constants.Spindexer.Mode.SORT.ordinal());
-                    return false;
-                }
-                else {
-                    if (DATA.getMoveSpindexer()) {
-                        DATA.setMoveSpindexer(false);
-                        DATA.setSpindexerDetectionIndex(DATA.getSpindexerCurrentIndex());
-                        DATA.setSpindexerCurrentIndex(DATA.getSpindexerCurrentIndex() + 2);
-                        SERVO.setPosition(Constants.Spindexer.Positions[DATA.getSpindexerCurrentIndex()]);
-                    } else {
-                        MOVE_DELAY.reset();
-                    }
-
-                    packet.put("Spindexer Is Moving", DATA.getMoveSpindexer());
-                    packet.put("Spindexer Current Index", DATA.getSpindexerCurrentIndex());
-                    packet.put("Spindexer Detection Index", DATA.getSpindexerDetectionIndex());
-                }
-
-                return true;
-            }
-        };
-    }
-
-    public Action autoIndexAction(BooleanSupplier driveComplete) {
-        return new Action() {
-            private boolean initialized = false;
-
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                if (!initialized) {
-                    initialized = true;
-                }
-
-                if (!DATA.getMoveSpindexer()) {
-                    MOVE_DELAY.reset();
-                    if (DATA.isSpindexerLoaded()) {
-                        packet.put("Status Spindex Indexing", "Finished");
-                        SERVO.setPosition(Constants.Spindexer.Positions[0]);
-                        return false;
-                    } else {
-                        if (driveComplete.getAsBoolean()) packet.put("Status Spindex Indexing", "Finished");
-                        else packet.put("Status Spindex Indexing", "Running");
-                        return !driveComplete.getAsBoolean();
-                    }
-                }
-
-                SERVO.setPosition(Constants.Spindexer.Positions[DATA.getSpindexerCurrentIndex()]);
-
-                if (MOVE_DELAY.allowExec()) {
+                if (DATA.getMoveSpindexer()) {
                     DATA.setMoveSpindexer(false);
+                    int currentIndex = _currentIndex;
+                    _currentIndex += 2;
+                    SERVO.setPosition(Constants.Spindexer.Positions[_currentIndex]);
+                    if (INDEX_DELAY.allowExec()) {
+                        _detectionIndex = currentIndex;
+                    }
+                } else {
+                    INDEX_DELAY.reset();
                 }
 
                 if (DATA.isSpindexerLoaded()) {
                     packet.put("Status Spindex Indexing", "Finished");
-                    SERVO.setPosition(Constants.Spindexer.Positions[0]);
                     return false;
                 }
                 else {
@@ -129,7 +105,7 @@ public class Spindexer {
         };
     }
 
-    public Action playerIndexAction(IntSupplier stateSupplier) {
+    public Action moveDistAction(int distance) {
         return new Action() {
             private boolean initialized = false;
 
@@ -139,64 +115,38 @@ public class Spindexer {
                     initialized = true;
                 }
 
-                if (DATA.isSpindexerLoaded()) {
-                    DATA.setSpindexerState(Constants.Spindexer.Mode.SORT.ordinal());
-                }
-                else if (stateSupplier.getAsInt() == Constants.Spindexer.Mode.INDEX.ordinal())
-                {
-                    if (DATA.getMoveSpindexer()) {
-                        DATA.setMoveSpindexer(false);
-                        DATA.setSpindexerDetectionIndex(DATA.getSpindexerCurrentIndex());
-                        DATA.setSpindexerCurrentIndex(DATA.getSpindexerCurrentIndex() + 2);
-                        SERVO.setPosition(Constants.Spindexer.Positions[DATA.getSpindexerCurrentIndex()]);
-                    } else {
-                        MOVE_DELAY.reset();
-                    }
-                }
+                packet.put("Spin Move Current Index", _currentIndex);
+                packet.put("Spin Move Requested Dist", distance);
+                packet.put("Spin Move Current Pos", SERVO.getPosition());
 
-                packet.put("Spindexer Is Moving", DATA.getMoveSpindexer());
-                packet.put("Spindexer Current Index", DATA.getSpindexerCurrentIndex());
-                packet.put("Spindexer Detection Index", DATA.getSpindexerDetectionIndex());
+                moveDistance(distance);
 
-                return true;
+                packet.put("Spin Move New Index", _currentIndex);
+                packet.put("Spin Move New Pos", SERVO.getPosition());
+
+                return false;
             }
         };
     }
 
-    public Action autoSortAction(BooleanSupplier driveComplete) {
+    public Action moveIndexAction(int index) {
         return new Action() {
             private boolean initialized = false;
 
             @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
+            public boolean run(@NonNull TelemetryPacket telemetryPacket) {
                 if (!initialized) {
                     initialized = true;
                 }
 
-                if (!DATA.isSpindexerLoaded() ||
-                        DATA.getGreenBallTargetIndex() == -1 ||
-                        DATA.getGreenBallActualIndex() == -1) {
-                    if (driveComplete.getAsBoolean()) packet.put("Status Spindex Sort Balls", "Finished");
-                    else packet.put("Status Spindex Sort Balls", "Running");
-                    return !driveComplete.getAsBoolean();
-                } else if (DATA.getGreenBallTargetIndex() == DATA.getGreenBallActualIndex()) {
-                    packet.put("Status Spindex Sort Balls", "Finished");
-                    return false;
-                }
+                moveIndex(index);
 
-                int distance = DATA.getGreenBallActualIndex() - DATA.getGreenBallTargetIndex();
-                DATA.setSpindexerCurrentIndex(DATA.getSpindexerCurrentIndex() + distance * 2);
-                SERVO.setPosition(Constants.Spindexer.Positions[DATA.getSpindexerCurrentIndex()]);
-                DATA.setGreenBallActualIndex(DATA.getGreenBallTargetIndex());
-
-                if (driveComplete.getAsBoolean()) packet.put("Status Spindex Sort Balls", "Finished");
-                else packet.put("Status Spindex Sort Balls", "Running");
-                return !driveComplete.getAsBoolean();
+                return false;
             }
         };
     }
 
-    public Action playerSortAction(BooleanSupplier hasPatternChanged, BooleanSupplier readyToSort, IntSupplier stateSupplier) {
+    public Action sortAction(BooleanSupplier hasPatternChanged) {
         return new Action() {
             private boolean initialized = false;
 
@@ -206,59 +156,9 @@ public class Spindexer {
                     initialized = true;
                 }
 
-                if (stateSupplier.getAsInt() == Constants.Spindexer.Mode.SORT.ordinal()) {
+                sort();
 
-                    if (DATA.getGreenBallTargetIndex() != -1 &&
-                            DATA.getGreenBallActualIndex() != -1) {
-                        packet.put("Spindexer Status", "Sorting");
-                        int distance = DATA.getGreenBallActualIndex() - DATA.getGreenBallTargetIndex();
-                        DATA.setSpindexerCurrentIndex(DATA.getSpindexerCurrentIndex() + distance * 2);
-                        SERVO.setPosition(Constants.Spindexer.Positions[DATA.getSpindexerCurrentIndex()]);
-                        DATA.setGreenBallActualIndex(DATA.getGreenBallTargetIndex());
-                    }
-
-                    DATA.setSpindexerState(Constants.Spindexer.Mode.PRE_SHOOT.ordinal());
-                }
-
-                packet.put("Spindexer Mode", stateSupplier.getAsInt());
-
-                return true;
-            }
-        };
-    }
-
-    public Action playerShootAction(IntSupplier stateSupplier) {
-        return new Action() {
-            private boolean initialized = false;
-
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                if (!initialized) {
-                    initialized = true;
-                }
-
-                if (stateSupplier.getAsInt() == Constants.Spindexer.Mode.SHOOT.ordinal())
-                {
-                    if (DATA.getShotCount() < 3 && MOVE_DELAY.allowExec()) {
-                        int distance = DATA.getSpindexerCurrentIndex() % 2 == 0 ? 1 : 2;
-                        DATA.setSpindexerCurrentIndex(DATA.getSpindexerCurrentIndex() + distance);
-                        SERVO.setPosition(Constants.Spindexer.Positions[DATA.getSpindexerCurrentIndex()]);
-                        DATA.setShotCount(DATA.getShotCount() + 1);
-                    }
-                    else if (DATA.getShotCount() == 3 && MOVE_DELAY.allowExec()) {
-                        DATA.setSpindexerCurrentIndex(0);
-                        SERVO.setPosition(Constants.Spindexer.Positions[DATA.getSpindexerCurrentIndex()]);
-                        DATA.setSpindexerState(Constants.Spindexer.Mode.INDEX.ordinal());
-                        DATA.setShotCount(0);
-                    }
-                }
-
-                packet.put("Spindexer Mode", stateSupplier.getAsInt());
-                packet.put("Spindexer Shot Count", DATA.getShotCount());
-                packet.put("Spindexer Current Index", DATA.getSpindexerCurrentIndex());
-                packet.put("Spindexer Detection Index", DATA.getSpindexerDetectionIndex());
-
-                return true;
+                return false;
             }
         };
     }

@@ -56,23 +56,23 @@ public class SharedData {
                 !Objects.equals(ACTUAL_PATTERN[2], "");
     }
 
-    private int _spindexerCurrentIndex = 0;
-    public int getSpindexerCurrentIndex() {
-        return _spindexerCurrentIndex;
-    }
-
-    public void setSpindexerCurrentIndex(int index) {
-        _spindexerCurrentIndex = index;
-    }
-
-    private int _spindexerDetectionIndex = -1;
-    public int getSpindexerDetectionIndex() {
-        return _spindexerDetectionIndex;
-    }
-
-    public void setSpindexerDetectionIndex(int index) {
-        _spindexerDetectionIndex = index;
-    }
+//    private int _spindexerCurrentIndex = 0;
+//    public int getSpindexerCurrentIndex() {
+//        return _spindexerCurrentIndex;
+//    }
+//
+//    public void setSpindexerCurrentIndex(int index) {
+//        _spindexerCurrentIndex = index;
+//    }
+//
+//    private int _spindexerDetectionIndex = -1;
+//    public int getSpindexerDetectionIndex() {
+//        return _spindexerDetectionIndex;
+//    }
+//
+//    public void setSpindexerDetectionIndex(int index) {
+//        _spindexerDetectionIndex = index;
+//    }
 
     private boolean _moveSpindexer = false;
     public boolean getMoveSpindexer() {

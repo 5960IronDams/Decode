@@ -40,6 +40,14 @@ public class AprilTagReader {
         return LEFT_VISION_PORTAL != null && RIGHT_VISION_PORTAL != null;
     }
 
+    public VisionPortal.CameraState leftState() {
+        return LEFT_VISION_PORTAL.getCameraState();
+    }
+
+    public VisionPortal.CameraState rightState() {
+        return RIGHT_VISION_PORTAL.getCameraState();
+    }
+
     public List<AprilTagDetection> readLeft() {
         return LEFT_PROCESSOR.getDetections();
     }

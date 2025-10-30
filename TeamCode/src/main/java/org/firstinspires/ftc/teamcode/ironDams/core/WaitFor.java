@@ -15,8 +15,12 @@ public class WaitFor {
     }
 
     public boolean allowExec() {
+        return allowExec(true);
+    }
+
+    public boolean allowExec(boolean reset) {
         if (TIMER.milliseconds() >= MILLIS) {
-            TIMER.reset();
+            if (reset) TIMER.reset();
             return true;
         }
 

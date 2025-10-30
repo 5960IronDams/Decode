@@ -9,9 +9,14 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.teamcode.ironDams.Config;
+import org.firstinspires.ftc.teamcode.ironDams.core.Acceleration;
 import org.firstinspires.ftc.teamcode.ironDams.core.WaitFor;
 
 public class GyroMecanumDriveTrain implements IDriveTrain{
+    private double currentHorizontal = 0;
+    private double currentVertical = 0;
+    private double currentPivot = 0;
+
     private final Gamepad GAMEPAD1;
     private final BNO055IMU IMU;
     private final BNO055IMU.Parameters PARAMETERS = new BNO055IMU.Parameters();
@@ -47,7 +52,21 @@ public class GyroMecanumDriveTrain implements IDriveTrain{
         }
     }
 
+    @Override
     public void drive(double x, double y, double turn) {
+
+        double newHorizontal = Acceleration.rampPower(currentHorizontal, x);
+        x = newHorizontal;
+        currentHorizontal = newHorizontal;
+
+        double newVertical = Acceleration.rampPower(currentVertical, y);
+        y = newVertical;
+        currentVertical = newVertical;
+
+        double newPivot = Acceleration.rampPower(currentPivot, turn);
+        turn = newPivot;
+        currentPivot = newPivot;
+
         angles = IMU.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 
         double zeroedYaw = -initYaw + angles.firstAngle;
@@ -75,5 +94,15 @@ public class GyroMecanumDriveTrain implements IDriveTrain{
         FourWheelDriveTrain.getRightBackDrive().setPower(rightBack);
 
         reset();
+    }
+
+    @Override
+    public double getLeftPower() {
+        return FourWheelDriveTrain.getLeftFrontDrive().getPower();
+    }
+
+    @Override
+    public double getRightPower() {
+        return FourWheelDriveTrain.getRightFrontDrive().getPower();
     }
 }

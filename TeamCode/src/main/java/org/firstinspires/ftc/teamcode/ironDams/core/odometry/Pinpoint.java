@@ -24,7 +24,7 @@ public class Pinpoint implements IGyro {
     private void init() {
         PINPOINT.setOffsets(0.0, 0.0, DistanceUnit.INCH);
         PINPOINT.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
-        PINPOINT.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.REVERSED);
+        PINPOINT.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.FORWARD);
         PINPOINT.resetPosAndIMU();
 
         _initYaw = getPose().getHeading(AngleUnit.DEGREES);

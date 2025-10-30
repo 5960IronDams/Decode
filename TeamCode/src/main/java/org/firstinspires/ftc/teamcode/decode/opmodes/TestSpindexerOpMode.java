@@ -9,7 +9,7 @@ import org.firstinspires.ftc.teamcode.decode.core.Spindexer;
 import org.firstinspires.ftc.teamcode.ironDams.Config;
 import org.firstinspires.ftc.teamcode.ironDams.core.WaitFor;
 
-@TeleOp(name = "TestSpindexerOpMode", group = "@@@@IronDams")
+@TeleOp(name = "TestSpindexerOpMode", group = "@@@@IronDamsTest")
 public class TestSpindexerOpMode extends LinearOpMode {
     @Override
     public void runOpMode() {
@@ -32,9 +32,9 @@ public class TestSpindexerOpMode extends LinearOpMode {
                 currentIndex++;
                 spindexer.setPos(positions[currentIndex]);
             } else if (gamepad1.x && userDelay.allowExec()) {
-                spindexer.setPos(spindexer.getPos() - 0.001);
+                spindexer.setPos(spindexer.getPos() - 0.005);
             } else if (gamepad1.b && userDelay.allowExec()) {
-                spindexer.setPos(spindexer.getPos() + 0.001);
+                spindexer.setPos(spindexer.getPos() + 0.005);
             }
 
             telemetry.addData("Index", spindexer.getPos());

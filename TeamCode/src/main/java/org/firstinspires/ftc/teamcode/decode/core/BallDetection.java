@@ -29,6 +29,8 @@ public class BallDetection  {
     private boolean _hasBall;
     private boolean _currentlyHasBall;
 
+    private boolean _processColor = false;
+
     public BallDetection(LinearOpMode opMode, SharedData data) {
         COLOR_SENSOR = opMode.hardwareMap.get(ColorSensor.class, Config.Hardware.Sensors.Spindexer.COLOR_ID);
         DATA = data;
@@ -100,30 +102,79 @@ public class BallDetection  {
         update();
         return hasStateChange() &&
                 hasBall() &&
-                !DATA.getMoveSpindexer() &&
-                DATA.getSpindexerDetectionIndex() != DATA.getSpindexerCurrentIndex();
+                !DATA.getMoveSpindexer();
+//                &&
+//                DATA.getSpindexerDetectionIndex() != DATA.getSpindexerCurrentIndex();
     }
 
-    public void processColor() {
-        if (canProcessBall()) {
-            int spindexerCurrentIndex = DATA.getSpindexerCurrentIndex();
-            switch (spindexerCurrentIndex) {
-                case 0:
-                    DATA.setActualColorCode(getColorCode(), 2);
-                    DATA.setMoveSpindexer(true);
-                    break;
-                case 2:
-                    DATA.setActualColorCode(getColorCode(), 0);
-                    DATA.setMoveSpindexer(true);
-                    break;
-                case 4:
-                    DATA.setActualColorCode(getColorCode(), 1);
-                    break;
+//    public void processColor() {
+//        if (canProcessBall()) {
+//            int spindexerCurrentIndex = DATA.getSpindexerCurrentIndex();
+//            switch (spindexerCurrentIndex) {
+//                case 0:
+//                    DATA.setActualColorCode(getColorCode(), 2);
+//                    DATA.setMoveSpindexer(true);
+//                    break;
+//                case 2:
+//                    DATA.setActualColorCode(getColorCode(), 0);
+//                    DATA.setMoveSpindexer(true);
+//                    break;
+//                case 4:
+//                    DATA.setActualColorCode(getColorCode(), 1);
+//                    break;
+//            }
+//        }
+//    }
+
+    public void setProcessColor(boolean process) {
+        _processColor = process;
+    }
+
+    public boolean process() {
+        if (_processColor) {
+            _green = COLOR_SENSOR.green();
+            _blue = COLOR_SENSOR.blue();
+
+            if (_blue > Constants.ColorVision.THRESHOLD && _blue > _green) {
+                if (DATA.getActualPattern()[2].isEmpty()) DATA.setActualColorCode("P", 2);
+                else if (DATA.getActualPattern()[0].isEmpty()) DATA.setActualColorCode("P", 0);
+                else DATA.setActualColorCode("P", 1);
+
+                _green = 0;
+                _blue = 0;
+                _processColor = false;
+                return true;
+            } else if (_green > Constants.ColorVision.THRESHOLD && _green > _blue) {
+                if (DATA.getActualPattern()[2].isEmpty()) DATA.setActualColorCode("G", 2);
+                else if (DATA.getActualPattern()[0].isEmpty()) DATA.setActualColorCode("G", 0);
+                else DATA.setActualColorCode("G", 1);
+
+                _green = 0;
+                _blue = 0;
+                _processColor = false;
+                return true;
             }
         }
+
+        return false;
     }
 
-    public Action autoDetectAction(BooleanSupplier driveComplete, IntSupplier stateSupplier) {
+    public boolean autoProcessedColor() {
+        if (canProcessBall()) {
+            if (DATA.getActualPattern()[2].isEmpty()) DATA.setActualColorCode(getColorCode(), 2);
+            else if (DATA.getActualPattern()[0].isEmpty()) DATA.setActualColorCode(getColorCode(), 0);
+            else DATA.setActualColorCode(getColorCode(), 1);
+
+            _green = 0;
+            _blue = 0;
+
+            return true;
+        }
+
+        return false;
+    }
+
+    public Action detectionAction(BooleanSupplier driveComplete) {
         return new Action() {
             private boolean initialized = false;
 
@@ -133,44 +184,47 @@ public class BallDetection  {
                     initialized = true;
                 }
 
+                packet.put("Color Blue", _blue);
+                packet.put("Color Green", _green);
+                packet.put("Color Detected", getColorCode());
+
+                boolean isComplete = process();
+//                if (isComplete) DATA.setMoveSpindexer(true);
+
+                packet.put("Color Actual Pattern", String.join(", ", DATA.getActualPattern()));
+                packet.put("Color GB Actual Index", DATA.getGreenBallActualIndex());
+
+                if (isComplete) {
+                    packet.put("Status Color Detection", "Finished");
+                    return false;
+                }
+                else {
+                    if (driveComplete.getAsBoolean()) packet.put("Status Color Detection", "Finished");
+                    else packet.put("Status Color Detection", "Running");
+                    return !driveComplete.getAsBoolean();
+                }
+            }
+        };
+    }
+
+    public Action autoDetectionAction(BooleanSupplier driveComplete) {
+        return new Action() {
+            private boolean initialized = false;
+
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                if (!initialized) {
+                    initialized = true;
+                }
+
+//                processColor();
+
                 packet.put("Color Actual Pattern", String.join(", ", DATA.getActualPattern()));
                 packet.put("Color GB Actual Index", DATA.getGreenBallActualIndex());
                 packet.put("Color Detected", getColorCode());
-                packet.put("Color Spin Current Index", DATA.getSpindexerCurrentIndex());
+//                packet.put("Color Spin Current Index", DATA.getSpindexerCurrentIndex());
                 packet.put("Color IsMoving", DATA.getMoveSpindexer());
                 packet.put("Color IsLoaded", DATA.isSpindexerLoaded());
-
-                if (stateSupplier.getAsInt() != Constants.Spindexer.Mode.INDEX.ordinal() || !canProcessBall()) {
-                    if (DATA.isSpindexerLoaded()) {
-                        packet.put("Status Color Detection", "Finished");
-                        return false;
-                    }
-                    else {
-                        if (driveComplete.getAsBoolean()) packet.put("Status Color Detection", "Finished");
-                        else packet.put("Status Color Detection", "Running");
-                        return !driveComplete.getAsBoolean();
-                    }
-                }
-
-                int spindexerCurrentIndex = DATA.getSpindexerCurrentIndex();
-
-                DATA.setSpindexerDetectionIndex(spindexerCurrentIndex);
-
-                switch (spindexerCurrentIndex) {
-                    case 0:
-                        DATA.setActualColorCode(getColorCode(), 2);
-                        DATA.setSpindexerCurrentIndex(spindexerCurrentIndex + 2);
-                        DATA.setMoveSpindexer(true);
-                        break;
-                    case 2:
-                        DATA.setActualColorCode(getColorCode(), 0);
-                        DATA.setSpindexerCurrentIndex(spindexerCurrentIndex + 2);
-                        DATA.setMoveSpindexer(true);
-                        break;
-                    case 4:
-                        DATA.setActualColorCode(getColorCode(), 1);
-                        break;
-                }
 
                 if (DATA.isSpindexerLoaded()) {
                     packet.put("Status Color Detection", "Finished");
@@ -185,7 +239,7 @@ public class BallDetection  {
         };
     }
 
-    public Action playerDetectAction(IntSupplier stateSupplier) {
+    public Action resetActualPattern() {
         return new Action() {
             private boolean initialized = false;
 
@@ -195,33 +249,9 @@ public class BallDetection  {
                     initialized = true;
                 }
 
-                packet.put("Color Actual Pattern", String.join(", ", DATA.getActualPattern()));
-                packet.put("Color GB Actual Index", DATA.getGreenBallActualIndex());
-                packet.put("Color Detected", getColorCode());
-                packet.put("Color Blue", _blue);
-                packet.put("Color Green", _green);
-                packet.put("Color IsLoaded", DATA.isSpindexerLoaded());
+                DATA.resetActualPattern();
 
-                if (stateSupplier.getAsInt() == Constants.Spindexer.Mode.INDEX.ordinal() && !DATA.isSpindexerLoaded()) {
-                    if (canProcessBall()) {
-                        int spindexerCurrentIndex = DATA.getSpindexerCurrentIndex();
-                        switch (spindexerCurrentIndex) {
-                            case 0:
-                                DATA.setActualColorCode(getColorCode(), 2);
-                                DATA.setMoveSpindexer(true);
-                                break;
-                            case 2:
-                                DATA.setActualColorCode(getColorCode(), 0);
-                                DATA.setMoveSpindexer(true);
-                                break;
-                            case 4:
-                                DATA.setActualColorCode(getColorCode(), 1);
-                                break;
-                        }
-                    }
-                }
-
-                return true;
+                return false;
             }
         };
     }

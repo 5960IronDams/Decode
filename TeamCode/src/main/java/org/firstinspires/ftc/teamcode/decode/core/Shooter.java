@@ -65,13 +65,16 @@ public class Shooter {
         DATA = data;
     }
 
-    public void start() {
+    public void setVelocity() {
+        setVelocity(Constants.Shooter.TARGET_VELOCITY);
+    }
+
+    public void setVelocity(double velocity) {
         double voltage = VOLTAGE_SENSOR.getVoltage();
-        SERVO.setPosition(Constants.Shooter.OPEN_POS);
         LEFT_PIDF.f = (32767 / Constants.Shooter.LEFT_TPS) * (Constants.Shooter.TARGET_VOLT / voltage);
         RIGHT_PIDF.f = (32767 / Constants.Shooter.LEFT_TPS) * (Constants.Shooter.TARGET_VOLT / voltage);
-        LEFT.setVelocity(Constants.Shooter.TARGET_VELOCITY);
-        RIGHT.setVelocity(Constants.Shooter.TARGET_VELOCITY);
+        LEFT.setVelocity(velocity);
+        RIGHT.setVelocity(velocity);
     }
 
     public boolean readyForSort() {
@@ -94,7 +97,41 @@ public class Shooter {
         RIGHT.setVelocity(0);
     }
 
-    public Action playerShootAction(BooleanSupplier requestSort) {
+    public Action startAction(double velocity) {
+        return new Action() {
+            private boolean initialized = false;
+
+            @Override
+            public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+                if (!initialized) {
+                    initialized = true;
+                }
+
+                open().setVelocity(velocity);
+
+                return LEFT.getVelocity() < velocity - 100 || RIGHT.getVelocity() < velocity - 100;
+            }
+        };
+    }
+
+    public Action stopAction() {
+        return new Action() {
+            private boolean initialized = false;
+
+            @Override
+            public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+                if (!initialized) {
+                    initialized = true;
+                }
+
+                close().stop();
+
+                return false;
+            }
+        };
+    }
+
+    public Action shootAction(BooleanSupplier requestSort) {
         return new Action() {
             private boolean initialized = false;
 

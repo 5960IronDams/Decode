@@ -18,9 +18,11 @@ import org.firstinspires.ftc.teamcode.ironDams.core.driveTrain.MecanumDrive;
 public class PlayerOpMode extends LinearOpMode {
     @Override
     public void runOpMode() {
-        WaitFor userDelay = new WaitFor(Config.USER_DELAY_MS);
-        WaitFor shootDelay = new WaitFor(1000);
-        WaitFor patternChangeDelay = new WaitFor(750);
+        WaitFor player1Delay = new WaitFor(Config.USER_DELAY_MS);
+        WaitFor player2Delay = new WaitFor(Config.USER_DELAY_MS);
+        WaitFor colorChangeDelay = new WaitFor(2000);
+        WaitFor shootDelay = new WaitFor(Constants.Shooter.SHOOT_DELAY_MS);
+        WaitFor patternChangeDelay = new WaitFor(Constants.Shooter.PATTERN_CHANGE_DELAY_MS);
 
         SharedData data = new SharedData();
         Shooter shooter = new Shooter(this, data);
@@ -30,28 +32,74 @@ public class PlayerOpMode extends LinearOpMode {
         Spindexer spindexer = new Spindexer(this, data);
         Intake intake = new Intake(this);
 
+        boolean driveMode = true;
+
+        while (opModeInInit()) {
+            pattern.changePattern();
+            telemetry.addLine("Ready");
+            telemetry.addData("Mode", data.getSpindexerMode());
+            telemetry.update();
+        }
+
         waitForStart();
 
+        intake.setMode(Constants.Intake.Mode.INACTIVE);
         if (intake.getMode() == Constants.Intake.Mode.ACTIVE) {
             intake.setVelocity(Constants.Intake.TARGET_VELOCITY);
         }
 
         while (opModeIsActive() && !isStopRequested()) {
-            drive.switchDrive();
-            drive.drive();
-            intake.toggleIntakeVelocity();
+            if (gamepad1.right_trigger != 0 && player1Delay.allowExec()) {
+                driveMode = drive.switchDrive();
+            }
 
-            if (!data.isSpindexerLoaded()) {
-                ballDetection.processColor();
+            drive.drive(gamepad1.right_stick_x, gamepad1.right_stick_y, gamepad1.left_stick_x);
+
+            if (gamepad2.right_trigger != 0) {
+                intake.setVelocity(Constants.Intake.TARGET_VELOCITY);
+                intake.setMode(Constants.Intake.Mode.ACTIVE);
+            } else if (gamepad2.left_trigger != 0) {
+                intake.setVelocity(0);
+                intake.setMode(Constants.Intake.Mode.INACTIVE);
+            }
+
+            if (gamepad2.dpad_down) {
+                data.setSpindexerMode(Constants.Spindexer.Mode.SHOOT);
+            }
+
+            if (data.getSpindexerMode() != Constants.Spindexer.Mode.SHOOT) {
+                shootDelay.reset();
+            }
+
+            if (data.getSpindexerMode() == Constants.Spindexer.Mode.SHOOT)
+            {
+                shooter.open().setVelocity();
+                intake.setVelocity(0);
+                if (data.getShotCount() < 3 && shootDelay.allowExec()) {
+                    spindexer.shoot();
+                } else if (shootDelay.allowExec()) {
+                    data.resetActualPattern();
+                    data.setSpindexerMode(Constants.Spindexer.Mode.INDEX);
+                    data.setShotCount(0);
+                    spindexer.moveIndex(0);
+                    shooter.close().stop();
+                    if (intake.getMode() == Constants.Intake.Mode.ACTIVE) {
+                        intake.setVelocity(Constants.Intake.TARGET_VELOCITY);
+                    }
+                }
+            }
+            else if (!data.isSpindexerLoaded()) {
+                if (colorChangeDelay.allowExec(false)) {
+                    if (ballDetection.autoProcessedColor()) {
+                        if (!data.isSpindexerLoaded()) {
+                            spindexer.moveDistance(2);
+                            colorChangeDelay.reset();
+                        }
+                    }
+                }
                 pattern.changePattern();
                 data.setHasPatternChanged(false);
-                if (data.getMoveSpindexer()) {
-                    data.setMoveSpindexer(false);
-                    data.setSpindexerDetectionIndex(data.getSpindexerCurrentIndex());
-                    data.setSpindexerCurrentIndex(data.getSpindexerCurrentIndex() + 2);
-                    spindexer.setPos(Constants.Spindexer.Positions[data.getSpindexerCurrentIndex()]);
-                    data.setSpindexerMode(Constants.Spindexer.Mode.SORT);
-                }
+                if (data.isSpindexerLoaded()) data.setSpindexerMode(Constants.Spindexer.Mode.SORT);
             } else {
                 pattern.changePattern();
                 if (!data.getHasPatternChanged().getAsBoolean()) patternChangeDelay.reset();
@@ -66,36 +114,13 @@ public class PlayerOpMode extends LinearOpMode {
                 }
                 else if (data.getSpindexerMode() == Constants.Spindexer.Mode.SORT) {
                     spindexer.sort();
-                    data.setSpindexerMode(Constants.Spindexer.Mode.PRE_SHOOT);
-                }
-                else if (data.getSpindexerMode() == Constants.Spindexer.Mode.PRE_SHOOT)
-                {
-                    shooter.start();
-                    if (gamepad2.dpad_down && userDelay.allowExec()) {
-                        data.setSpindexerMode(Constants.Spindexer.Mode.SHOOT);
-                    }
-                }
-                else if (data.getSpindexerMode() == Constants.Spindexer.Mode.SHOOT)
-                {
-                    intake.setVelocity(0);
-                    if (data.getShotCount() < 3 && shootDelay.allowExec()) {
-                        spindexer.shoot();
-                    } else if (shootDelay.allowExec()) {
-                        data.resetActualPattern();
-                        data.setSpindexerMode(Constants.Spindexer.Mode.INDEX);
-                        data.setShotCount(0);
-                        data.setSpindexerCurrentIndex(0);
-                        spindexer.setPos(Constants.Spindexer.Positions[data.getSpindexerCurrentIndex()]);
-                        shooter.close().stop();
-                        if (intake.getMode() == Constants.Intake.Mode.ACTIVE) {
-                            intake.setVelocity(Constants.Intake.TARGET_VELOCITY);
-                        }
-                    }
-
                 }
             }
 
+            telemetry.addData("Drive Mode", driveMode ? "Field": "Robot");
             telemetry.addData("Target Pattern", data.getTargetPattern());
+            telemetry.addData("Actual Pattern", String.join("", data.getActualPattern()));
+            telemetry.addData("Mode", data.getSpindexerMode());
             telemetry.update();
         }
     }

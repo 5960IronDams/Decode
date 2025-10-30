@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-@TeleOp(name = "VelocityTuner", group = "@@@@IronDams")
+@TeleOp(name = "VelocityTuner", group = "@@@@IronDamsTest")
 public class VelocityTunerOpMode extends LinearOpMode {
     private int activeMotorIndex = 0;
     private DcMotorEx activeMotor;
