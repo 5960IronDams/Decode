@@ -7,10 +7,10 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.teamcode.ironDams.Config;
 
 public final class FourWheelDriveTrain {
-    private DcMotorEx _leftFrontDrive;
-    private DcMotorEx _leftBackDrive;
-    private DcMotorEx _rightFrontDrive;
-    private DcMotorEx _rightBackDrive;
+    private final DcMotorEx _leftFrontDrive;
+    private final DcMotorEx _leftBackDrive;
+    private final DcMotorEx _rightFrontDrive;
+    private final DcMotorEx _rightBackDrive;
 
     public DcMotorEx getLeftFrontDrive() {
         return _leftFrontDrive;

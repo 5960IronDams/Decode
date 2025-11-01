@@ -22,7 +22,7 @@ import org.firstinspires.ftc.teamcode.ironDams.core.odometry.Pinpoint;
 
 import java.util.concurrent.atomic.AtomicReference;
 
-@Autonomous(name = "auto_long_blue", group = "@@@@IronDams")
+@Autonomous(name = "LONG_BLUE", group = "@@@@IronDams")
 public class long_blue_opmode extends LinearOpMode {
     @Override
     public void runOpMode() {
@@ -74,28 +74,17 @@ public class long_blue_opmode extends LinearOpMode {
                         new InstantAction(() -> ballDetection.setProcessColor(true)),
                         ballDetection.detectionAction(autoDrive.getDriveComplete()),
 
-                        new ParallelAction(
                         /* Strafe towards the Obelisk */
+                        new ParallelAction(
                                 tagDetection.webcamReadAction(autoDrive.getDriveComplete()),
-                        autoDrive.strafeTo(-124, 4, 10, 0.3, 0.5)//,
-//                        new InstantAction(() -> autoDrive.setDriveCompleted(false)),
-//                        new InstantAction(autoDrive::setStartingHeadingPos),
-//                        autoDrive.turnTo(32, 10, 15, 0.2, 0.7)//,
-
-//                        new InstantAction(() -> autoDrive.setDriveCompleted(false)),
-//
-//
-//                        new ParallelAction(
-//
-//
-//                        )
+                                autoDrive.strafeTo(-124, 4, 10, 0.3, 0.5)
                         ),
                         new InstantAction(() -> autoDrive.setDriveCompleted(false)),
                         new InstantAction(autoDrive::setStartingXPos),
+                        tagDetection.webcamStopStreamingAction(),
                         new ParallelAction(
                                 spindexer.sortAction(data.getHasPatternChanged()),
                                 new SleepAction(9)
-
                         ),
 
                         autoDrive.driveTo(20, 4, 10, 0.3, 0.7),
@@ -118,7 +107,7 @@ public class long_blue_opmode extends LinearOpMode {
                         shooter.closeAction()
 
 
-                        )
+                )
         );
 
         if (isStopRequested()) {
