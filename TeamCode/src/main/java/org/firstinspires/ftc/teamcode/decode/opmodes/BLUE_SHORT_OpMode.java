@@ -22,8 +22,8 @@ import org.firstinspires.ftc.teamcode.ironDams.core.odometry.Pinpoint;
 
 import java.util.concurrent.atomic.AtomicReference;
 
-@Autonomous(name = "AUTO_RED_SHORT", group = "@@@@IronDams")
-public class RED_SHORT_OpMode extends LinearOpMode {
+@Autonomous(name = "AUTO_BLUE_SHORT", group = "@@@@IronDams")
+public class BLUE_SHORT_OpMode extends LinearOpMode {
     @Override
     public void runOpMode() {
         AtomicReference<Boolean> moveSpindexer = new AtomicReference<>(false);
@@ -120,14 +120,14 @@ public class RED_SHORT_OpMode extends LinearOpMode {
                         /* Turn to align ourselves to pick up new artifacts */
                         new InstantAction(() -> autoDrive.setDriveCompleted(false)),
                         new InstantAction(autoDrive::setStartingHeadingPos),
-                        autoDrive.turnTo(330, 10, 15, 0.2, 0.7),
+                        autoDrive.turnTo(30, 10, 15, 0.2, 0.7),
 
                         /* Strafe to get in front of the artifacts */
                         new InstantAction(() -> autoDrive.setDriveCompleted(false)),
                         new InstantAction(autoDrive::setStartingYPos),
                         new ParallelAction(
 //                            spindexer.indexAction(autoDrive.getDriveComplete()),
-                            autoDrive.strafeTo(-14, 3, 11, 0.3, 0.7)
+                            autoDrive.strafeTo(13, 3, 11, 0.3, 0.7)
                         ),
 
                         /* Start the intake, move into the artifacts and index the artifacts as they come in */
@@ -149,7 +149,7 @@ public class RED_SHORT_OpMode extends LinearOpMode {
                                         new InstantAction(() -> ballDetection.setProcessColor(true)),
                                         ballDetection.detectionAction(autoDrive.getDriveComplete())
                                 ),
-                                autoDrive.driveTo(-23, 0, 0, 0.1, 0.1)
+                                autoDrive.driveTo(-30, 0, 0, 0.1, 0.1)
                         ),
 
                         /* Strafe back towards the goal */
@@ -157,12 +157,12 @@ public class RED_SHORT_OpMode extends LinearOpMode {
                         new InstantAction(autoDrive::setStartingYPos),
                         new ParallelAction(
                                 spindexer.sortAction(autoDrive.getDriveComplete()),
-                                autoDrive.strafeTo(-2, 3, 11, 0.3, 0.7)
+                                autoDrive.strafeTo(2, 3, 11, 0.3, 0.7)
                         ),
 
 
                         new InstantAction(autoDrive::setStartingHeadingPos),
-                        autoDrive.turnTo(357, 10, 15, 0.2, 0.7),
+                        autoDrive.turnTo(3, 10, 15, 0.2, 0.7),
 
                         /* Shoot the artifacts into the goal. */
                         shooter.startAction(Constants.Shooter.TARGET_VELOCITY - 175),

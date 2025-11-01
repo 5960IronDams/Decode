@@ -115,9 +115,16 @@ public class Spindexer {
                     initialized = true;
                 }
 
+                packet.put("Color Allow Detection", DATA.getArtifactDetection());
+
+                if (!DATA.getArtifactDetection())
+                {
+                    return false;
+                }
                 packet.put("Spin Move Current Index", _currentIndex);
                 packet.put("Spin Move Requested Dist", distance);
                 packet.put("Spin Move Current Pos", SERVO.getPosition());
+
 
                 moveDistance(distance);
 

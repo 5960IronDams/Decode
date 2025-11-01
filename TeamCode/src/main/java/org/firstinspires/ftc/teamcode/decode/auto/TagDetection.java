@@ -7,6 +7,7 @@ import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.decode.SharedData;
+import org.firstinspires.ftc.teamcode.ironDams.core.WaitFor;
 import org.firstinspires.ftc.teamcode.ironDams.core.cameras.AprilTagReader;
 import org.firstinspires.ftc.teamcode.ironDams.core.cameras.HuskyLensReader;
 import org.firstinspires.ftc.vision.VisionPortal;
@@ -18,6 +19,8 @@ import java.util.function.BooleanSupplier;
 public class TagDetection {
     private final SharedData DATA;
     private final AprilTagReader TAG_READER;
+
+//    private final WaitFor GIVEUP = new WaitFor(1000);
 //    private final HuskyLensReader HUSKY_READER;
 
     public TagDetection(LinearOpMode opMode, SharedData data) {
@@ -30,6 +33,14 @@ public class TagDetection {
         TAG_READER.stopStreaming();
     }
 
+    private boolean setGBIndex(TelemetryPacket packet, int index) {
+        DATA.setGreenBallTargetIndex(index);
+        packet.put("Webcam Target Index", DATA.getGreenBallTargetIndex());
+        packet.put("Status Webcam Read Tag", "Finished");
+        TAG_READER.stopStreaming();
+        return false;
+    }
+
     public Action webcamReadAction(BooleanSupplier driveComplete) {
         return new Action() {
             private boolean initialized = false;
@@ -37,6 +48,7 @@ public class TagDetection {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 if (!initialized) {
+//                    GIVEUP.reset();
                     initialized = true;
                 }
 
@@ -60,23 +72,11 @@ public class TagDetection {
 
                     switch (id) {
                         case 21:
-                            DATA.setGreenBallTargetIndex(0);
-                            packet.put("Webcam Target Index", DATA.getGreenBallTargetIndex());
-                            packet.put("Status Webcam Read Tag", "Finished");
-                            TAG_READER.stopStreaming();
-                            return false;
+                            return setGBIndex(packet, 0);
                         case 22:
-                            DATA.setGreenBallTargetIndex(1);
-                            packet.put("Webcam Target Index", DATA.getGreenBallTargetIndex());
-                            packet.put("Status Webcam Read Tag", "Finished");
-                            TAG_READER.stopStreaming();
-                            return false;
+                            return setGBIndex(packet, 1);
                         case 23:
-                            DATA.setGreenBallTargetIndex(2);
-                            packet.put("Webcam Target Index", DATA.getGreenBallTargetIndex());
-                            packet.put("Status Webcam Read Tag", "Finished");
-                            TAG_READER.stopStreaming();
-                            return false;
+                            return setGBIndex(packet, 2);
                         default:
                             packet.put("Webcam Target Index", DATA.getGreenBallTargetIndex());
                     }
@@ -90,8 +90,11 @@ public class TagDetection {
                     return false;
                 }
                 else {
+//                    boolean givenUp = GIVEUP.allowExec(false);
                     if (driveComplete.getAsBoolean()) packet.put("Status Webcam Read Tag", "Finished");
                     else packet.put("Status Webcam Read Tag", "Running");
+
+//                    if (givenUp) return false;
                     return !driveComplete.getAsBoolean();
                 }
             }

@@ -7,7 +7,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.IntSupplier;
 
 public class SharedData {
-    private final String[] ACTUAL_PATTERN = new String[] { "", "", "" };
+    private static final String[] ACTUAL_PATTERN = new String[] { "", "", "" };
     public String[] getActualPattern() {
         return ACTUAL_PATTERN;
     }
@@ -23,7 +23,7 @@ public class SharedData {
         if (color.equals("G")) setGreenBallActualIndex(index);
     }
 
-    private String _targetPattern = "";
+    private static String _targetPattern = "";
     public String getTargetPattern() {
         return _targetPattern;
     }
@@ -32,7 +32,7 @@ public class SharedData {
         _targetPattern = pattern;
     }
 
-    private int greenBallActalIndex = -1;
+    private static int greenBallActalIndex = -1;
     public int getGreenBallActualIndex() {
         return greenBallActalIndex;
     }
@@ -41,7 +41,7 @@ public class SharedData {
         greenBallActalIndex = index;
     }
 
-    private int greenBallTargetIndex = -1;
+    private static int greenBallTargetIndex = -1;
     public int getGreenBallTargetIndex() {
         return greenBallTargetIndex;
     }
@@ -56,23 +56,14 @@ public class SharedData {
                 !Objects.equals(ACTUAL_PATTERN[2], "");
     }
 
-//    private int _spindexerCurrentIndex = 0;
-//    public int getSpindexerCurrentIndex() {
-//        return _spindexerCurrentIndex;
-//    }
-//
-//    public void setSpindexerCurrentIndex(int index) {
-//        _spindexerCurrentIndex = index;
-//    }
-//
-//    private int _spindexerDetectionIndex = -1;
-//    public int getSpindexerDetectionIndex() {
-//        return _spindexerDetectionIndex;
-//    }
-//
-//    public void setSpindexerDetectionIndex(int index) {
-//        _spindexerDetectionIndex = index;
-//    }
+    private boolean _runArtifactDetection = true;
+    public boolean getArtifactDetection() {
+        return _runArtifactDetection;
+    }
+
+    public void setArtifactDetection(boolean value) {
+        _runArtifactDetection = value;
+    }
 
     private boolean _moveSpindexer = false;
     public boolean getMoveSpindexer() {

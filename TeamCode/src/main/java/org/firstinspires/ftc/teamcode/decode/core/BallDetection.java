@@ -13,7 +13,6 @@ import org.firstinspires.ftc.teamcode.ironDams.Config;
 import org.firstinspires.ftc.teamcode.ironDams.core.WaitFor;
 
 import java.util.function.BooleanSupplier;
-import java.util.function.IntSupplier;
 
 /**
  * Responsible for detecting the balls that are entering the spindexer system.
@@ -21,7 +20,7 @@ import java.util.function.IntSupplier;
 public class BallDetection  {
     private final ColorSensor COLOR_SENSOR;
     private final SharedData DATA;
-    private final WaitFor BALL_DELAY = new WaitFor(20);
+//    private final WaitFor GIVEUP = new WaitFor(1000);
 
     private int _blue;
     private int _green;
@@ -63,7 +62,7 @@ public class BallDetection  {
      * @return True if a ball has been detected.
      */
     public boolean hasBall() {
-        _currentlyHasBall = _blue > Constants.ColorVision.THRESHOLD || _green > Constants.ColorVision.THRESHOLD;
+        _currentlyHasBall = _blue > Constants.ColorVision.BLUETHRESHOLD || _green > Constants.ColorVision.GREENTHRESHOLD;
         return _currentlyHasBall;
     }
 
@@ -94,8 +93,8 @@ public class BallDetection  {
      * @return The color code of the ball. P:Purple, G:Green, U:Unknown
      */
     public String getColorCode() {
-        return _blue > Constants.ColorVision.THRESHOLD && _blue > _green ? "P" :
-                _green > Constants.ColorVision.THRESHOLD && _green > _blue ? "G" : "";
+        return _blue > Constants.ColorVision.BLUETHRESHOLD && _blue > _green ? "P" :
+                _green > Constants.ColorVision.GREENTHRESHOLD && _green > _blue ? "G" : "";
     }
 
     public boolean canProcessBall() {
@@ -135,7 +134,7 @@ public class BallDetection  {
             _green = COLOR_SENSOR.green();
             _blue = COLOR_SENSOR.blue();
 
-            if (_blue > Constants.ColorVision.THRESHOLD && _blue > _green) {
+            if (_blue > Constants.ColorVision.BLUETHRESHOLD && _blue > _green) {
                 if (DATA.getActualPattern()[2].isEmpty()) DATA.setActualColorCode("P", 2);
                 else if (DATA.getActualPattern()[0].isEmpty()) DATA.setActualColorCode("P", 0);
                 else DATA.setActualColorCode("P", 1);
@@ -144,7 +143,7 @@ public class BallDetection  {
                 _blue = 0;
                 _processColor = false;
                 return true;
-            } else if (_green > Constants.ColorVision.THRESHOLD && _green > _blue) {
+            } else if (_green > Constants.ColorVision.GREENTHRESHOLD && _green > _blue) {
                 if (DATA.getActualPattern()[2].isEmpty()) DATA.setActualColorCode("G", 2);
                 else if (DATA.getActualPattern()[0].isEmpty()) DATA.setActualColorCode("G", 0);
                 else DATA.setActualColorCode("G", 1);
@@ -174,21 +173,23 @@ public class BallDetection  {
         return false;
     }
 
-    public Action detectionAction(BooleanSupplier driveComplete) {
+    public Action hasBallAction(BooleanSupplier driveComplete) {
         return new Action() {
             private boolean initialized = false;
 
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 if (!initialized) {
+//                    GIVEUP.reset();
                     initialized = true;
                 }
 
                 packet.put("Color Blue", _blue);
                 packet.put("Color Green", _green);
                 packet.put("Color Detected", getColorCode());
+                packet.put("Color Allow Detection", DATA.getArtifactDetection());
 
-                boolean isComplete = process();
+                boolean isComplete = /*!DATA.getArtifactDetection() ||*/ process();
 //                if (isComplete) DATA.setMoveSpindexer(true);
 
                 packet.put("Color Actual Pattern", String.join(", ", DATA.getActualPattern()));
@@ -201,8 +202,55 @@ public class BallDetection  {
                 else {
                     if (driveComplete.getAsBoolean()) packet.put("Status Color Detection", "Finished");
                     else packet.put("Status Color Detection", "Running");
-                    return !driveComplete.getAsBoolean();
+
+                    if (/*GIVEUP.allowExec() ||*/ driveComplete.getAsBoolean())
+                    {
+//                        DATA.setArtifactDetection(false);
+                        return false;
+                    }
                 }
+                return true;
+            }
+        };
+    }
+
+    public Action detectionAction(BooleanSupplier driveComplete) {
+        return new Action() {
+            private boolean initialized = false;
+
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                if (!initialized) {
+//                    GIVEUP.reset();
+                    initialized = true;
+                }
+
+                packet.put("Color Blue", _blue);
+                packet.put("Color Green", _green);
+                packet.put("Color Detected", getColorCode());
+                packet.put("Color Allow Detection", DATA.getArtifactDetection());
+
+                boolean isComplete = process(); //!DATA.getArtifactDetection() || process();
+//                if (isComplete) DATA.setMoveSpindexer(true);
+
+                packet.put("Color Actual Pattern", String.join(", ", DATA.getActualPattern()));
+                packet.put("Color GB Actual Index", DATA.getGreenBallActualIndex());
+
+                if (isComplete) {
+                    packet.put("Status Color Detection", "Finished");
+                    return false;
+                }
+                else {
+                    if (driveComplete.getAsBoolean()) packet.put("Status Color Detection", "Finished");
+                    else packet.put("Status Color Detection", "Running");
+
+                    if (/*GIVEUP.allowExec() ||*/ driveComplete.getAsBoolean())
+                    {
+//                        DATA.setArtifactDetection(false);
+                        return false;
+                    }
+                }
+                return true;
             }
         };
     }

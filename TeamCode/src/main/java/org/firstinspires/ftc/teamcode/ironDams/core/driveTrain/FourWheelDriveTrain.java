@@ -7,31 +7,29 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.teamcode.ironDams.Config;
 
 public final class FourWheelDriveTrain {
-    private static DcMotorEx _leftFrontDrive;
-    private static DcMotorEx _leftBackDrive;
-    private static DcMotorEx _rightFrontDrive;
-    private static DcMotorEx _rightBackDrive;
+    private DcMotorEx _leftFrontDrive;
+    private DcMotorEx _leftBackDrive;
+    private DcMotorEx _rightFrontDrive;
+    private DcMotorEx _rightBackDrive;
 
-    static DcMotorEx getLeftFrontDrive() {
+    public DcMotorEx getLeftFrontDrive() {
         return _leftFrontDrive;
     }
 
-    static DcMotorEx getLeftBackDrive() {
+    public DcMotorEx getLeftBackDrive() {
         return _leftBackDrive;
     }
 
-    static DcMotorEx getRightFrontDrive() {
+    public DcMotorEx getRightFrontDrive() {
         return _rightFrontDrive;
     }
 
-    static DcMotorEx getRightBackDrive() {
+    public DcMotorEx getRightBackDrive() {
         return _rightBackDrive;
     }
 
 
-    static void init(HardwareMap hardwareMap) {
-        if (_leftFrontDrive != null) return;
-
+    public FourWheelDriveTrain (HardwareMap hardwareMap) {
         _leftFrontDrive = hardwareMap.get(DcMotorEx.class, Config.Hardware.Motors.DriveTrain.LEFT_FRONT_MOTOR_ID);
         _leftBackDrive = hardwareMap.get(DcMotorEx.class, Config.Hardware.Motors.DriveTrain.LEFT_BACK_MOTOR_ID);
         _rightBackDrive = hardwareMap.get(DcMotorEx.class, Config.Hardware.Motors.DriveTrain.RIGHT_BACK_MOTOR_ID);

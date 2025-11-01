@@ -13,21 +13,26 @@ import org.firstinspires.ftc.teamcode.ironDams.core.WaitFor;
 
 public class MecanumDrive {
     private final MecanumDriveTrain ROBO_VIEW;
-    private final GyroMecanumDriveTrain FIELD_PER;
+//    private final GyroMecanumDriveTrain FIELD_PER;
 
     private IDriveTrain activeDrive;
-    private boolean _isFieldPer = true;
+    private boolean _isFieldPer = false;
 
     public MecanumDrive(LinearOpMode opMode) {
-        ROBO_VIEW = new MecanumDriveTrain(opMode);
-        FIELD_PER = new GyroMecanumDriveTrain(opMode);
+        FourWheelDriveTrain dt = new FourWheelDriveTrain(opMode.hardwareMap);
+        ROBO_VIEW = new MecanumDriveTrain(dt);
+//        FIELD_PER = new GyroMecanumDriveTrain(opMode, dt);
+activeDrive = ROBO_VIEW;
+//        activeDrive = _isFieldPer ? FIELD_PER : ROBO_VIEW;
+    }
 
-        activeDrive = _isFieldPer ? FIELD_PER : ROBO_VIEW;
+    public void resetFieldView() {
+//        FIELD_PER.reset();
     }
 
     public boolean switchDrive() {
-        _isFieldPer = !_isFieldPer;
-        activeDrive = _isFieldPer ? FIELD_PER : ROBO_VIEW;
+//        _isFieldPer = !_isFieldPer;
+//        activeDrive = _isFieldPer ? FIELD_PER : ROBO_VIEW;
         return _isFieldPer;
     }
 

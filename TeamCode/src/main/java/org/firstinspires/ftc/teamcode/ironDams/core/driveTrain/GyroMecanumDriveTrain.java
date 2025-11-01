@@ -25,10 +25,12 @@ public class GyroMecanumDriveTrain implements IDriveTrain{
     private Orientation angles = new Orientation();
     private double initYaw;
 
-    public GyroMecanumDriveTrain(LinearOpMode opMode) {
+    private final FourWheelDriveTrain DRIVETRAIN;
+
+    public GyroMecanumDriveTrain(LinearOpMode opMode, FourWheelDriveTrain driveTrain) {
         GAMEPAD1 = opMode.gamepad1;
 
-        FourWheelDriveTrain.init(opMode.hardwareMap);
+        DRIVETRAIN = driveTrain;
 
         PARAMETERS.angleUnit = BNO055IMU.AngleUnit.DEGREES;
         PARAMETERS.mode = BNO055IMU.SensorMode.IMU;
@@ -47,9 +49,7 @@ public class GyroMecanumDriveTrain implements IDriveTrain{
     }
 
     public void reset() {
-        if (GAMEPAD1.b && USER_DELAY.allowExec()) {
-            initImu();
-        }
+        initImu();
     }
 
     @Override
@@ -88,21 +88,11 @@ public class GyroMecanumDriveTrain implements IDriveTrain{
             rightBack /= power - turn;
         }
 
-        FourWheelDriveTrain.getLeftFrontDrive().setPower(leftFront);
-        FourWheelDriveTrain.getRightFrontDrive().setPower(rightFront);
-        FourWheelDriveTrain.getLeftBackDrive().setPower(leftBack);
-        FourWheelDriveTrain.getRightBackDrive().setPower(rightBack);
+        DRIVETRAIN.getLeftFrontDrive().setPower(leftFront);
+        DRIVETRAIN.getRightFrontDrive().setPower(rightFront);
+        DRIVETRAIN.getLeftBackDrive().setPower(leftBack);
+        DRIVETRAIN.getRightBackDrive().setPower(rightBack);
 
         reset();
-    }
-
-    @Override
-    public double getLeftPower() {
-        return FourWheelDriveTrain.getLeftFrontDrive().getPower();
-    }
-
-    @Override
-    public double getRightPower() {
-        return FourWheelDriveTrain.getRightFrontDrive().getPower();
     }
 }

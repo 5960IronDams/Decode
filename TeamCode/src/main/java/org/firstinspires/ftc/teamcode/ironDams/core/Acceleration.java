@@ -27,7 +27,7 @@ public final class Acceleration {
     public static double rampPower(double currentPower, double requestedPower) {
         if (requestedPower == 0) return 0;
 
-        double maxDelta = 0.03;
+        double maxDelta = 0.05;
         double delta = requestedPower - currentPower;
 
         if (Math.abs(delta) > maxDelta)

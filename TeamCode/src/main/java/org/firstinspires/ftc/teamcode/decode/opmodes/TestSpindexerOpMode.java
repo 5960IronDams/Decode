@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.decode.Constants;
 import org.firstinspires.ftc.teamcode.decode.SharedData;
+import org.firstinspires.ftc.teamcode.decode.core.BallDetection;
 import org.firstinspires.ftc.teamcode.decode.core.Spindexer;
 import org.firstinspires.ftc.teamcode.ironDams.Config;
 import org.firstinspires.ftc.teamcode.ironDams.core.WaitFor;
@@ -17,6 +18,7 @@ public class TestSpindexerOpMode extends LinearOpMode {
 
         SharedData data = new SharedData();
         Spindexer spindexer = new Spindexer(this, data);
+        BallDetection ballDetection = new BallDetection(this, data);
 
         int currentIndex = 0;
         double[] positions = Constants.Spindexer.Positions;
@@ -32,12 +34,16 @@ public class TestSpindexerOpMode extends LinearOpMode {
                 currentIndex++;
                 spindexer.setPos(positions[currentIndex]);
             } else if (gamepad1.x && userDelay.allowExec()) {
-                spindexer.setPos(spindexer.getPos() - 0.005);
+                spindexer.setPos(spindexer.getPos() - 0.0025);
             } else if (gamepad1.b && userDelay.allowExec()) {
-                spindexer.setPos(spindexer.getPos() + 0.005);
+                spindexer.setPos(spindexer.getPos() + 0.0025);
             }
 
-            telemetry.addData("Index", spindexer.getPos());
+            ballDetection.update();
+
+            telemetry.addData("Green", ballDetection.getGreen());
+            telemetry.addData("Blue", ballDetection.getBlue());
+            telemetry.addData("Index", currentIndex);
             telemetry.addData("Pos", spindexer.getPos());
             telemetry.update();
         }

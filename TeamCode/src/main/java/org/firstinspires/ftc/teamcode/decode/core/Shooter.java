@@ -124,7 +124,24 @@ public class Shooter {
                     initialized = true;
                 }
 
-                close().stop();
+                stop();
+
+                return false;
+            }
+        };
+    }
+
+    public Action closeAction() {
+        return new Action() {
+            private boolean initialized = false;
+
+            @Override
+            public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+                if (!initialized) {
+                    initialized = true;
+                }
+
+                close();
 
                 return false;
             }

@@ -9,35 +9,34 @@ import org.firstinspires.ftc.teamcode.decode.core.BallDetection;
 import org.firstinspires.ftc.teamcode.decode.core.Intake;
 import org.firstinspires.ftc.teamcode.decode.core.Shooter;
 import org.firstinspires.ftc.teamcode.decode.core.Spindexer;
-import org.firstinspires.ftc.teamcode.decode.player.Pattern;
 import org.firstinspires.ftc.teamcode.ironDams.Config;
 import org.firstinspires.ftc.teamcode.ironDams.core.WaitFor;
 import org.firstinspires.ftc.teamcode.ironDams.core.driveTrain.MecanumDrive;
 
 @TeleOp(name = "PlayerOpMode", group = "@@@@IronDams")
 public class PlayerOpMode extends LinearOpMode {
+    private final SharedData DATA = new SharedData();
+
     @Override
     public void runOpMode() {
         WaitFor player1Delay = new WaitFor(Config.USER_DELAY_MS);
         WaitFor player2Delay = new WaitFor(Config.USER_DELAY_MS);
         WaitFor colorChangeDelay = new WaitFor(2000);
-        WaitFor shootDelay = new WaitFor(Constants.Shooter.SHOOT_DELAY_MS);
+        WaitFor shootDelay = new WaitFor(Constants.Shooter.SHOOT_DELAY_MS + 200);
         WaitFor patternChangeDelay = new WaitFor(Constants.Shooter.PATTERN_CHANGE_DELAY_MS);
 
-        SharedData data = new SharedData();
-        Shooter shooter = new Shooter(this, data);
+        Shooter shooter = new Shooter(this, DATA);
         MecanumDrive drive = new MecanumDrive(this);
-        Pattern pattern = new Pattern(this, data);
-        BallDetection ballDetection = new BallDetection(this, data);
-        Spindexer spindexer = new Spindexer(this, data);
+        BallDetection ballDetection = new BallDetection(this, DATA);
+        Spindexer spindexer = new Spindexer(this, DATA);
         Intake intake = new Intake(this);
 
-        boolean driveMode = true;
+        boolean driveMode = false;
 
         while (opModeInInit()) {
-            pattern.changePattern();
+            changeTargetPattern();
             telemetry.addLine("Ready");
-            telemetry.addData("Mode", data.getSpindexerMode());
+            telemetry.addData("Mode", DATA.getSpindexerMode());
             telemetry.update();
         }
 
@@ -53,6 +52,10 @@ public class PlayerOpMode extends LinearOpMode {
                 driveMode = drive.switchDrive();
             }
 
+            if (gamepad1.b && player2Delay.allowExec()) {
+                drive.resetFieldView();
+            }
+
             drive.drive(gamepad1.right_stick_x, gamepad1.right_stick_y, gamepad1.left_stick_x);
 
             if (gamepad2.right_trigger != 0) {
@@ -64,64 +67,82 @@ public class PlayerOpMode extends LinearOpMode {
             }
 
             if (gamepad2.dpad_down) {
-                data.setSpindexerMode(Constants.Spindexer.Mode.SHOOT);
+                DATA.setSpindexerMode(Constants.Spindexer.Mode.SHOOT);
             }
 
-            if (data.getSpindexerMode() != Constants.Spindexer.Mode.SHOOT) {
+            if (DATA.getSpindexerMode() != Constants.Spindexer.Mode.SHOOT) {
                 shootDelay.reset();
             }
 
-            if (data.getSpindexerMode() == Constants.Spindexer.Mode.SHOOT)
+            if (DATA.getSpindexerMode() == Constants.Spindexer.Mode.SHOOT)
             {
                 shooter.open().setVelocity();
                 intake.setVelocity(0);
-                if (data.getShotCount() < 3 && shootDelay.allowExec()) {
+                if (DATA.getShotCount() < 3 && shootDelay.allowExec()) {
                     spindexer.shoot();
                 } else if (shootDelay.allowExec()) {
-                    data.resetActualPattern();
-                    data.setSpindexerMode(Constants.Spindexer.Mode.INDEX);
-                    data.setShotCount(0);
+                    DATA.resetActualPattern();
+                    DATA.setSpindexerMode(Constants.Spindexer.Mode.INDEX);
+                    DATA.setShotCount(0);
                     spindexer.moveIndex(0);
-                    shooter.close().stop();
+                    shooter.stop();
                     if (intake.getMode() == Constants.Intake.Mode.ACTIVE) {
                         intake.setVelocity(Constants.Intake.TARGET_VELOCITY);
                     }
                 }
             }
-            else if (!data.isSpindexerLoaded()) {
+            else if (!DATA.isSpindexerLoaded()) {
                 if (colorChangeDelay.allowExec(false)) {
                     if (ballDetection.autoProcessedColor()) {
-                        if (!data.isSpindexerLoaded()) {
+                        shooter.close();
+                        if (!DATA.isSpindexerLoaded()) {
                             spindexer.moveDistance(2);
                             colorChangeDelay.reset();
                         }
                     }
                 }
-                pattern.changePattern();
-                data.setHasPatternChanged(false);
-                if (data.isSpindexerLoaded()) data.setSpindexerMode(Constants.Spindexer.Mode.SORT);
+                changeTargetPattern();
+                DATA.setHasPatternChanged(false);
+                if (DATA.isSpindexerLoaded()) DATA.setSpindexerMode(Constants.Spindexer.Mode.SORT);
             } else {
-                pattern.changePattern();
-                if (!data.getHasPatternChanged().getAsBoolean()) patternChangeDelay.reset();
+                changeTargetPattern();
+                if (!DATA.getHasPatternChanged().getAsBoolean()) patternChangeDelay.reset();
 
-                if (data.getHasPatternChanged().getAsBoolean() && data.getSpindexerMode() != Constants.Spindexer.Mode.SHOOT) {
+                if (DATA.getHasPatternChanged().getAsBoolean() && DATA.getSpindexerMode() != Constants.Spindexer.Mode.SHOOT) {
                     shooter.close();
                     if (patternChangeDelay.allowExec()) {
                         spindexer.sort();
-                        data.setSpindexerMode(Constants.Spindexer.Mode.PRE_SHOOT);
-                        data.setHasPatternChanged(false);
+                        DATA.setSpindexerMode(Constants.Spindexer.Mode.PRE_SHOOT);
+                        DATA.setHasPatternChanged(false);
                     }
                 }
-                else if (data.getSpindexerMode() == Constants.Spindexer.Mode.SORT) {
+                else if (DATA.getSpindexerMode() == Constants.Spindexer.Mode.SORT) {
                     spindexer.sort();
                 }
             }
 
-            telemetry.addData("Drive Mode", driveMode ? "Field": "Robot");
-            telemetry.addData("Target Pattern", data.getTargetPattern());
-            telemetry.addData("Actual Pattern", String.join("", data.getActualPattern()));
-            telemetry.addData("Mode", data.getSpindexerMode());
+//            telemetry.addData("Drive Mode", driveMode ? "Field": "Robot");
+            telemetry.addData("Target Pattern", DATA.getTargetPattern());
+            telemetry.addData("Actual Pattern", String.join("", DATA.getActualPattern()));
+            telemetry.addData("Mode", DATA.getSpindexerMode());
             telemetry.update();
         }
+    }
+
+    void changeTargetPattern() {
+        int index = DATA.getGreenBallTargetIndex();
+        if (gamepad2.a) {
+            index = 1;
+            DATA.setHasPatternChanged(true);
+        } else if (gamepad2.b) {
+            index = 2;
+            DATA.setHasPatternChanged(true);
+        } else if (gamepad2.x) {
+            index = 0;
+            DATA.setHasPatternChanged(true);
+        }
+
+        DATA.setGreenBallTargetIndex(index);
+        DATA.setTargetPattern(index == 0 ? "GPP" : index == 1 ? "PGP" : index == 2 ? "PPG": "");
     }
 }

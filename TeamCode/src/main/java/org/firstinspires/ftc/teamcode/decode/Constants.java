@@ -2,11 +2,12 @@ package org.firstinspires.ftc.teamcode.decode;
 
 public final class Constants {
     public final static class ColorVision {
-        public static final int THRESHOLD = 3000;
+        public static final int BLUETHRESHOLD = 2500;
+        public static final int GREENTHRESHOLD = 2500;
     }
 
     public static final class Spindexer {
-        public static final double[] Positions = { 0.022, 0.057, 0.084, 0.120, 0.1485, 0.1785, 0.215, 0.2495, 0.2815, 0.315, 0.348, 0.385, 0.4125, 0.453, 0.4845, 0.518, 0.5525,  0.5905, 0.6200, 0.66, 0.6875, 0.724, 0.7490, 0.7895, 0.8140, 0.8560, 0.8805, 0.916, 0.9455, 0.9875 };
+        public static final double[] Positions = { 0.027, 0.058, 0.089, 0.127, 0.1535, 0.191, 0.22, 0.257, 0.2865, 0.3225, 0.3555, 0.39, 0.4175, 0.4555, 0.488, 0.523, 0.5585, 0.599, 0.6295, 0.6645, 0.6925, 0.7265, 0.7605, 0.798, 0.8240, 0.8575, 0.888, 0.9235, 0.958, 0.995 };
         public enum Mode { INDEX, SORT, PRE_SHOOT, SHOOT }
     }
 
@@ -14,7 +15,7 @@ public final class Constants {
         public static final int SHOOT_DELAY_MS = 1000;
         public static final int PATTERN_CHANGE_DELAY_MS = 1000;
 
-        public static final double TARGET_VELOCITY = 1950;
+        public static final double TARGET_VELOCITY = 2075;
 
         public static final double RIGHT_TPS = 2245;
         public static final double LEFT_TPS = 2305;

@@ -9,8 +9,11 @@ public class MecanumDriveTrain implements IDriveTrain {
     private double currentVertical = 0;
     private double currentPivot = 0;
 
-    public MecanumDriveTrain(LinearOpMode opMode)  {
-        FourWheelDriveTrain.init(opMode.hardwareMap);
+    public final FourWheelDriveTrain DRIVETRAIN;
+
+
+    public MecanumDriveTrain(FourWheelDriveTrain driveTrain)  {
+        DRIVETRAIN = driveTrain;
     }
 
     @Override
@@ -32,19 +35,9 @@ public class MecanumDriveTrain implements IDriveTrain {
         double rlp = (pivot + (vertical - horizontal));
         double rrp = (-pivot + vertical + horizontal);
 
-        FourWheelDriveTrain.getLeftBackDrive().setPower(rlp);
-        FourWheelDriveTrain.getRightBackDrive().setPower(rrp);
-        FourWheelDriveTrain.getLeftFrontDrive().setPower(flp);
-        FourWheelDriveTrain.getRightFrontDrive().setPower(frp);
-    }
-
-    @Override
-    public double getLeftPower() {
-        return FourWheelDriveTrain.getLeftFrontDrive().getPower();
-    }
-
-    @Override
-    public double getRightPower() {
-        return FourWheelDriveTrain.getRightFrontDrive().getPower();
+        DRIVETRAIN.getLeftBackDrive().setPower(rlp);
+        DRIVETRAIN.getRightBackDrive().setPower(rrp);
+        DRIVETRAIN.getLeftFrontDrive().setPower(flp);
+        DRIVETRAIN.getRightFrontDrive().setPower(frp);
     }
 }
