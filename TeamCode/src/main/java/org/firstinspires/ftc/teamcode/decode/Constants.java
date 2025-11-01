@@ -1,50 +1,39 @@
 package org.firstinspires.ftc.teamcode.decode;
 
 public final class Constants {
-
-    public static final long WAIT_DURATION_MS = 250;
-
-    public static final class ColorVision {
-        public static final int COLOR_THRESHOLD = 3000;
-        public static final String COLOR_CENTER_ID = "colorC"; // Color Sensor
+    public final static class ColorVision {
+        public static final int BLUETHRESHOLD = 2500;
+        public static final int GREENTHRESHOLD = 2500;
     }
 
     public static final class Spindexer {
-        public static final String SPINDEXER_ID = "spindex"; // Positional Servo // 0.0295
-
-        public static final double[] Positions = { 0.022, 0.053, 0.085, 0.1195, 0.1475, 0.1795, 0.2145, 0.2500, 0.2825, 0.3145, 0.3445, 0.3795, 0.4135, 0.4465, 0.4845, 0.5165, 0.5515,  0.5855, 0.6205, 0.6550, 0.6865, 0.7185, 0.7505, 0.7865, 0.8174, 0.8514, 0.8825, 0.9145, 0.9455, 0.9825 };
-
-        public enum Mode {
-            INDEX, SORT, SHOOT
-        }
+        public static final double[] Positions = { 0.027, 0.058, 0.089, 0.127, 0.1535, 0.191, 0.22, 0.257, 0.2865, 0.3225, 0.3555, 0.39, 0.4175, 0.4555, 0.488, 0.523, 0.5585, 0.599, 0.6295, 0.6645, 0.6925, 0.7265, 0.7605, 0.798, 0.8240, 0.8575, 0.888, 0.9235, 0.958, 0.995 };
+        public enum Mode { INDEX, SORT, PRE_SHOOT, SHOOT }
     }
+
+    public static final class Shooter {
+        public static final int SHOOT_DELAY_MS = 1000;
+        public static final int PATTERN_CHANGE_DELAY_MS = 1000;
+
+        public static final double TARGET_VELOCITY = 2075;
+
+        public static final double RIGHT_TPS = 2245;
+        public static final double LEFT_TPS = 2305;
+
+        public static final double TARGET_VOLT = 12;
+
+        public static final double OPEN_POS = 0.37;
+        public static final double CLOSE_POS = 0;
+    }
+
     public static final class Intake {
-        public static final String INTAKE_ID = "intake";
-        public static final double MAX_POWER = 0.5;
-        public static final double SORT_POWER = 0.2;
+        public static final double TARGET_VELOCITY = 1000;
+
+        public static final double TPS = 2245;
+        public static final double TARGET_VOLT = 12;
 
         public enum Mode {
             ACTIVE, INACTIVE
         }
-    }
-
-    public static final class Shooter {
-        public static final String LAUNCHER_ID = "launcher";
-        public static final String MOTOR_LEFT_ID = "leftOut";
-        public static final String MOTOR_RIGHT_ID = "rightOut";
-
-        public static final double MAX_POWER = 0.72;
-        public static final double OPEN_POS = 0.37;
-        public static final double CLOSED_POS = 0.0;
-
-        public static final int BALL_DROP_DELAY = 500;
-
-        public static final long MIN_LEFT_CURRENT = 600;
-        public static final long MAX_LEFT_CURRENT = 875;
-
-        public static final long MIN_RIGHT_CURRENT = 825;
-        public static final long MAX_RIGHT_CURRENT = 1015;
-
-        public static final long BALL_DETECTION_CURRENT = 1250;
     }
 }
