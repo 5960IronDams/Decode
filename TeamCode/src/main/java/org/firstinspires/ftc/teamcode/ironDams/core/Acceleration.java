@@ -1,65 +1,38 @@
 package org.firstinspires.ftc.teamcode.ironDams.core;
 
 public final class Acceleration {
+    public static double getPower(double startPos, double currentPos, double targetPos,
+                                  double accelZone, double decelZone,
+                                  double minPower, double maxPower) {
 
-    private static boolean _isAccelerating;
-    private static double _distance;
-    private static double _calculatedCurrentPos;
-    private static double _remainingDistance;
+        double traveled = Math.abs(currentPos - startPos);
+        double totalDistance = Math.abs(targetPos - startPos);
+//        double direction = Math.signum(targetPos - startPos);
 
-    private static double _percentInAccel;
-
-    private static double _decelAtPos;
-    private static double _distanceIntoDecel;
-    private static double _percentInDecel;
-    private static double _powerRange;
-
-    public static boolean getIsAccelerating() { return _isAccelerating; }
-    public static double getDistance() { return _distance; }
-    public static double getCalculatedCurrentPos() { return _calculatedCurrentPos; }
-    public static double getRemainingDistance() { return _remainingDistance; }
-
-    public static double getPercentInAccel() { return _percentInAccel; }
-    public static double getPowerRange() { return _powerRange; }
-
-    public static double getDecelAtPos() { return _decelAtPos; }
-    public static double getDistanceIntoDecel() { return _distanceIntoDecel; }
-    public static double getPercentInDecel() { return _percentInDecel; }
-
-    public static double getPower(double targetPos, double currentPos, double startPos,
-                                  double accelToPos, double decelAtDistance, double minPower, double maxPower) {
-
-        minPower = Math.abs(minPower);
-        maxPower = Math.abs(maxPower);
-
-        _isAccelerating = currentPos < accelToPos;
-        _distance = Math.abs(startPos - targetPos);
-        _calculatedCurrentPos = Math.abs(startPos - currentPos);
-        _remainingDistance = targetPos - _calculatedCurrentPos;
-
-        if (_isAccelerating) {
-            return getAccelPower(currentPos, accelToPos, minPower, maxPower);
-        } else {
-            return getDecelPower(_distance, _remainingDistance, decelAtDistance, minPower, maxPower);
-        }
-    }
-
-    private static double getDecelPower(double distance, double remainingDistance, double decelAtDistance, double minPower, double maxPower) {
-        _decelAtPos = distance - decelAtDistance;
-        _distanceIntoDecel = distance - _decelAtPos;
-
-        if (_distanceIntoDecel >= 0) {
-            _percentInDecel = remainingDistance / _distanceIntoDecel;
-            return Math.max(0, Math.min(maxPower, _percentInDecel * maxPower));
+        if (totalDistance < accelZone + decelZone) {
+            return minPower;
         }
 
-        return maxPower;
+        if (traveled < accelZone) {
+            double percent = traveled / accelZone;
+            return (minPower + percent * (maxPower - minPower));
+        }
+
+        double decelStart = totalDistance - decelZone;
+        double distancePastDecelStart = traveled - decelStart;
+        double percent = Math.min(1.0, distancePastDecelStart / decelZone);
+        return Math.max(minPower, maxPower * (1.0 - percent));
     }
 
-    private static double getAccelPower(double calculatedCurrentPos, double accelToPos, double minPower, double maxPower) {
-        _percentInAccel = calculatedCurrentPos / accelToPos;
-        _powerRange = (maxPower - minPower) * _percentInAccel;
+    public static double rampPower(double currentPower, double requestedPower) {
+        if (requestedPower == 0) return 0;
 
-        return Math.max(minPower, Math.min(maxPower, minPower + _powerRange));
+        double maxDelta = 0.05;
+        double delta = requestedPower - currentPower;
+
+        if (Math.abs(delta) > maxDelta)
+            delta = Math.signum(delta) * maxDelta;
+
+        return currentPower + delta;
     }
 }
