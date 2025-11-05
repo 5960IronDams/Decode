@@ -149,7 +149,7 @@ public class BLUE_SHORT_OpMode extends LinearOpMode {
                                         new InstantAction(() -> ballDetection.setProcessColor(true)),
                                         ballDetection.detectionAction(autoDrive.getDriveComplete())
                                 ),
-                                autoDrive.driveTo(-22, 0, 0, 0.2, 0.2)
+                                autoDrive.driveTo(-22, 0, 0, 0.15, 0.15)
                         ),
 
                         /* Strafe back towards the goal */
@@ -178,7 +178,13 @@ public class BLUE_SHORT_OpMode extends LinearOpMode {
                         new InstantAction(() -> intake.setVelocity(0)),
                         new SleepAction(1.2),
                         ballDetection.resetActualPattern(),
-                        shooter.stopAction()
+                        shooter.stopAction(),
+
+                        new InstantAction(() -> autoDrive.setDriveCompleted(false)),
+                        new InstantAction(autoDrive::setStartingYPos),
+
+                        autoDrive.strafeTo(12, 0, 0, 1, 1)
+
                 )
         );
 
