@@ -22,7 +22,7 @@ import org.firstinspires.ftc.teamcode.ironDams.core.odometry.Pinpoint;
 
 import java.util.concurrent.atomic.AtomicReference;
 
-@Autonomous(name = "AUTO_RED_SHORT", group = "@@@@IronDams")
+@Autonomous(name = "red_short", group = "@@@@IronDams")
 public class RED_SHORT_OpMode extends LinearOpMode {
     @Override
     public void runOpMode() {

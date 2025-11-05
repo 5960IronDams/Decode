@@ -17,10 +17,8 @@ public class GyroMecanumDriveTrain implements IDriveTrain{
     private double currentVertical = 0;
     private double currentPivot = 0;
 
-    private final Gamepad GAMEPAD1;
     private final BNO055IMU IMU;
     private final BNO055IMU.Parameters PARAMETERS = new BNO055IMU.Parameters();
-    private final WaitFor USER_DELAY = new WaitFor(Config.USER_DELAY_MS);
 
     private Orientation angles = new Orientation();
     private double initYaw;
@@ -28,8 +26,6 @@ public class GyroMecanumDriveTrain implements IDriveTrain{
     private final FourWheelDriveTrain DRIVETRAIN;
 
     public GyroMecanumDriveTrain(LinearOpMode opMode, FourWheelDriveTrain driveTrain) {
-        GAMEPAD1 = opMode.gamepad1;
-
         DRIVETRAIN = driveTrain;
 
         PARAMETERS.angleUnit = BNO055IMU.AngleUnit.DEGREES;

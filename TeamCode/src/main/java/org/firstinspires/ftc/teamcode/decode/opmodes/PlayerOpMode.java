@@ -76,10 +76,11 @@ public class PlayerOpMode extends LinearOpMode {
 
             if (DATA.getSpindexerMode() == Constants.Spindexer.Mode.SHOOT)
             {
-                shooter.open().setVelocity();
+                shooter.open().setVelocity(Constants.Shooter.TARGET_VELOCITY + 100);
                 intake.setVelocity(0);
                 if (DATA.getShotCount() < 3 && shootDelay.allowExec()) {
                     spindexer.shoot();
+                    shooter.setVelocity(Constants.Shooter.TARGET_VELOCITY);
                 } else if (shootDelay.allowExec()) {
                     DATA.resetActualPattern();
                     DATA.setSpindexerMode(Constants.Spindexer.Mode.INDEX);
@@ -101,6 +102,27 @@ public class PlayerOpMode extends LinearOpMode {
                         }
                     }
                 }
+
+                if (gamepad2.right_bumper && player2Delay.allowExec()) {
+                    if (DATA.getActualPattern()[2].isEmpty()) DATA.setActualColorCode("G", 2);
+                    else if (DATA.getActualPattern()[0].isEmpty()) DATA.setActualColorCode("G", 0);
+                    else DATA.setActualColorCode("G", 1);
+
+                    if (!DATA.isSpindexerLoaded()) {
+                        spindexer.moveDistance(2);
+                        colorChangeDelay.reset();
+                    }
+                } else if (gamepad2.left_bumper && player2Delay.allowExec()) {
+                    if (DATA.getActualPattern()[2].isEmpty()) DATA.setActualColorCode("P", 2);
+                    else if (DATA.getActualPattern()[0].isEmpty()) DATA.setActualColorCode("P", 0);
+                    else DATA.setActualColorCode("P", 1);
+
+                    if (!DATA.isSpindexerLoaded()) {
+                        spindexer.moveDistance(2);
+                        colorChangeDelay.reset();
+                    }
+                }
+
                 changeTargetPattern();
                 DATA.setHasPatternChanged(false);
                 if (DATA.isSpindexerLoaded()) DATA.setSpindexerMode(Constants.Spindexer.Mode.SORT);
@@ -121,7 +143,7 @@ public class PlayerOpMode extends LinearOpMode {
                 }
             }
 
-//            telemetry.addData("Drive Mode", driveMode ? "Field": "Robot");
+            telemetry.addData("Drive Mode", driveMode ? "Field": "Robot");
             telemetry.addData("Target Pattern", DATA.getTargetPattern());
             telemetry.addData("Actual Pattern", String.join("", DATA.getActualPattern()));
             telemetry.addData("Mode", DATA.getSpindexerMode());
