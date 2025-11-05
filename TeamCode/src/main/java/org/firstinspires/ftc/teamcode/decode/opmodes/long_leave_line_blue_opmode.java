@@ -8,7 +8,6 @@ import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-import org.firstinspires.ftc.teamcode.decode.Constants;
 import org.firstinspires.ftc.teamcode.decode.SharedData;
 import org.firstinspires.ftc.teamcode.decode.auto.TagDetection;
 import org.firstinspires.ftc.teamcode.decode.core.BallDetection;
@@ -22,8 +21,8 @@ import org.firstinspires.ftc.teamcode.ironDams.core.odometry.Pinpoint;
 
 import java.util.concurrent.atomic.AtomicReference;
 
-@Autonomous(name = "long_red", group = "@@@@IronDams")
-public class long_red_opmode extends LinearOpMode {
+@Autonomous(name = "LONG_leave_BLUE", group = "@@@@IronDams")
+public class long_leave_line_blue_opmode extends LinearOpMode {
     @Override
     public void runOpMode() {
         AtomicReference<Boolean> moveSpindexer = new AtomicReference<>(false);
@@ -76,36 +75,11 @@ public class long_red_opmode extends LinearOpMode {
 
                         /* Strafe towards the Obelisk */
                         new ParallelAction(
-                                tagDetection.webcamReadAction(autoDrive.getDriveComplete()),
-                                autoDrive.strafeTo(124, 4, 10, 0.3, 0.5)
-                        ),
-                        new InstantAction(() -> autoDrive.setDriveCompleted(false)),
-                        new InstantAction(autoDrive::setStartingXPos),
-                        tagDetection.webcamStopStreamingAction(),
-
-                        new ParallelAction(
-                                spindexer.sortAction(data.getHasPatternChanged()),
-                                new SleepAction(9)
+                            tagDetection.webcamReadAction(autoDrive.getDriveComplete()),
+                            autoDrive.strafeTo(-24, 4, 10, 0.3, 0.5)
                         ),
 
-                        autoDrive.driveTo(16, 4, 10, 0.3, 0.7),
-
-                        /* Shoot the artifacts into the goal. */
-                        shooter.startAction(Constants.Shooter.TARGET_VELOCITY - 175),
-                        spindexer.moveDistAction(1),
-                        new SleepAction(1.2),
-                        shooter.startAction(Constants.Shooter.TARGET_VELOCITY - 150),
-                        spindexer.moveDistAction(2),
-                        new SleepAction(1.2),
-                        shooter.startAction(Constants.Shooter.TARGET_VELOCITY - 100),
-                        spindexer.moveDistAction(2),
-                        new SleepAction(1.2),
-                        spindexer.moveDistAction(2),
-                        new InstantAction(() -> intake.setVelocity(0)),
-                        new SleepAction(1.2),
-                        ballDetection.resetActualPattern(),
-                        shooter.stopAction(),
-                        shooter.closeAction()
+                        tagDetection.webcamStopStreamingAction()
                 )
         );
 
