@@ -5,45 +5,49 @@ import androidx.annotation.NonNull;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+import org.firstinspires.ftc.teamcode.ironDams.Config;
 
 public class Pinpoint implements IGyro {
+    private final GoBildaPinpointDriver PINPOINT;
 
-    private final GoBildaPinpointDriver _pinpoint;
     private double _initYaw;
 
     public Pinpoint(LinearOpMode opMode) {
-        _pinpoint = opMode.hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
+        PINPOINT = opMode.hardwareMap.get(GoBildaPinpointDriver.class, Config.Hardware.Gyros.PINPOINT_ID);
         init();
     }
 
     private void init() {
-        _pinpoint.setOffsets(0.0, 0.0, DistanceUnit.INCH);
-        _pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
-        _pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.REVERSED);
-        _pinpoint.resetPosAndIMU();
+        PINPOINT.setOffsets(0.0, 0.0, DistanceUnit.INCH);
+        PINPOINT.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
+        PINPOINT.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.FORWARD);
+        PINPOINT.resetPosAndIMU();
 
         _initYaw = getPose().getHeading(AngleUnit.DEGREES);
-
     }
+
+    @Override
     public double update() {
         return -_initYaw + getPose().getHeading(AngleUnit.DEGREES);
     }
 
+    @Override
     public void reset() {
         _initYaw = getPose().getHeading(AngleUnit.DEGREES);
     }
 
+    @Override
     public Pose2D getPose() {
-        _pinpoint.update();
-        return _pinpoint.getPosition();
+        PINPOINT.update();
+        return PINPOINT.getPosition();
 
     }
-    public Action pinpointTelemetry() {
+
+    public Action telemetryAction() {
         return new Action() {
             private boolean initialized = false;
 
@@ -52,10 +56,13 @@ public class Pinpoint implements IGyro {
                 if (!initialized) {
                     initialized = true;
                 }
-                _pinpoint.update();
-                packet.put("x", _pinpoint.getEncoderX());
-                packet.put("y", _pinpoint.getEncoderY());
-                packet.put("Z", _pinpoint.getHeading(AngleUnit.DEGREES));
+
+                Pose2D pos = getPose();
+
+                packet.put("Pinpoint x", pos.getX(DistanceUnit.INCH));
+                packet.put("Pinpoint y", pos.getY(DistanceUnit.INCH));
+                packet.put("Pinpoint z", pos.getHeading(AngleUnit.DEGREES));
+
                 return true;
             }
         };
