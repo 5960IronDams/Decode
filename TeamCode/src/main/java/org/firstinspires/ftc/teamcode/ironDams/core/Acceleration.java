@@ -7,7 +7,6 @@ public final class Acceleration {
 
         double traveled = Math.abs(currentPos - startPos);
         double totalDistance = Math.abs(targetPos - startPos);
-//        double direction = Math.signum(targetPos - startPos);
 
         if (totalDistance < accelZone + decelZone) {
             return minPower;

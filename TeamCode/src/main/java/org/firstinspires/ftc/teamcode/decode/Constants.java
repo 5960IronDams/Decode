@@ -24,6 +24,9 @@ public final class Constants {
 
         public static final double OPEN_POS = 0.37;
         public static final double CLOSE_POS = 0;
+
+        public static final double INTAKE_POS = 0.3659;
+        public static final double OUTTAKE_POS = 0;
     }
 
     public static final class Intake {

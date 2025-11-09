@@ -1,45 +1,54 @@
 package org.firstinspires.ftc.teamcode.ironDams.core;
 
 import android.os.Environment;
-import android.provider.ContactsContract;
 
 import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class Logger {
-    private final FileWriter WRITER;
+    private FileWriter WRITER;
+    private final List<String> cache = new ArrayList<>();
 
     public Logger(String opMode) {
-        Date now = new Date();
-        long time = now.getTime();
-        File logFile = new File( Environment.getExternalStorageDirectory().getPath() + "/FIRST/" + opMode + "_" + time + ".csv");
         try {
+            Date now = new Date();
+            long time = now.getTime();
+            File logFile = new File(Environment.getExternalStorageDirectory().getPath() + "/FIRST/" + opMode + "_" + time + ".csv");
+
             WRITER = new FileWriter(logFile, true);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        } catch (Exception ignored) { }
     }
 
-    public void write(double timestamp, String property, double value) {
-        writeToFile(timestamp, property, value);
+    public void writeToCache(double timestamp, String property, double value) {
+        writeToMemory(timestamp, property, value);
     }
 
-    public void write(double timestamp, String property, int value) {
-        writeToFile(timestamp, property, value);
+    public void writeToCache(double timestamp, String property, int value) {
+        writeToMemory(timestamp, property, value);
     }
 
-    public void write(double timestamp, String property, boolean value) {
-        writeToFile(timestamp, property, value);
+    public void writeToCache(double timestamp, String property, boolean value) {
+        writeToMemory(timestamp, property, value);
     }
 
-
-    private void writeToFile(double timestamp, String property, Object value) {
+    private void writeToMemory(double timestamp, String property, Object value) {
         try {
-            WRITER.write(timestamp + ", " + property + ", " + value + "\r\n");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+            cache.add(timestamp + ", " + property + ", " + value + "\r\n");
+        } catch (Exception ignored) { }
+    }
+
+    public void flushToDisc() {
+        try {
+            if (!cache.isEmpty()) {
+                for (String line : cache) {
+                    WRITER.write(line);
+                }
+                WRITER.flush();
+                cache.clear();
+            }
+        } catch (Exception ignored) { }
     }
 }

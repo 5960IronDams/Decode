@@ -26,6 +26,7 @@ public final class Config {
         public static final class Servos {
             public static final class Shooter {
                 public static final String LEVER_ID = "launcher";
+                public static final String EEERRR_ID = "eeerrr";
             }
 
             public static final class Spindexer {

@@ -8,6 +8,7 @@ import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+import org.firstinspires.ftc.teamcode.decode.Constants;
 import org.firstinspires.ftc.teamcode.decode.SharedData;
 import org.firstinspires.ftc.teamcode.decode.auto.TagDetection;
 import org.firstinspires.ftc.teamcode.decode.core.BallDetection;
@@ -22,14 +23,15 @@ import org.firstinspires.ftc.teamcode.ironDams.core.odometry.Pinpoint;
 
 import java.util.concurrent.atomic.AtomicReference;
 
-@Autonomous(name = "LONG_leave_BLUE", group = "@@@@IronDams")
-public class long_leave_line_blue_opmode extends LinearOpMode {
+@Autonomous(name = "AUTO_Test", group = "@@@@IronDams")
+public class auto_test_opmode extends LinearOpMode {
     @Override
     public void runOpMode() {
         AtomicReference<Boolean> moveSpindexer = new AtomicReference<>(false);
 
+        Logger log = new Logger("AUTO_Test");
+
         SharedData data = new SharedData();
-        Logger log = new Logger("LONG_leave_BLUE");
 
         TagDetection tagDetection = new TagDetection(this, data);
 
@@ -60,28 +62,9 @@ public class long_leave_line_blue_opmode extends LinearOpMode {
 
         Actions.runBlocking(
                 new SequentialAction(
-                        /* Start the intake */
-                        new InstantAction(() -> intake.setVelocity(800)),
-
-                        /* Index the artifacts in the spindexer */
-                        new InstantAction(() -> ballDetection.setProcessColor(true)),
-                        ballDetection.detectionAction(autoDrive.getDriveComplete()),
-                        spindexer.moveDistAction(2),
-                        new SleepAction(0.5),
-                        new InstantAction(() -> ballDetection.setProcessColor(true)),
-                        ballDetection.detectionAction(autoDrive.getDriveComplete()),
-                        spindexer.moveDistAction(2),
-                        new SleepAction(0.5),
-                        new InstantAction(() -> ballDetection.setProcessColor(true)),
-                        ballDetection.detectionAction(autoDrive.getDriveComplete()),
-
-                        /* Strafe towards the Obelisk */
-                        new ParallelAction(
-                            tagDetection.webcamReadAction(autoDrive.getDriveComplete()),
-                            autoDrive.strafeTo(-24, 4, 10, 0.3, 0.5)
-                        ),
-
-                        tagDetection.webcamStopStreamingAction()
+                        new InstantAction(() -> autoDrive.setDriveCompleted(false)),
+                        new InstantAction(autoDrive::setStartingXPos),
+                        autoDrive.driveTo(22, 4, 10, 0.3, 1.0)
                 )
         );
 

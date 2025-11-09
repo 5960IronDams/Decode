@@ -16,6 +16,7 @@ import org.firstinspires.ftc.teamcode.decode.core.Intake;
 import org.firstinspires.ftc.teamcode.decode.core.Shooter;
 import org.firstinspires.ftc.teamcode.decode.core.Spindexer;
 import org.firstinspires.ftc.teamcode.ironDams.auto.AutoDrive;
+import org.firstinspires.ftc.teamcode.ironDams.core.Logger;
 import org.firstinspires.ftc.teamcode.ironDams.core.driveTrain.FourWheelDriveTrain;
 import org.firstinspires.ftc.teamcode.ironDams.core.driveTrain.MecanumDriveTrain;
 import org.firstinspires.ftc.teamcode.ironDams.core.odometry.Pinpoint;
@@ -29,13 +30,14 @@ public class BLUE_SHORT_OpMode extends LinearOpMode {
         AtomicReference<Boolean> moveSpindexer = new AtomicReference<>(false);
 
         SharedData data = new SharedData();
+        Logger log = new Logger("BLUE_SHORT");
 
         TagDetection tagDetection = new TagDetection(this, data);
 
         FourWheelDriveTrain dt = new FourWheelDriveTrain(this.hardwareMap);
         MecanumDriveTrain drive = new MecanumDriveTrain(dt);
         Pinpoint pinpoint = new Pinpoint(this);
-        AutoDrive autoDrive = new AutoDrive(drive, pinpoint);
+        AutoDrive autoDrive = new AutoDrive(drive, pinpoint, log);
 
         Shooter shooter = new Shooter(this, data);
         BallDetection ballDetection = new BallDetection(this, data);

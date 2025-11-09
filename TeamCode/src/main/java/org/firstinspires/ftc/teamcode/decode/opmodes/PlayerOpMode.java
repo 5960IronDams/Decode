@@ -76,7 +76,7 @@ public class PlayerOpMode extends LinearOpMode {
 
             if (DATA.getSpindexerMode() == Constants.Spindexer.Mode.SHOOT)
             {
-                shooter.open().setVelocity(Constants.Shooter.TARGET_VELOCITY + 100);
+                shooter.outtakePos().open().setVelocity(Constants.Shooter.TARGET_VELOCITY + 100);
                 intake.setVelocity(0);
                 if (DATA.getShotCount() < 3 && shootDelay.allowExec()) {
                     spindexer.shoot();
@@ -86,7 +86,7 @@ public class PlayerOpMode extends LinearOpMode {
                     DATA.setSpindexerMode(Constants.Spindexer.Mode.INDEX);
                     DATA.setShotCount(0);
                     spindexer.moveIndex(0);
-                    shooter.stop();
+                    shooter.intakePos().stop();
                     if (intake.getMode() == Constants.Intake.Mode.ACTIVE) {
                         intake.setVelocity(Constants.Intake.TARGET_VELOCITY);
                     }
@@ -125,7 +125,10 @@ public class PlayerOpMode extends LinearOpMode {
 
                 changeTargetPattern();
                 DATA.setHasPatternChanged(false);
-                if (DATA.isSpindexerLoaded()) DATA.setSpindexerMode(Constants.Spindexer.Mode.SORT);
+                if (DATA.isSpindexerLoaded()) {
+                    DATA.setSpindexerMode(Constants.Spindexer.Mode.SORT);
+                    shooter.outtakePos();
+                }
             } else {
                 changeTargetPattern();
                 if (!DATA.getHasPatternChanged().getAsBoolean()) patternChangeDelay.reset();

@@ -22,6 +22,7 @@ import java.util.function.BooleanSupplier;
 
 public class Shooter {
     private final Servo SERVO;
+    private final Servo EEERRR;
     private final VoltageSensor VOLTAGE_SENSOR;
     private final DcMotorEx LEFT;
     private final DcMotorEx RIGHT;
@@ -36,6 +37,8 @@ public class Shooter {
     public Shooter(LinearOpMode opMode, SharedData data) {
         SERVO = opMode.hardwareMap.get(Servo.class, Config.Hardware.Servos.Shooter.LEVER_ID);
         SERVO.setDirection(Servo.Direction.REVERSE);
+
+        EEERRR = opMode.hardwareMap.get(Servo.class, Config.Hardware.Servos.Shooter.EEERRR_ID);
 
         VOLTAGE_SENSOR = opMode.hardwareMap.voltageSensor.iterator().next();
 
@@ -89,6 +92,16 @@ public class Shooter {
 
     public Shooter open() {
         SERVO.setPosition(Constants.Shooter.OPEN_POS);
+        return this;
+    }
+
+    public Shooter intakePos() {
+        EEERRR.setPosition(Constants.Shooter.INTAKE_POS);
+        return this;
+    }
+
+    public Shooter outtakePos() {
+        EEERRR.setPosition(Constants.Shooter.OUTTAKE_POS);
         return this;
     }
 
