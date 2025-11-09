@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.ironDams.auto;
+package org.firstinspires.ftc.teamcode.irondams.core.auto;
 
 import androidx.annotation.NonNull;
 
@@ -9,10 +9,10 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
-import org.firstinspires.ftc.teamcode.ironDams.core.Acceleration;
-import org.firstinspires.ftc.teamcode.ironDams.core.Logger;
-import org.firstinspires.ftc.teamcode.ironDams.core.driveTrain.IDriveTrain;
-import org.firstinspires.ftc.teamcode.ironDams.core.odometry.IGyro;
+import org.firstinspires.ftc.teamcode.irondams.core.driveTrain.Acceleration;
+import org.firstinspires.ftc.teamcode.irondams.core.Logger;
+import org.firstinspires.ftc.teamcode.irondams.core.driveTrain.IDriveTrain;
+import org.firstinspires.ftc.teamcode.irondams.core.odometry.IGyro;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -161,8 +161,8 @@ public class AutoDrive {
                 setDriveCompleted(pow == 0);
 
                 logger(
-                    packet, milli, _startPos, targetPos, accelToDistance, decelAtDistance, minPower, minPow,
-                    maxPower, currentPos, pow, getDriveComplete().getAsBoolean(), direction
+                        packet, milli, _startPos, targetPos, accelToDistance, decelAtDistance, minPower, minPow,
+                        maxPower, currentPos, pow, getDriveComplete().getAsBoolean(), direction
                 );
 
                 return pow != 0;
@@ -230,19 +230,19 @@ public class AutoDrive {
         packet.put("Drive Target", targetPos);
         packet.put("Drive Current", currentPos);
 
-        LOG.writeToCache(milli, "startPos", startPos);
-        LOG.writeToCache(milli, "targetPos", targetPos);
-        LOG.writeToCache(milli, "currentPos", currentPos);
-        LOG.writeToCache(milli, "AccelToDist", accelToDistance);
-        LOG.writeToCache(milli, "DecelToDist", decelAtDistance);
-        LOG.writeToCache(milli, "minPower", minPower);
-        LOG.writeToCache(milli, "minPow", minPow);
-        LOG.writeToCache(milli, "maxPower", maxPower);
-        LOG.writeToCache(milli, "distance", currentPos - startPos);
-        LOG.writeToCache(milli, "remainingDist", targetPos - currentPos);
-        LOG.writeToCache(milli, "power", pow);
-        LOG.writeToCache(milli, "driveCompleted", driveCompleted);
-        LOG.writeToCache(milli, "direction", direction);
+        LOG.writeToMemory(milli, "startPos", startPos);
+        LOG.writeToMemory(milli, "targetPos", targetPos);
+        LOG.writeToMemory(milli, "currentPos", currentPos);
+        LOG.writeToMemory(milli, "AccelToDist", accelToDistance);
+        LOG.writeToMemory(milli, "DecelToDist", decelAtDistance);
+        LOG.writeToMemory(milli, "minPower", minPower);
+        LOG.writeToMemory(milli, "minPow", minPow);
+        LOG.writeToMemory(milli, "maxPower", maxPower);
+        LOG.writeToMemory(milli, "distance", currentPos - startPos);
+        LOG.writeToMemory(milli, "remainingDist", targetPos - currentPos);
+        LOG.writeToMemory(milli, "power", pow);
+        LOG.writeToMemory(milli, "driveCompleted", driveCompleted);
+        LOG.writeToMemory(milli, "direction", direction);
         LOG.flushToDisc();
     }
 }

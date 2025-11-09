@@ -1,22 +1,13 @@
-package org.firstinspires.ftc.teamcode.ironDams.core.driveTrain;
+package org.firstinspires.ftc.teamcode.irondams.core.driveTrain;
 
-import androidx.annotation.NonNull;
-
-import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
-import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.Gamepad;
-
-import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.ironDams.Config;
-import org.firstinspires.ftc.teamcode.ironDams.core.WaitFor;
 
 public class MecanumDrive {
     private final MecanumDriveTrain ROBO_VIEW;
     private final GyroMecanumDriveTrain FIELD_PER;
 
     private IDriveTrain activeDrive;
-    private boolean _isFieldPer = false;
+    private boolean _isFieldPer = true;
 
     public MecanumDrive(LinearOpMode opMode) {
         FourWheelDriveTrain dt = new FourWheelDriveTrain(opMode.hardwareMap);

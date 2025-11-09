@@ -1,14 +1,13 @@
-package org.firstinspires.ftc.teamcode.ironDams.core.cameras;
+package org.firstinspires.ftc.teamcode.irondams.core.cameras;
 
 import com.qualcomm.hardware.dfrobot.HuskyLens;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import org.firstinspires.ftc.teamcode.ironDams.Config;
 
 public class HuskyLensReader {
     private final HuskyLens HUSKY_LENS;
 
     public HuskyLensReader(HardwareMap hardwareMap) {
-        HUSKY_LENS = hardwareMap.get(HuskyLens.class, Config.Hardware.Cameras.HUSKY_ID);
+        HUSKY_LENS = hardwareMap.get(HuskyLens.class, "husky");
         HUSKY_LENS.selectAlgorithm(HuskyLens.Algorithm.TAG_RECOGNITION);
     }
 

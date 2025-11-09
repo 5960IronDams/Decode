@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.ironDams.core.odometry;
+package org.firstinspires.ftc.teamcode.irondams.core.odometry;
 
 import androidx.annotation.NonNull;
 
@@ -13,7 +13,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
-import org.firstinspires.ftc.teamcode.ironDams.Config;
 
 public class Imu implements IGyro {
     private final BNO055IMU IMU;
@@ -22,7 +21,7 @@ public class Imu implements IGyro {
     private double _initYaw;
 
     public Imu(HardwareMap hardwareMap) {
-        IMU = hardwareMap.get(BNO055IMU.class, Config.Hardware.Gyros.EXP_IMU_ID);
+        IMU = hardwareMap.get(BNO055IMU.class, "imu2");
         init();
     }
 
