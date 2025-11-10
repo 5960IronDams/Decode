@@ -8,6 +8,7 @@ import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.SequentialAction;
+import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -73,23 +74,43 @@ public class RedShortAuto extends LinearOpMode {
                         new InstantAction(() -> autoDrive.setDriveCompleted(false)),
                         new InstantAction(autoDrive::setStartingXPos),
                         new ParallelAction(
-                                indexArtifacts(autoDrive.getDriveComplete(), timer.milliseconds()),
-                                autoDrive.driveTo(-22, 4, 12, 0.3, 1.0) //TODO: adjust to minimize next move and readability of obelisk.
+                                indexArtifacts(),
+                                autoDrive.driveTo(-28, 4, 12, 0.4, 1.0), //TODO: adjust to minimize next move and readability of obelisk.
+                                new SequentialAction(
+                                    new SleepAction(1),
+                                    /* Read the obelisk */
+                                    tagDetection.webcamResetTimeout(),
+                                    tagDetection.webcamReadAction(autoDrive.getDriveComplete(), timer.milliseconds())
+                                )
                         ),
                         new InstantAction(() -> autoDrive.setDriveCompleted(false)),
-
-                        /* Read the obelisk */
-                        tagDetection.webcamResetTimeout(),
-                        tagDetection.webcamReadAction(autoDrive.getDriveComplete(), timer.milliseconds()),
 
                         /* Sort the artifacts in the spindexer */
                         spindexer.resetSortTimeoutAction(autoDrive.getDriveComplete(), timer.milliseconds()),
                         spindexer.sortAction(autoDrive.getDriveComplete(), timer.milliseconds()),
 
                         /* shoot the balls */
-                        shotArtifacts(),
+                        shotArtifacts(2000),
 
+                        /* Turn to align ourselves to pick up new artifacts */
+                        new InstantAction(() -> autoDrive.setDriveCompleted(false)),
+                        new InstantAction(autoDrive::setStartingHeadingPos),
+                        autoDrive.turnTo(330, 4, 20, 0.4, 1.0),
 
+                        /* Strafe to get in front of the artifacts */
+                        new InstantAction(() -> autoDrive.setDriveCompleted(false)),
+                        new InstantAction(autoDrive::setStartingYPos),
+                        new ParallelAction(
+                                autoDrive.strafeTo(-14, 3, 11, 0.4, 1.0)
+                        ),
+
+                        /* move in to pick up artifacts */
+                        new InstantAction(() -> autoDrive.setDriveCompleted(false)),
+                        new InstantAction(autoDrive::setStartingXPos),
+                        new ParallelAction(
+                                indexArtifacts(),
+                                autoDrive.driveTo(-23, 0, 0, 0.1, 0.1)
+                        ),
 
                         /* stop streaming the camera */
                         tagDetection.webcamStopStreamingAction()
@@ -99,8 +120,10 @@ public class RedShortAuto extends LinearOpMode {
     }
 
 
-    Action indexArtifacts(BooleanSupplier driveComplete, double millis) {
+    Action indexArtifacts() {
         return new SequentialAction(
+                launcher.closeAction(timer.milliseconds()),
+                new SleepAction(0.5),
                 intake.setIntakeVelocityAction(timer.milliseconds(), 1000),
                 ballDetection.detectBallAction(autoDrive.getDriveComplete(), timer.milliseconds()),
                 spindexer.moveSpindexerAction(autoDrive.getDriveComplete(), timer.milliseconds()),
@@ -112,10 +135,10 @@ public class RedShortAuto extends LinearOpMode {
         );
     }
 
-    Action shotArtifacts() {
+    Action shotArtifacts(double velocity) {
         return new SequentialAction(
                 launcher.setLauncherModeAction(false, timer.milliseconds()),
-                launcher.startShootingAction(1000, timer.milliseconds()), //TODO: set velocity after testing.
+                launcher.startShootingAction(velocity, timer.milliseconds()),
                 launcher.shotResetTimerAction(timer.milliseconds()),
                 new ParallelAction(
                         launcher.shootAction(timer.milliseconds()),
@@ -135,7 +158,9 @@ public class RedShortAuto extends LinearOpMode {
                         launcher.shotCompleteAction(timer.milliseconds())
                 ),
                 ballDetection.clearActualAction(timer.milliseconds()),
-                spindexer.resetToZeroAction(autoDrive.getDriveComplete(), timer.milliseconds())
+                spindexer.resetToZeroAction(autoDrive.getDriveComplete(), timer.milliseconds()),
+                launcher.setLauncherModeAction(true, timer.milliseconds()),
+                launcher.stopVelocitygAction(timer.milliseconds())
         );
     }
 

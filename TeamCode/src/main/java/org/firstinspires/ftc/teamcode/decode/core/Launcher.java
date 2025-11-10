@@ -181,6 +181,40 @@ public class Launcher {
         };
     }
 
+    public Action stopVelocitygAction(double millis) {
+        return new Action() {
+            private boolean initialized = false;
+
+            @Override
+            public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+                if (!initialized) {
+                    initialized = true;
+                }
+
+                setVelocity(0);
+
+                return false;
+            }
+        };
+    }
+
+    public Action closeAction(double millis) {
+        return new Action() {
+            private boolean initialized = false;
+
+            @Override
+            public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+                if (!initialized) {
+                    initialized = true;
+                }
+
+                close();
+
+                return false;
+            }
+        };
+    }
+
     public Action shootAction(double millis) {
         return new Action() {
             private boolean initialized = false;
