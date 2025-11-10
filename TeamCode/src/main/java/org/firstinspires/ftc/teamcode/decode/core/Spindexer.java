@@ -9,12 +9,15 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.decode.SharedData;
 import org.firstinspires.ftc.teamcode.irondams.core.Logger;
+import org.firstinspires.ftc.teamcode.irondams.core.WaitFor;
 
 import java.util.function.BooleanSupplier;
 
 public class Spindexer {
     private final Servo SERVO;
     private final Logger LOG;
+
+    private final WaitFor SORT_TIMEOUT = new WaitFor(500);
 
     public Spindexer(LinearOpMode opMode, Logger log) {
         LOG = log;
@@ -91,6 +94,23 @@ public class Spindexer {
         };
     }
 
+    public Action resetSortTimeoutAction(BooleanSupplier driveComplete, double millis) {
+        return new Action() {
+            private boolean initialized = false;
+
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                if (!initialized) {
+                    initialized = true;
+                }
+
+                SORT_TIMEOUT.reset();
+
+                return false;
+            }
+        };
+    }
+
     public Action sortAction(BooleanSupplier driveComplete, double millis) {
         return new Action() {
             private boolean initialized = false;
@@ -103,7 +123,8 @@ public class Spindexer {
 
                 sortBalls(millis);
 
-                if (driveComplete.getAsBoolean()) return false;
+                if (SORT_TIMEOUT.allowExec()) return false;
+                else if (driveComplete.getAsBoolean()) return false;
                 else return !moveSpindexer(millis);
             }
         };

@@ -83,6 +83,7 @@ public class RedShortAuto extends LinearOpMode {
                         tagDetection.webcamReadAction(autoDrive.getDriveComplete(), timer.milliseconds()),
 
                         /* Sort the artifacts in the spindexer */
+                        spindexer.resetSortTimeoutAction(autoDrive.getDriveComplete(), timer.milliseconds()),
                         spindexer.sortAction(autoDrive.getDriveComplete(), timer.milliseconds()),
 
                         /* shoot the balls */
