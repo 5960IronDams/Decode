@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.decode.SharedData;
 import org.firstinspires.ftc.teamcode.irondams.core.Logger;
+import org.firstinspires.ftc.teamcode.irondams.core.WaitFor;
 import org.firstinspires.ftc.teamcode.irondams.core.cameras.AprilTagReader;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
@@ -18,6 +19,7 @@ import java.util.function.BooleanSupplier;
 public class TagDetection {
     private final AprilTagReader TAG_READER;
     private final Logger LOG;
+    private final WaitFor TAG_TIMEOUT = new WaitFor(500);
 
     public TagDetection(LinearOpMode opMode, Logger log) {
         TAG_READER = new AprilTagReader(opMode.hardwareMap);
@@ -59,7 +61,7 @@ public class TagDetection {
 
                 if (SharedData.Pattern.targetIndex != -1) {
                     packet.put("Status Webcam Read Tag", "Finished 1");
-                    TAG_READER.stopStreaming();
+                    stopStreaming();
                     return false;
                 }
                 else if (TAG_READER.leftState() == VisionPortal.CameraState.STREAMING &&
@@ -95,12 +97,39 @@ public class TagDetection {
                     TAG_READER.stopStreaming();
                     return false;
                 }
-                else {
-                    if (driveComplete.getAsBoolean()) packet.put("Status Webcam Read Tag", "Finished 3");
-                    else packet.put("Status Webcam Read Tag", "Running");
-
-                    return !driveComplete.getAsBoolean();
+                else if (TAG_TIMEOUT.allowExec()) {
+                    packet.put("Status Webcam Read Tag", "Finished 4");
+                    TAG_READER.stopStreaming();
+                    return false;
                 }
+                else {
+                    if (driveComplete.getAsBoolean()) {
+                        TAG_READER.stopStreaming();
+                        packet.put("Status Webcam Read Tag", "Finished 3");
+                        return false;
+                    }
+                    else {
+                        packet.put("Status Webcam Read Tag", "Running");
+                        return true;
+                    }
+                }
+            }
+        };
+    }
+
+    public Action webcamResetTimeout() {
+        return new Action() {
+            private boolean initialized = false;
+
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                if (!initialized) {
+                    initialized = true;
+                }
+
+                TAG_TIMEOUT.reset();
+
+                return false;
             }
         };
     }

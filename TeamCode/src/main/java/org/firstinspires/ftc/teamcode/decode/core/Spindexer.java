@@ -85,7 +85,8 @@ public class Spindexer {
                     initialized = true;
                 }
 
-                return !moveSpindexer(millis);
+                if (driveComplete.getAsBoolean()) return false;
+                else return !moveSpindexer(millis);
             }
         };
     }
@@ -101,7 +102,9 @@ public class Spindexer {
                 }
 
                 sortBalls(millis);
-                return !moveSpindexer(millis);
+
+                if (driveComplete.getAsBoolean()) return false;
+                else return !moveSpindexer(millis);
             }
         };
     }
@@ -119,7 +122,8 @@ public class Spindexer {
                 SharedData.Spindexer.currentIndex = 0;
                 SharedData.Spindexer.targetPos = SharedData.Spindexer.POSITIONS[0];
 
-                return !moveSpindexer(millis);
+                if (driveComplete.getAsBoolean()) return false;
+                else return !moveSpindexer(millis);
             }
         };
     }

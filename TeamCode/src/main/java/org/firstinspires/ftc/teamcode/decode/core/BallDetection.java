@@ -114,7 +114,9 @@ public class BallDetection {
                     initialized = true;
                 }
 
-                return !isBallDetected(millis);
+                if (driveComplete.getAsBoolean()) return false;
+                else if (SharedData.BallDetection.areAllDetected()) return false;
+                else return !isBallDetected(millis);
             }
         };
     }

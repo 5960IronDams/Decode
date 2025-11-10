@@ -79,13 +79,19 @@ public class RedShortAuto extends LinearOpMode {
                         new InstantAction(() -> autoDrive.setDriveCompleted(false)),
 
                         /* Read the obelisk */
+                        tagDetection.webcamResetTimeout(),
                         tagDetection.webcamReadAction(autoDrive.getDriveComplete(), timer.milliseconds()),
 
                         /* Sort the artifacts in the spindexer */
                         spindexer.sortAction(autoDrive.getDriveComplete(), timer.milliseconds()),
 
                         /* shoot the balls */
-                        shotArtifacts()
+                        shotArtifacts(),
+
+
+
+                        /* stop streaming the camera */
+                        tagDetection.webcamStopStreamingAction()
                 )
         );
 

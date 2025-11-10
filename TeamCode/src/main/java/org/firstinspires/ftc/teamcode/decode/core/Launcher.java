@@ -142,8 +142,8 @@ public class Launcher {
     }
 
     public void setVelocity(double velocity) {
-        LEFT.setVelocity(0);
-        RIGHT.setVelocity(0);
+        LEFT.setVelocity(velocity);
+        RIGHT.setVelocity(velocity);
     }
 
     public Action setLauncherModeAction(boolean moveToIntake, double millis) {
