@@ -1,5 +1,9 @@
 package org.firstinspires.ftc.teamcode.decode.core;
 
+import androidx.annotation.NonNull;
+
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
@@ -39,5 +43,22 @@ public class Intake {
     public void setVelocity(double velocity) {
         if (velocity > 0) PIDF.f = (32767 / TPS) * (TARGET_VOLT / VOLTAGE_SENSOR.getVoltage());
         INTAKE_MOTOR.setVelocity(velocity);
+    }
+
+    public Action setIntakeVelocityAction(double millis, double velocity) {
+        return new Action() {
+            private boolean initialized = false;
+
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                if (!initialized) {
+                    initialized = true;
+                }
+
+                setVelocity(velocity);
+
+                return false;
+            }
+        };
     }
 }

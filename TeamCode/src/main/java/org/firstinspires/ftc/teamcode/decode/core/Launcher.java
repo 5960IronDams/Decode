@@ -1,7 +1,10 @@
 package org.firstinspires.ftc.teamcode.decode.core;
 
+import androidx.annotation.NonNull;
+
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -23,11 +26,6 @@ public class Launcher {
 
     private final Logger LOG;
 
-    private final WaitFor SORT_DELAY = new WaitFor(500);
-
-    private final int SHOOT_DELAY_MS = 1000;
-    private final int PATTERN_CHANGE_DELAY_MS = 1000;
-
     private final double TARGET_VELOCITY = 2075;
 
     private final double RIGHT_TPS = 2245;
@@ -38,10 +36,15 @@ public class Launcher {
     private final double OPEN_POS = 0.37;
     private final double CLOSE_POS = 0;
 
-    public final double INTAKE_POS = 0.3259;
-    public final double OUTTAKE_POS = 0;
+    private final double INTAKE_POS = 0.3259;
+    private final double OUTTAKE_POS = 0;
+
+    private final int MAX_SHOT_COUNT = 3;
 
     public boolean isWaitingForCurrentSpike = false;
+
+    private final WaitFor SHOT_COMPLETE_TIMEOUT = new WaitFor(1200);
+
 
     public Launcher(LinearOpMode opMode, VoltageSensor voltageSensor, Logger log) {
         LAUNCHER_SERVO = opMode.hardwareMap.get(Servo.class, "launcher");
@@ -97,9 +100,9 @@ public class Launcher {
         return this;
     }
 
-    public void run(double millis) {
+    public void runLauncher(double millis) {
         if (SharedData.Launcher.isActive) {
-            if (SharedData.Launcher.shotCount < 4) {
+            if (SharedData.Launcher.shotCount < MAX_SHOT_COUNT) {
                 if (LEFT.getVelocity() >= TARGET_VELOCITY - 100 && RIGHT.getVelocity() >= TARGET_VELOCITY - 100  && !isWaitingForCurrentSpike) {
                     isWaitingForCurrentSpike = true;
                     SharedData.Spindexer.currentIndex += SharedData.Spindexer.currentIndex % 2 == 0 ? 1 : 2;
@@ -141,5 +144,91 @@ public class Launcher {
     public void setVelocity(double velocity) {
         LEFT.setVelocity(0);
         RIGHT.setVelocity(0);
+    }
+
+    public Action setLauncherModeAction(boolean moveToIntake, double millis) {
+        return new Action() {
+            private boolean initialized = false;
+
+            @Override
+            public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+                if (!initialized) {
+                    initialized = true;
+                }
+
+                if (moveToIntake) intakePos();
+                else outtakePos();
+
+                return false;
+            }
+        };
+    }
+
+    public Action startShootingAction(double velocity, double millis) {
+        return new Action() {
+            private boolean initialized = false;
+
+            @Override
+            public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+                if (!initialized) {
+                    initialized = true;
+                }
+
+                open().setVelocity(velocity);
+
+                return false;
+            }
+        };
+    }
+
+    public Action shootAction(double millis) {
+        return new Action() {
+            private boolean initialized = false;
+
+            @Override
+            public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+                if (!initialized) {
+                    initialized = true;
+                }
+
+                SharedData.Spindexer.currentIndex += SharedData.Spindexer.currentIndex % 2 == 0 ? 1 : 2;
+                SharedData.Spindexer.targetPos = SharedData.Spindexer.POSITIONS[SharedData.Spindexer.currentIndex];
+
+                return false;
+            }
+        };
+    }
+
+    public Action shotResetTimerAction(double millis) {
+        return new Action() {
+            private boolean initialized = false;
+
+            @Override
+            public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+                if (!initialized) {
+                    initialized = true;
+                }
+
+                SHOT_COMPLETE_TIMEOUT.reset();
+
+                return false;
+            }
+        };
+    }
+
+    public Action shotCompleteAction(double millis) {
+        return new Action() {
+            private boolean initialized = false;
+
+            @Override
+            public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+                if (!initialized) {
+                    initialized = true;
+                }
+
+                if (SHOT_COMPLETE_TIMEOUT.allowExec()) return false;
+                else return LEFT.getCurrent(CurrentUnit.MILLIAMPS) < 2000;
+            }
+        };
     }
 }

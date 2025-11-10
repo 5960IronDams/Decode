@@ -27,13 +27,12 @@ public class BallDetection {
     private float _green;
 
     public BallDetection(LinearOpMode opMode, Logger log) {
-        COLOR_SENSOR_0 = opMode.hardwareMap.get(NormalizedColorSensor.class, "colorC");
+        COLOR_SENSOR_0 = opMode.hardwareMap.get(NormalizedColorSensor.class, "colorL");
         COLOR_SENSOR_1 = opMode.hardwareMap.get(NormalizedColorSensor.class, "colorC");
-        COLOR_SENSOR_2 = opMode.hardwareMap.get(NormalizedColorSensor.class, "colorC");
+        COLOR_SENSOR_2 = opMode.hardwareMap.get(NormalizedColorSensor.class, "colorR");
 
         SharedData.Pattern.actual = new String[] { "", "", "" };
         SharedData.Pattern.actualIndex = -1;
-//        SharedData.Pattern.targetIndex = -1;
         SharedData.BallDetection.detectionCount = 0;
 
         LOG = log;
@@ -116,6 +115,24 @@ public class BallDetection {
                 }
 
                 return !isBallDetected(millis);
+            }
+        };
+    }
+
+    public Action clearActualAction(double millis) {
+        return new Action() {
+            private boolean initialized = false;
+
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                if (!initialized) {
+                    initialized = true;
+                }
+
+                SharedData.Pattern.actual = new String[] { "", "", "" };
+                SharedData.Pattern.actualIndex = -1;
+
+                return false;
             }
         };
     }

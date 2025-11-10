@@ -90,4 +90,37 @@ public class Spindexer {
         };
     }
 
+    public Action sortAction(BooleanSupplier driveComplete, double millis) {
+        return new Action() {
+            private boolean initialized = false;
+
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                if (!initialized) {
+                    initialized = true;
+                }
+
+                sortBalls(millis);
+                return !moveSpindexer(millis);
+            }
+        };
+    }
+
+    public Action resetToZeroAction(BooleanSupplier driveComplete, double millis) {
+        return new Action() {
+            private boolean initialized = false;
+
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                if (!initialized) {
+                    initialized = true;
+                }
+
+                SharedData.Spindexer.currentIndex = 0;
+                SharedData.Spindexer.targetPos = SharedData.Spindexer.POSITIONS[0];
+
+                return !moveSpindexer(millis);
+            }
+        };
+    }
 }

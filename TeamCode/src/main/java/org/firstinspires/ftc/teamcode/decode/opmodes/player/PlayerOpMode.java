@@ -66,7 +66,7 @@ public class PlayerOpMode extends LinearOpMode {
 
             if (SharedData.Launcher.isActive) {
               launcher.outtakePos().open().setTargetVelocity();
-              launcher.run(millis);
+              launcher.runLauncher(millis);
               spindexer.moveSpindexer(millis);
             } else {
                 setTargetPattern();
