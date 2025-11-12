@@ -19,7 +19,7 @@ public class BallDetection {
     private final NormalizedColorSensor COLOR_SENSOR_1;
     private final NormalizedColorSensor COLOR_SENSOR_2;
 
-    private final int DELAY_DETECTION_MS = 250;
+    private final int DELAY_DETECTION_MS = 500;
     private final WaitFor DELAY_DETECTION = new WaitFor(DELAY_DETECTION_MS);
     private final Logger LOG;
 
@@ -27,9 +27,9 @@ public class BallDetection {
     private float _green;
 
     public BallDetection(LinearOpMode opMode, Logger log) {
-        COLOR_SENSOR_0 = opMode.hardwareMap.get(NormalizedColorSensor.class, "colorL");
+        COLOR_SENSOR_0 = opMode.hardwareMap.get(NormalizedColorSensor.class, "colorU");
         COLOR_SENSOR_1 = opMode.hardwareMap.get(NormalizedColorSensor.class, "colorC");
-        COLOR_SENSOR_2 = opMode.hardwareMap.get(NormalizedColorSensor.class, "colorR");
+        COLOR_SENSOR_2 = opMode.hardwareMap.get(NormalizedColorSensor.class, "colorD");
 
         SharedData.Pattern.actual = new String[] { "", "", "" };
         SharedData.Pattern.actualIndex = -1;

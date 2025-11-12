@@ -12,7 +12,6 @@ import com.qualcomm.robotcore.hardware.VoltageSensor;
 public class Intake {
     private final VoltageSensor VOLTAGE_SENSOR;
     private final DcMotorEx INTAKE_MOTOR;
-    private final PIDFCoefficients PIDF;
 
     private final double TARGET_VELOCITY = 1000;
 
@@ -31,9 +30,8 @@ public class Intake {
 
         VOLTAGE_SENSOR = voltageSensor; //opMode.hardwareMap.voltageSensor.iterator().next();
 
-        PIDF = new PIDFCoefficients(
-                0, 0, 0.0005, (32767 / TPS) * (TARGET_VOLT / VOLTAGE_SENSOR.getVoltage())
-        );
+        INTAKE_MOTOR.setVelocityPIDFCoefficients(1.5031, 0.15031, 0, 15.031);
+        INTAKE_MOTOR.setPositionPIDFCoefficients(5.0);
     }
 
     public void setTargetVelocity() {
@@ -41,7 +39,6 @@ public class Intake {
     }
 
     public void setVelocity(double velocity) {
-        if (velocity > 0) PIDF.f = (32767 / TPS) * (TARGET_VOLT / VOLTAGE_SENSOR.getVoltage());
         INTAKE_MOTOR.setVelocity(velocity);
     }
 

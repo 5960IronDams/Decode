@@ -74,22 +74,25 @@ public class PlayerOpMode extends LinearOpMode {
 
                 if (SharedData.BallDetection.areAllDetected()) {
                     launcher.outtakePos().open();
-                    intake.isActive = false;
-                    intake.setVelocity(0);
+//                    intake.isActive = false;
+//                    intake.setVelocity(0);
                 } else {
                     launcher.intakePos().close();
                 }
 
                 spindexer.sortBalls(millis);
                 spindexer.moveSpindexer(millis);
-
-                if (gamepad2.left_trigger != 0 && playerTwoDelay.allowExec()) {
-                    intake.isActive = !intake.isActive;
-                }
-
-                if (intake.isActive) intake.setTargetVelocity();
-                else intake.setVelocity(0);
             }
+
+            if (gamepad2.left_trigger != 0 && playerTwoDelay.allowExec()) {
+                intake.isActive = !intake.isActive;
+            }
+
+            if (intake.isActive) intake.setTargetVelocity();
+            else intake.setVelocity(0);
+
+            logger.writeToMemory(millis, "voltage", voltageSensor.getVoltage());
+            logger.flushToDisc();
 
             telemetry.addData("Drive Mode", driveMode ? "Field": "Robot");
             telemetry.addData("Target Pattern", SharedData.Pattern.target);

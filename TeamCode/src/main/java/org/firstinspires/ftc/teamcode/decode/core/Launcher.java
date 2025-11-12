@@ -21,17 +21,10 @@ public class Launcher {
     private final VoltageSensor VOLTAGE_SENSOR;
     private final DcMotorEx LEFT;
     private final DcMotorEx RIGHT;
-    private final PIDFCoefficients LEFT_PIDF;
-    private final PIDFCoefficients RIGHT_PIDF;
 
     private final Logger LOG;
 
-    private final double TARGET_VELOCITY = 2075;
-
-    private final double RIGHT_TPS = 2245;
-    private final double LEFT_TPS = 2305;
-
-    private final double TARGET_VOLT = 12;
+    private final double TARGET_VELOCITY = 1900;
 
     private final double OPEN_POS = 0.37;
     private final double CLOSE_POS = 0;
@@ -63,13 +56,10 @@ public class Launcher {
         LEFT.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         RIGHT.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
 
-        LEFT_PIDF = new PIDFCoefficients(
-                0, 0, 0.0005, (32767 / LEFT_TPS) * (TARGET_VOLT / VOLTAGE_SENSOR.getVoltage())
-        );
-
-        RIGHT_PIDF = new PIDFCoefficients(
-                0, 0, 0.0005, (32767 / RIGHT_TPS) * (TARGET_VOLT / VOLTAGE_SENSOR.getVoltage())
-        );
+        LEFT.setVelocityPIDFCoefficients(1.2799, 0.12799, 0, 12.799);
+        LEFT.setPositionPIDFCoefficients(5.0);
+        RIGHT.setVelocityPIDFCoefficients(1.3653, 0.13653, 0, 13.653);
+        RIGHT.setPositionPIDFCoefficients(5.0);
 
         LEFT.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
         RIGHT.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
@@ -104,11 +94,12 @@ public class Launcher {
         if (SharedData.Launcher.isActive) {
             if (SharedData.Launcher.shotCount < MAX_SHOT_COUNT) {
                 if (LEFT.getVelocity() >= TARGET_VELOCITY - 100 && RIGHT.getVelocity() >= TARGET_VELOCITY - 100  && !isWaitingForCurrentSpike) {
+                    SHOT_COMPLETE_TIMEOUT.reset();
                     isWaitingForCurrentSpike = true;
                     SharedData.Spindexer.currentIndex += SharedData.Spindexer.currentIndex % 2 == 0 ? 1 : 2;
                     SharedData.Spindexer.targetPos = SharedData.Spindexer.POSITIONS[SharedData.Spindexer.currentIndex];
                 } else if (isWaitingForCurrentSpike) {
-                    if (LEFT.getCurrent(CurrentUnit.MILLIAMPS) > 2000) {
+                    if (LEFT.getCurrent(CurrentUnit.MILLIAMPS) > 2000 || SHOT_COMPLETE_TIMEOUT.allowExec()) {
                         SharedData.Launcher.shotCount += 1;
                         isWaitingForCurrentSpike = false;
                     }
@@ -118,10 +109,17 @@ public class Launcher {
                 SharedData.Launcher.shotCount = 0;
                 SharedData.Spindexer.currentIndex = 0;
                 SharedData.Spindexer.targetPos = SharedData.Spindexer.POSITIONS[0];
+
                 SharedData.Pattern.actual = new String[] { "", "", "" };
                 SharedData.Pattern.actualIndex = -1;
+
+                SharedData.BallDetection.detectionCount = 0;
+
+                setVelocity(0);
+                intakePos();
             }
 
+            LOG.writeToMemory(millis, "launcher shot count", SharedData.Launcher.shotCount);
             LOG.writeToMemory(millis, "launcher target velocity", TARGET_VELOCITY);
             LOG.writeToMemory(millis, "launcher current spike", isWaitingForCurrentSpike);
             LOG.writeToMemory(millis, "launcher left velocity", LEFT.getVelocity());
@@ -134,9 +132,6 @@ public class Launcher {
     }
 
     public void setTargetVelocity() {
-        LEFT_PIDF.f = (32767 / LEFT_TPS) * (TARGET_VOLT / VOLTAGE_SENSOR.getVoltage());
-        RIGHT_PIDF.f = (32767 / RIGHT_TPS) * (TARGET_VOLT / VOLTAGE_SENSOR.getVoltage());
-
         LEFT.setVelocity(TARGET_VELOCITY);
         RIGHT.setVelocity(TARGET_VELOCITY);
     }
