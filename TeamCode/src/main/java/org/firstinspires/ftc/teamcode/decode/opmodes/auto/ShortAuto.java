@@ -136,7 +136,7 @@ public class ShortAuto extends LinearOpMode {
                         new SleepAction(PINPOINT_RESET_WAIT),
                         new InstantAction(() -> autoDrive.setDriveCompleted(false)),
                         new InstantAction(autoDrive::setStartingHeadingPos),
-                        autoDrive.turnTo(_isRed ? 332 : 25.5, 0, 45, 0.6, 0.6),
+                        autoDrive.turnTo(_isRed ? 332 : 28, 0, 25, 0.6, 0.6),
 
                         /* Strafe to get in front of the artifacts, 1st tape */
                         new InstantAction(() -> autoDrive.resetPinpoint()),
