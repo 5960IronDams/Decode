@@ -9,9 +9,9 @@ import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.decode.SharedData;
 import org.firstinspires.ftc.teamcode.decode.auto.TagDetection;
 import org.firstinspires.ftc.teamcode.decode.core.BallDetection;
 import org.firstinspires.ftc.teamcode.decode.core.Intake;
@@ -23,12 +23,12 @@ import org.firstinspires.ftc.teamcode.irondams.core.driveTrain.FourWheelDriveTra
 import org.firstinspires.ftc.teamcode.irondams.core.driveTrain.MecanumDriveTrain;
 import org.firstinspires.ftc.teamcode.irondams.core.odometry.Pinpoint;
 
-@Autonomous(name = "RED_SHORT", group = "IronDams")
-public class RedShortAuto extends LinearOpMode {
+@Autonomous(name = "SHORT", group = "IronDams")
+public class ShortAuto extends LinearOpMode {
     private ElapsedTime timer;
     private Logger logger;
 
-//    private VoltageSensor voltageSensor;
+    private VoltageSensor voltageSensor;
     private BallDetection ballDetection;
     private Spindexer spindexer;
     private Intake intake;
@@ -41,25 +41,25 @@ public class RedShortAuto extends LinearOpMode {
     private Pinpoint pinpoint;
     private AutoDrive autoDrive;
 
-    private final double PINPOINT_RESET_WAIT = 0.33;
-    private final double PICK_UP_POW = 0.33;
+    private final double PINPOINT_RESET_WAIT = 0.35;
+    private final double PICK_UP_POW = 0.3;
+
+    private boolean _isRed = false;
 
     @Override
     public void runOpMode() {
 
-//        voltageSensor = hardwareMap.voltageSensor.iterator().next();
+        voltageSensor = hardwareMap.voltageSensor.iterator().next();
         timer = new ElapsedTime();
         logger = new Logger(this.getClass().getSimpleName());
 
-//    private VoltageSensor voltageSensor;
         ballDetection = new BallDetection(this, logger);
         launcher = new Launcher(this, logger, 180);
         sleep(500);
         spindexer = new Spindexer(this, logger);
         intake = new Intake(this);
 
-        //TODO: Change this for the Blue side to be false.
-        tagDetection = new TagDetection(this, logger, true);
+        tagDetection = new TagDetection(this, logger);
 
         fourWheelDriveTrain = new FourWheelDriveTrain(hardwareMap);
         drive = new MecanumDriveTrain(fourWheelDriveTrain, true);
@@ -70,14 +70,18 @@ public class RedShortAuto extends LinearOpMode {
         telemetry.addLine("READY");
         telemetry.update();
 
-        if (isStopRequested()) {
-            tagDetection.stopStreaming();
-            return;
+        while (opModeInInit()) {
+            if (isStopRequested()) { tagDetection.stopStreaming(); }
+            if (gamepad1.left_bumper) _isRed = true;
+            else if (gamepad1.right_bumper) _isRed = false;
+
+            tagDetection.setIsRed(_isRed);
+
+            telemetry.addData("Color", _isRed ? "Red" : "Blue");
+            telemetry.update();
         }
 
         waitForStart();
-
-//        tagDetection.stopStreaming();
 
         if (isStopRequested()) {
             tagDetection.stopStreaming();
@@ -85,15 +89,20 @@ public class RedShortAuto extends LinearOpMode {
         }
 
         timer.reset();
+        logger.writeToMemory(timer.milliseconds(), "color", _isRed ? "Red" : "Blue");
+        logger.writeToMemory(timer.milliseconds(), "starting voltage", voltageSensor.getVoltage());
 
         Actions.runBlocking(
                 new SequentialAction(
                         /* Indexing the artifacts that are in the spindexer while driving backwards. */
-                        new InstantAction(() -> autoDrive.setDriveCompleted(false)),
-                        new InstantAction(autoDrive::setStartingXPos),
+                        new InstantAction(() -> {
+                            autoDrive.setDriveCompleted(false);
+                            autoDrive.setStartingXPos();
+                            autoDrive.setStartTime();
+                        }),
 
                         new ParallelAction(
-                                autoDrive.driveTo(-8, 4, 4, 0.3, 0.8),
+                                autoDrive.driveTo(-8, 4, 4, 0.5, 0.8),
                                 indexArtifacts()
                         ),
 
@@ -127,7 +136,7 @@ public class RedShortAuto extends LinearOpMode {
                         new SleepAction(PINPOINT_RESET_WAIT),
                         new InstantAction(() -> autoDrive.setDriveCompleted(false)),
                         new InstantAction(autoDrive::setStartingHeadingPos),
-                        autoDrive.turnTo(331, 0, 45, 0.6, 0.6),
+                        autoDrive.turnTo(_isRed ? 332 : 25.5, 0, 45, 0.6, 0.6),
 
                         /* Strafe to get in front of the artifacts, 1st tape */
                         new InstantAction(() -> autoDrive.resetPinpoint()),
@@ -135,7 +144,7 @@ public class RedShortAuto extends LinearOpMode {
                         new InstantAction(() -> autoDrive.setDriveCompleted(false)),
                         new InstantAction(autoDrive::setStartingYPos),
                         new ParallelAction(
-                                autoDrive.strafeTo(-17.25, 3, 11, 0.7, 1.0)
+                                autoDrive.strafeTo(_isRed ? -16.75 : 16.75, 3, 11, 0.7, 1.0)
                         ),
 
                         /* move in to pick up artifacts, 1st tape */
@@ -145,7 +154,7 @@ public class RedShortAuto extends LinearOpMode {
                         new InstantAction(autoDrive::setStartingXPos),
                         new ParallelAction(
                                 indexArtifacts(),
-                                autoDrive.driveTo(24.25, 0, 0, PICK_UP_POW, PICK_UP_POW)
+                                autoDrive.driveTo(25, 0, 0, PICK_UP_POW, PICK_UP_POW)
                         ),
 
                         /* Turn to align ourselves to get good angle on goal */
@@ -153,7 +162,7 @@ public class RedShortAuto extends LinearOpMode {
                         new SleepAction(PINPOINT_RESET_WAIT),
                         new InstantAction(() -> autoDrive.setDriveCompleted(false)),
                         new InstantAction(autoDrive::setStartingHeadingPos),
-                        autoDrive.turnTo(25, 0, 45, 0.5, 0.5),
+                        autoDrive.turnTo( _isRed ? 25 : 335, 0, 45, 0.6, 0.6),
 
                         /* Strafe to get in front of the goal */
                         new InstantAction(() -> autoDrive.resetPinpoint()),
@@ -167,26 +176,26 @@ public class RedShortAuto extends LinearOpMode {
                                         spindexer.resetSortTimeoutAction(autoDrive.getDriveComplete(), timer.milliseconds()),
                                         spindexer.sortAction(autoDrive.getDriveComplete(), timer.milliseconds())
                                 ),
-                                autoDrive.strafeTo(31.75, 3, 11, 0.4, 1.0)
+                                autoDrive.strafeTo(_isRed ? 32.25 : -32.25, 3, 11, 0.7, 1.0)
                         ),
                         intake.setIntakeVelocityAction(timer.milliseconds(), 0),
 
                         /* shoot the balls */
-                        shotArtifacts(1750, 100),
+                        shotArtifacts(1820, 100),
 
-                        /* Drive back to get good angle on first tape line. */
+                        /* Drive back to get good angle on 2nd tape line. */
                         new InstantAction(() -> autoDrive.resetPinpoint()),
                         new SleepAction(PINPOINT_RESET_WAIT),
                         new InstantAction(() -> autoDrive.setDriveCompleted(false)),
                         new InstantAction(autoDrive::setStartingXPos),
-                        autoDrive.driveTo(-4, 0, 0, 0.3, 0.3),
+                        autoDrive.driveTo(-4, 0, 0, 0.4, 0.4),
 
                         /* Turn to align ourselves to pick up new artifacts 2nd tape line */
                         new InstantAction(() -> autoDrive.resetPinpoint()),
                         new SleepAction(PINPOINT_RESET_WAIT),
                         new InstantAction(() -> autoDrive.setDriveCompleted(false)),
                         new InstantAction(autoDrive::setStartingHeadingPos),
-                        autoDrive.turnTo(328, 0, 45, 0.5, 0.5),
+                        autoDrive.turnTo(_isRed ? 328 : 32, 0, 45, 0.5, 0.5),
 
                         /* Strafe to get in front of the artifacts 2nd tape line */
                         new InstantAction(() -> autoDrive.resetPinpoint()),
@@ -194,7 +203,7 @@ public class RedShortAuto extends LinearOpMode {
                         new InstantAction(() -> autoDrive.setDriveCompleted(false)),
                         new InstantAction(autoDrive::setStartingYPos),
                         new ParallelAction(
-                                autoDrive.strafeTo(-44.25, 3, 11, 0.4, 1.0)
+                                autoDrive.strafeTo(_isRed ? -44.25 : 44.25, 3, 11, 0.7, 1.0)
                         ),
 
                         /* Turn to align ourselves to pick up new artifacts 2nd tape line */
@@ -202,7 +211,7 @@ public class RedShortAuto extends LinearOpMode {
                         new SleepAction(PINPOINT_RESET_WAIT),
                         new InstantAction(() -> autoDrive.setDriveCompleted(false)),
                         new InstantAction(autoDrive::setStartingHeadingPos),
-                        autoDrive.turnTo(3, 0, 45, 0.5, 0.5),
+                        autoDrive.turnTo(_isRed ? 3.5 : 356.5, 0, 45, 0.5, 0.5),
 
                         /* move in to pick up artifacts 2nd tape line */
                         new InstantAction(() -> autoDrive.resetPinpoint()),
@@ -211,18 +220,18 @@ public class RedShortAuto extends LinearOpMode {
                         new InstantAction(autoDrive::setStartingXPos),
                         new ParallelAction(
                                 indexArtifacts(),
-                                autoDrive.driveTo(33.5, 0, 0, PICK_UP_POW, PICK_UP_POW)
+                                autoDrive.driveTo(37.5, 0, 0, PICK_UP_POW, PICK_UP_POW)
                         ),
                         new SleepAction(0.5),
 
-                        /* move back to clear goal rack */
+                        /* move back to clear goal rack 2nd tape line */
                         new InstantAction(() -> autoDrive.resetPinpoint()),
                         new SleepAction(PINPOINT_RESET_WAIT),
                         new InstantAction(() -> autoDrive.setDriveCompleted(false)),
                         new InstantAction(autoDrive::setStartingXPos),
                         new ParallelAction(
                                 indexArtifacts(),
-                                autoDrive.driveTo(-16, 3, 8, 0.4, 0.1)
+                                autoDrive.driveTo(-18, 3, 8, 0.4, 1)
                         ),
 
                         /* Strafe to get in front of the goal */
@@ -237,12 +246,17 @@ public class RedShortAuto extends LinearOpMode {
                                         spindexer.resetSortTimeoutAction(autoDrive.getDriveComplete(), timer.milliseconds()),
                                         spindexer.sortAction(autoDrive.getDriveComplete(), timer.milliseconds())
                                 ),
-                                autoDrive.strafeTo(63.5, 3, 11, 0.7, 1.0)
+                                autoDrive.strafeTo(_isRed ? 63.5 : -63.5, 3, 11, 0.7, 1.0)
                         ),
                         intake.setIntakeVelocityAction(timer.milliseconds(), 0),
 
                         /* shoot the balls */
-                        shotArtifacts(1750, 100)
+                        shotArtifacts(1750, 100),
+
+                        new InstantAction(() -> {
+                                logger.writeToMemory(timer.milliseconds(), "ending voltage", voltageSensor.getVoltage());
+                                logger.flushToDisc();
+                        })
                 )
         );
 
@@ -294,6 +308,7 @@ public class RedShortAuto extends LinearOpMode {
                 spindexer.moveSpindexerAction(autoDrive.getDriveComplete(), timer.milliseconds()),
                 launcher.shotResetCompleteTimerAction(timer.milliseconds()),
                 launcher.shotCompleteAction(timer.milliseconds()),
+//                new SleepAction(0.5),
 
                 launcher.resetToIndexMode(timer.milliseconds()),
                 spindexer.moveSpindexerAction(autoDrive.getDriveComplete(), timer.milliseconds())

@@ -35,9 +35,10 @@ public class Launcher {
     public boolean isWaitingForCurrentSpike = false;
 
     private final WaitFor SHOOT_ACTION_TIMEOUT = new WaitFor(500);
-    private final WaitFor SHOT_COMPLETE_TIMEOUT = new WaitFor(1000);
+    private final WaitFor SHOT_COMPLETE_TIMEOUT = new WaitFor(1200);
 
     private double _velocityTolerance;
+    private double _maxCurrent = 0;
 
     public Launcher(LinearOpMode opMode, Logger log, double velocityTolerance) {
         LAUNCHER_SERVO = opMode.hardwareMap.get(Servo.class, "launcher");
@@ -307,12 +308,23 @@ public class Launcher {
                     initialized = true;
                 }
 
-                LOG.writeToMemory(millis, "launcher - left current", LEFT.getCurrent(CurrentUnit.MILLIAMPS));
-                LOG.writeToMemory(millis, "launcher - shot complete timeout", SHOT_COMPLETE_TIMEOUT.getCurrentMillis());
-                LOG.flushToDisc();
+                double current = LEFT.getCurrent(CurrentUnit.MILLIAMPS);
+                if (current > _maxCurrent) _maxCurrent = current;
 
-                if (SHOT_COMPLETE_TIMEOUT.allowExec()) return false;
-                else return LEFT.getCurrent(CurrentUnit.MILLIAMPS) < 2000;
+                if (SHOT_COMPLETE_TIMEOUT.allowExec()) {
+                    LOG.writeToMemory(millis, "launcher - maxCurrent", _maxCurrent);
+                    LOG.writeToMemory(millis, "launcher - shot complete timeout", "completed");
+                    _maxCurrent = 0;
+                    return false;
+                }
+                else if (current >= 2000) {
+                    LOG.writeToMemory(millis, "launcher - maxCurrent", _maxCurrent);
+                    LOG.writeToMemory(millis, "launcher - left current", "completed");
+                    _maxCurrent = 0;
+                    return false;
+                } else {
+                    return true;
+                }
             }
         };
     }

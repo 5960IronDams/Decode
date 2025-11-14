@@ -28,7 +28,7 @@ public class AutoDrive {
     private  final Logger LOG;
 
     private double _startPos = 0;
-
+    private double _startTime = 0;
 
     private final AtomicBoolean driveComplete = new AtomicBoolean(false);
 
@@ -56,6 +56,10 @@ public class AutoDrive {
         while (angle <= -Math.PI) angle += 2 * Math.PI;
         while (angle > Math.PI) angle -= 2 * Math.PI;
         return angle;
+    }
+
+    public void setStartTime() {
+        _startTime = TIMER.milliseconds();
     }
 
     public void setStartingYPos() {
@@ -110,36 +114,21 @@ public class AutoDrive {
                     pow = Math.max(minPower, Math.min(pow, maxPower));
                     double turnPower = direction * pow;
 
-                    packet.put("Turn Start Pos", _startPos);
-                    packet.put("Turn Target Pos", targetPos);
-                    packet.put("Turn Current Pos", currentPos);
-                    packet.put("Turn Power", turnPower);
-                    packet.put("Turn Direction", direction);
-                    packet.put("Turn Delta", delta);
-
                     DRIVE_TRAIN.drive(0, 0, -turnPower);
-
-                    packet.put("Status Drive Turn Right", "Running");
 
                     logger(
                             packet, "turnTo", milli, _startPos, targetPos, accelToDistance, decelAtDistance, minPower, minPow,
-                            maxPower, currentPos, pow, getDriveComplete().getAsBoolean(), direction
+                            maxPower, currentPos, pow, getDriveComplete().getAsBoolean(), direction, false
                     );
                     return true;
                 } else {
 
-                    packet.put("Turn Right Start Pos", _startPos);
-                    packet.put("Turn Right Target Pos", targetPos);
-                    packet.put("Turn Right Current Pos", currentPos);
-                    packet.put("Turn Right Power", 0);
-
                     DRIVE_TRAIN.drive(0,0,0);
                     setDriveCompleted(true);
-                    packet.put("Status Drive Turn Right", "Finished");
 
                     logger(
                             packet, "turnTo", milli, _startPos, targetPos, accelToDistance, decelAtDistance, minPower, minPow,
-                            maxPower, currentPos, 0, getDriveComplete().getAsBoolean(), 0
+                            maxPower, currentPos, 0, getDriveComplete().getAsBoolean(), 0, true
                     );
                     return false;
                 }
@@ -164,7 +153,8 @@ public class AutoDrive {
                 double direction = Math.signum(targetPos - currentPos);
                 double pow = 0;
                 double minPow = minPower;
-                if ((currentPos > targetPos + TOLERANCE) || (currentPos < targetPos - TOLERANCE)) {
+
+                if ((targetPos < _startPos && (currentPos > targetPos + TOLERANCE)) || (targetPos > _startPos && (currentPos < targetPos - TOLERANCE))) {
                     if (Math.abs(targetPos - currentPos) <= decelAtDistance) minPow = 0;
                     pow = Acceleration.getPower(
                             _startPos,
@@ -184,7 +174,7 @@ public class AutoDrive {
 
                 logger(
                         packet, "driveTo", milli, _startPos, targetPos, accelToDistance, decelAtDistance, minPower, minPow,
-                        maxPower, currentPos, pow, getDriveComplete().getAsBoolean(), direction
+                        maxPower, currentPos, pow, getDriveComplete().getAsBoolean(), direction, pow == 0
                 );
 
                 return pow != 0;
@@ -211,7 +201,7 @@ public class AutoDrive {
                 double pow = 0;
                 double minPow = minPower;
 
-                if ((currentPos > targetPos + TOLERANCE) || (currentPos < targetPos - TOLERANCE)) {
+                if ((targetPos < _startPos && (currentPos > targetPos + TOLERANCE)) || (targetPos > _startPos && (currentPos < targetPos - TOLERANCE))) {
                     if (targetPos - currentPos <= decelAtDistance) minPow = 0;
 
                     pow = Acceleration.getPower(
@@ -232,7 +222,7 @@ public class AutoDrive {
 
                 logger(
                         packet, "strafeTo", milli, _startPos, targetPos, accelToDistance, decelAtDistance, minPower, minPow,
-                        maxPower, currentPos, pow, getDriveComplete().getAsBoolean(), direction
+                        maxPower, currentPos, pow, getDriveComplete().getAsBoolean(), direction, pow == 0
                 );
 
                 return pow != 0;
@@ -243,7 +233,7 @@ public class AutoDrive {
     private void logger(
             @NotNull TelemetryPacket packet, @NonNull String methodName, double milli, double startPos, double targetPos, double accelToDistance,
             double decelAtDistance, double minPower, double minPow, double maxPower, double currentPos, double pow,
-            boolean driveCompleted, double direction
+            boolean driveCompleted, double direction, boolean isComplete
     ) {
 
         packet.put("Drive Dir", direction);
@@ -251,6 +241,7 @@ public class AutoDrive {
         packet.put("Drive Start", startPos);
         packet.put("Drive Target", targetPos);
         packet.put("Drive Current", currentPos);
+        packet.put("Drive Duration", milli - _startTime);
 
         LOG.writeToMemory(milli, methodName.concat(" - startPos"), startPos);
         LOG.writeToMemory(milli, methodName.concat(" - targetPos"), targetPos);
@@ -265,6 +256,9 @@ public class AutoDrive {
         LOG.writeToMemory(milli, methodName.concat(" - power"), pow);
         LOG.writeToMemory(milli, methodName.concat(" - driveCompleted"), driveCompleted);
         LOG.writeToMemory(milli, methodName.concat(" - direction"), direction);
+        if (isComplete) {
+            LOG.writeToMemory(milli, methodName.concat(" - duration"), milli - _startTime);
+        }
         LOG.flushToDisc();
     }
 }

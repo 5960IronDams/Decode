@@ -39,7 +39,7 @@ public class MecanumDriveTrain implements IDriveTrain {
         double rlp = (pivot + (vertical - horizontal));
         double rrp = (-pivot + vertical + horizontal);
 
-        if (ISAUTO && vertical == 0 && pivot == 0) {
+        if (ISAUTO) {
             flp *= 0.9333333333;
             frp *= 0.9733333333;
             rrp *= 0.96;
