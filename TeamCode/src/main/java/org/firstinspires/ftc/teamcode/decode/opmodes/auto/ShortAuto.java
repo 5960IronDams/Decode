@@ -139,7 +139,7 @@ public class ShortAuto extends LinearOpMode {
 
                         new RaceAction(
                                 autoDrive.driveTo(-11, 4, 8, 0.3, 1.0),
-                                new SleepAction(6.3)
+                                new SleepAction(0.6)
                         ),
 
                         /* Turn to align ourselves to pick up new artifacts, 1st tape line */
@@ -195,10 +195,7 @@ public class ShortAuto extends LinearOpMode {
                             autoDrive.setStartTime();
                         }),
 
-                        new RaceAction(
-                                autoDrive.turnTo( _isRed ? 25 : 335, 0, 45, 0.6, 0.6),
-                                new SleepAction(0.35)
-                        ),
+                        autoDrive.turnTo( _isRed ? 25 : 335, 0, 45, 0.6, 0.6),
 
                         /* Strafe to get in front of the goal */
                         new InstantAction(() -> autoDrive.resetPinpoint()),
@@ -221,10 +218,15 @@ public class ShortAuto extends LinearOpMode {
                                         new SleepAction(1.3)
                                 )
                         ),
-                        intake.setIntakeVelocityAction(timer.milliseconds(), 0),
 
-                        /* shoot the balls */
-                        shotArtifacts(1820, 100),
+                        new ParallelAction(
+                            /* shoot the balls */
+                            shotArtifacts(1820, 100),
+                            new SequentialAction(
+                                    new SleepAction(0.25),
+                                    intake.setIntakeVelocityAction(timer.milliseconds(), 0)
+                            )
+                        ),
 
                         /* Drive back to get good angle on 2nd tape line. */
                         new InstantAction(() -> autoDrive.resetPinpoint()),

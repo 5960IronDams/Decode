@@ -58,9 +58,11 @@ public class Launcher {
         LEFT.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         RIGHT.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
 
-        LEFT.setVelocityPIDFCoefficients(1.41237, 0.141237, 0, 14.1237);
+//        LEFT.setVelocityPIDFCoefficients(1.41237, 0.141237, 0, 14.1237);
+        LEFT.setVelocityPIDFCoefficients(1.37647058824, 0.137647058824, 0, 13.7647058824);
         LEFT.setPositionPIDFCoefficients(5.0);
-        RIGHT.setVelocityPIDFCoefficients(1.42465, 0.142465, 0, 14.2465);
+//        RIGHT.setVelocityPIDFCoefficients(1.42465, 0.142465, 0, 14.2465);
+        RIGHT.setVelocityPIDFCoefficients(1.38813559322, 0.138813559322, 0, 13.8813559322);
         RIGHT.setPositionPIDFCoefficients(5.0);
 
         LEFT.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
