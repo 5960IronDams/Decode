@@ -6,21 +6,19 @@ public final class Acceleration {
                                   double minPower, double maxPower) {
 
         double traveled = Math.abs(currentPos - startPos);
-        double totalDistance = Math.abs(targetPos - startPos);
+        double remainingDist = Math.abs(targetPos - currentPos);
 
-        if (totalDistance < accelZone + decelZone) {
-            return minPower;
-        }
+        double powerRange = maxPower - minPower;
 
         if (traveled < accelZone) {
-            double percent = traveled / accelZone;
-            return (minPower + percent * (maxPower - minPower));
+            double percentage = traveled / accelZone;
+            return minPower + percentage * powerRange;
+        } else if (remainingDist < decelZone) {
+            double percentage = remainingDist / decelZone;
+            return percentage * maxPower;
+        } else {
+            return maxPower;
         }
-
-        double decelStart = totalDistance - decelZone;
-        double distancePastDecelStart = traveled - decelStart;
-        double percent = Math.min(1.0, distancePastDecelStart / decelZone);
-        return Math.max(minPower, maxPower * (1.0 - percent));
     }
 
     public static double rampPower(double currentPower, double requestedPower) {

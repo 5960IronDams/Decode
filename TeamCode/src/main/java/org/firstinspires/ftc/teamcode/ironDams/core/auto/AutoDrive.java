@@ -63,13 +63,17 @@ public class AutoDrive {
         _startPos = pos.getY(DistanceUnit.INCH);
     }
 
+    public void resetPinpoint() {
+        PINPOINT.reset();
+    }
+
     public void setStartingXPos() {
         Pose2D pos = PINPOINT.getPose();
         _startPos = pos.getX(DistanceUnit.INCH);
     }
 
     public void setStartingHeadingPos() {
-        _startPos = normalizeHeading(PINPOINT.getPose().getHeading(AngleUnit.DEGREES));
+        _startPos = PINPOINT.getPose().getHeading(AngleUnit.DEGREES);
     }
 
     public Action turnTo(double targetPos, double accelToDistance, double decelAtDistance, double minPower, double maxPower) {
@@ -85,19 +89,16 @@ public class AutoDrive {
                 double milli = TIMER.milliseconds();
 
                 double currentPos = normalizeHeading(PINPOINT.getPose().getHeading(AngleUnit.DEGREES));
-                double pow = 0;
-                double turnPower = 0;
                 double minPow = minPower;
-                double direction = 0;
-
                 if ((currentPos > targetPos + TOLERANCE) || (currentPos < targetPos - TOLERANCE)) {
-                    if (targetPos - currentPos <= decelAtDistance) minPow = 0;
                     double current = normalizeAngle(Math.toRadians(currentPos));
                     double target = normalizeAngle(Math.toRadians(targetPos));
                     double delta = normalizeAngle(target - current); // shortest angular distance
-                    direction = Math.signum(delta);
+                    double direction = Math.signum(delta);
 
-                    pow = Acceleration.getPower(
+                    if (Math.abs(delta) <= decelAtDistance) minPow = 0;
+
+                    double pow = Acceleration.getPower(
                             targetPos,
                             currentPos,
                             _startPos,
@@ -107,20 +108,41 @@ public class AutoDrive {
                             maxPower);
 
                     pow = Math.max(minPower, Math.min(pow, maxPower));
+                    double turnPower = direction * pow;
+
+                    packet.put("Turn Start Pos", _startPos);
+                    packet.put("Turn Target Pos", targetPos);
+                    packet.put("Turn Current Pos", currentPos);
+                    packet.put("Turn Power", turnPower);
+                    packet.put("Turn Direction", direction);
+                    packet.put("Turn Delta", delta);
+
+                    DRIVE_TRAIN.drive(0, 0, -turnPower);
+
+                    packet.put("Status Drive Turn Right", "Running");
+
+                    logger(
+                            packet, "turnTo", milli, _startPos, targetPos, accelToDistance, decelAtDistance, minPower, minPow,
+                            maxPower, currentPos, pow, getDriveComplete().getAsBoolean(), direction
+                    );
+                    return true;
+                } else {
+
+                    packet.put("Turn Right Start Pos", _startPos);
+                    packet.put("Turn Right Target Pos", targetPos);
+                    packet.put("Turn Right Current Pos", currentPos);
+                    packet.put("Turn Right Power", 0);
+
+                    DRIVE_TRAIN.drive(0,0,0);
+                    setDriveCompleted(true);
+                    packet.put("Status Drive Turn Right", "Finished");
+
+                    logger(
+                            packet, "turnTo", milli, _startPos, targetPos, accelToDistance, decelAtDistance, minPower, minPow,
+                            maxPower, currentPos, 0, getDriveComplete().getAsBoolean(), 0
+                    );
+                    return false;
                 }
-
-                if (pow != 0) turnPower = direction * pow;
-
-                DRIVE_TRAIN.drive(0, 0, -turnPower);
-
-                setDriveCompleted(pow == 0);
-
-                logger(
-                        packet, milli, _startPos, targetPos, accelToDistance, decelAtDistance, minPower, minPow,
-                        maxPower, currentPos, pow, getDriveComplete().getAsBoolean(), direction
-                );
-
-                return pow != 0;
             }
         };
     }
@@ -143,7 +165,7 @@ public class AutoDrive {
                 double pow = 0;
                 double minPow = minPower;
                 if ((currentPos > targetPos + TOLERANCE) || (currentPos < targetPos - TOLERANCE)) {
-                    if (targetPos - currentPos <= decelAtDistance) minPow = 0;
+                    if (Math.abs(targetPos - currentPos) <= decelAtDistance) minPow = 0;
                     pow = Acceleration.getPower(
                             _startPos,
                             currentPos,
@@ -161,7 +183,7 @@ public class AutoDrive {
                 setDriveCompleted(pow == 0);
 
                 logger(
-                        packet, milli, _startPos, targetPos, accelToDistance, decelAtDistance, minPower, minPow,
+                        packet, "driveTo", milli, _startPos, targetPos, accelToDistance, decelAtDistance, minPower, minPow,
                         maxPower, currentPos, pow, getDriveComplete().getAsBoolean(), direction
                 );
 
@@ -209,7 +231,7 @@ public class AutoDrive {
                 setDriveCompleted(pow == 0);
 
                 logger(
-                        packet, milli, _startPos, targetPos, accelToDistance, decelAtDistance, minPower, minPow,
+                        packet, "strafeTo", milli, _startPos, targetPos, accelToDistance, decelAtDistance, minPower, minPow,
                         maxPower, currentPos, pow, getDriveComplete().getAsBoolean(), direction
                 );
 
@@ -219,7 +241,7 @@ public class AutoDrive {
     }
 
     private void logger(
-            @NotNull TelemetryPacket packet, double milli, double startPos, double targetPos, double accelToDistance,
+            @NotNull TelemetryPacket packet, @NonNull String methodName, double milli, double startPos, double targetPos, double accelToDistance,
             double decelAtDistance, double minPower, double minPow, double maxPower, double currentPos, double pow,
             boolean driveCompleted, double direction
     ) {
@@ -230,19 +252,19 @@ public class AutoDrive {
         packet.put("Drive Target", targetPos);
         packet.put("Drive Current", currentPos);
 
-        LOG.writeToMemory(milli, "startPos", startPos);
-        LOG.writeToMemory(milli, "targetPos", targetPos);
-        LOG.writeToMemory(milli, "currentPos", currentPos);
-        LOG.writeToMemory(milli, "AccelToDist", accelToDistance);
-        LOG.writeToMemory(milli, "DecelToDist", decelAtDistance);
-        LOG.writeToMemory(milli, "minPower", minPower);
-        LOG.writeToMemory(milli, "minPow", minPow);
-        LOG.writeToMemory(milli, "maxPower", maxPower);
-        LOG.writeToMemory(milli, "distance", currentPos - startPos);
-        LOG.writeToMemory(milli, "remainingDist", targetPos - currentPos);
-        LOG.writeToMemory(milli, "power", pow);
-        LOG.writeToMemory(milli, "driveCompleted", driveCompleted);
-        LOG.writeToMemory(milli, "direction", direction);
+        LOG.writeToMemory(milli, methodName.concat(" - startPos"), startPos);
+        LOG.writeToMemory(milli, methodName.concat(" - targetPos"), targetPos);
+        LOG.writeToMemory(milli, methodName.concat(" - currentPos"), currentPos);
+        LOG.writeToMemory(milli, methodName.concat(" - AccelToDist"), accelToDistance);
+        LOG.writeToMemory(milli, methodName.concat(" - DecelToDist"), decelAtDistance);
+        LOG.writeToMemory(milli, methodName.concat(" - minPower"), minPower);
+        LOG.writeToMemory(milli, methodName.concat(" - minPow"), minPow);
+        LOG.writeToMemory(milli, methodName.concat(" - maxPower"), maxPower);
+        LOG.writeToMemory(milli, methodName.concat(" - distance"), Math.abs(currentPos - startPos));
+        LOG.writeToMemory(milli, methodName.concat(" - remainingDist"), Math.abs(targetPos - currentPos));
+        LOG.writeToMemory(milli, methodName.concat(" - power"), pow);
+        LOG.writeToMemory(milli, methodName.concat(" - driveCompleted"), driveCompleted);
+        LOG.writeToMemory(milli, methodName.concat(" - direction"), direction);
         LOG.flushToDisc();
     }
 }

@@ -51,13 +51,13 @@ public class BallDetection {
         else if (colors1.green >= colors0.green && colors1.green >= colors2.green) _green = colors1.green;
         else _green = colors2.green;
 
-        LOG.writeToMemory(millis, "ball detection blue0", colors0.blue);
-        LOG.writeToMemory(millis, "ball detection blue1", colors1.blue);
-        LOG.writeToMemory(millis, "ball detection blue2", colors2.blue);
-
-        LOG.writeToMemory(millis, "ball detection green0", colors0.green);
-        LOG.writeToMemory(millis, "ball detection green1", colors1.green);
-        LOG.writeToMemory(millis, "ball detection green2", colors2.green);
+//        LOG.writeToMemory(millis, "ball detection blue0", colors0.blue);
+//        LOG.writeToMemory(millis, "ball detection blue1", colors1.blue);
+//        LOG.writeToMemory(millis, "ball detection blue2", colors2.blue);
+//
+//        LOG.writeToMemory(millis, "ball detection green0", colors0.green);
+//        LOG.writeToMemory(millis, "ball detection green1", colors1.green);
+//        LOG.writeToMemory(millis, "ball detection green2", colors2.green);
     }
 
     public boolean isBallDetected(double millis) {
@@ -66,8 +66,8 @@ public class BallDetection {
 
             float threshold = 0.04F;
 
-            LOG.writeToMemory(millis, "ball detection delay millis", DELAY_DETECTION.getCurrentMillis());
-            LOG.writeToMemory(millis, "ball detection target delay millis", DELAY_DETECTION.getTargetMillis());
+//            LOG.writeToMemory(millis, "ball detection delay millis", DELAY_DETECTION.getCurrentMillis());
+//            LOG.writeToMemory(millis, "ball detection target delay millis", DELAY_DETECTION.getTargetMillis());
 
             if ((_blue > threshold || _green > threshold) && DELAY_DETECTION.allowExec()) {
                 String colorCode = _blue > _green ? "P" : "G";
@@ -88,8 +88,10 @@ public class BallDetection {
                     if (colorCode.equals("G")) SharedData.Pattern.actualIndex = 1;
                 }
 
+                LOG.writeToMemory(millis, "ball detection blue", _blue);
+                LOG.writeToMemory(millis, "ball detection green", _green);
                 LOG.writeToMemory(millis, "ball detection greenBallIndex", SharedData.Pattern.actualIndex);
-                LOG.writeToMemory(millis, "ball detection actualPattern", String.join(",", SharedData.Pattern.actual));
+                LOG.writeToMemory(millis, "ball detection actualPattern", String.join("|", SharedData.Pattern.actual));
                 LOG.writeToMemory(millis, "ball detection all balls", SharedData.BallDetection.areAllDetected());
 
                 SharedData.Spindexer.targetPos = SharedData.Spindexer.POSITIONS[SharedData.Spindexer.currentIndex];

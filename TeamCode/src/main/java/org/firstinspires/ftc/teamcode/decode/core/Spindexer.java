@@ -19,7 +19,7 @@ public class Spindexer {
 
     private final WaitFor SORT_TIMEOUT = new WaitFor(500);
 
-    public Spindexer(LinearOpMode opMode, Logger log) {
+    public Spindexer(@NonNull LinearOpMode opMode, Logger log) {
         LOG = log;
 
         SERVO = opMode.hardwareMap.get(Servo.class, "spindex");
@@ -41,9 +41,9 @@ public class Spindexer {
     public boolean moveSpindexer(double millis) {
         if (SharedData.Spindexer.targetPos != SharedData.Spindexer.currentPos) {
             SERVO.setPosition(SharedData.Spindexer.targetPos);
-            LOG.writeToMemory(millis, "spindexer startingPos", SharedData.Spindexer.currentPos);
-            LOG.writeToMemory(millis, "spindexer targetPos", SharedData.Spindexer.targetPos);
-            LOG.writeToMemory(millis, "spindexer actualPos", SERVO.getPosition());
+            LOG.writeToMemory(millis, "spindexer - move startingPos", SharedData.Spindexer.currentPos);
+            LOG.writeToMemory(millis, "spindexer - move targetPos", SharedData.Spindexer.targetPos);
+            LOG.writeToMemory(millis, "spindexer - move actualPos", SERVO.getPosition());
             LOG.flushToDisc();
         }
 
@@ -70,9 +70,8 @@ public class Spindexer {
                 SharedData.Pattern.actual = new String[] { "P", "P", "P" };
                 SharedData.Pattern.actual[SharedData.Pattern.actualIndex] = "G";
 
-                LOG.writeToMemory(millis, "spindexer sort targetindex", SharedData.Pattern.targetIndex);
-                LOG.writeToMemory(millis, "spindexer sort distance", distance);
-
+                LOG.writeToMemory(millis, "spindexer - sort targetindex", SharedData.Pattern.targetIndex);
+                LOG.writeToMemory(millis, "spindexer - sort distance", distance);
                 LOG.flushToDisc();
             }
         }
@@ -88,8 +87,21 @@ public class Spindexer {
                     initialized = true;
                 }
 
-                if (driveComplete.getAsBoolean()) return false;
-                else return !moveSpindexer(millis);
+                boolean moveCompleted = moveSpindexer(millis);
+
+                if (driveComplete.getAsBoolean()) {
+                    LOG.writeToMemory(millis, "spindexer - move Ended", "Drive Complete");
+                    LOG.flushToDisc();
+                    return false;
+                }
+                else if (moveCompleted) {
+                    LOG.writeToMemory(millis, "spindexer - move Ended", "Move Complete");
+                    LOG.flushToDisc();
+                    return false;
+                }
+                else {
+                    return true;
+                }
             }
         };
     }

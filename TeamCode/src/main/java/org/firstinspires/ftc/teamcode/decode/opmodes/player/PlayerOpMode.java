@@ -27,11 +27,12 @@ public class PlayerOpMode extends LinearOpMode {
         VoltageSensor voltageSensor = hardwareMap.voltageSensor.iterator().next();
         BallDetection ballDetection = new BallDetection(this, logger);
         Spindexer spindexer = new Spindexer(this, logger);
-        Intake intake = new Intake(this, voltageSensor);
-        Launcher launcher = new Launcher(this, voltageSensor, logger);
+        Intake intake = new Intake(this);
+        Launcher launcher = new Launcher(this, logger, 50);
         MecanumDrive drive = new MecanumDrive(this);
 
         boolean driveMode = false;
+        boolean reverseIntake = false;
 
         telemetry.addLine("Ready");
         telemetry.update();
@@ -61,10 +62,16 @@ public class PlayerOpMode extends LinearOpMode {
             drive.drive(gamepad1.right_stick_x, gamepad1.right_stick_y, gamepad1.left_stick_x);
 
             if (gamepad2.dpad_down) {
+                launcher.resetShotActionTimeOut();
                 SharedData.Launcher.isActive = true;
             }
 
             if (SharedData.Launcher.isActive) {
+
+             if (gamepad2.dpad_up) {
+                 SharedData.Launcher.isActive = false;
+             }
+
               launcher.outtakePos().open().setTargetVelocity();
               launcher.runLauncher(millis);
               spindexer.moveSpindexer(millis);
@@ -85,10 +92,17 @@ public class PlayerOpMode extends LinearOpMode {
             }
 
             if (gamepad2.left_trigger != 0 && playerTwoDelay.allowExec()) {
+                reverseIntake = false;
+                intake.isActive = !intake.isActive;
+            } else if (gamepad2.right_trigger != 0 && playerTwoDelay.allowExec()) {
+                reverseIntake = true;
                 intake.isActive = !intake.isActive;
             }
 
-            if (intake.isActive) intake.setTargetVelocity();
+            if (intake.isActive) {
+                if (reverseIntake) intake.setVelocity(-1000);
+                else intake.setTargetVelocity();
+            }
             else intake.setVelocity(0);
 
             logger.writeToMemory(millis, "voltage", voltageSensor.getVoltage());

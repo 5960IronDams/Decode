@@ -7,7 +7,7 @@ public class MecanumDrive {
     private final GyroMecanumDriveTrain FIELD_PER;
 
     private IDriveTrain activeDrive;
-    private boolean _isFieldPer = true;
+    private boolean _isFieldPer = false;
 
     public MecanumDrive(LinearOpMode opMode) {
         FourWheelDriveTrain dt = new FourWheelDriveTrain(opMode.hardwareMap);

@@ -6,13 +6,13 @@ public final class SharedData {
     public static final class Spindexer {
         public static final double[] POSITIONS = {
                 0.027,
-                0.058,
+                0.0605,
                 0.089,
-                0.1245,
+                0.127,
                 0.1535,
-                0.1885,
+                0.191,
                 0.2225,
-                0.257,
+                0.2585,
                 0.2865,
                 0.3225,
                 0.3555,

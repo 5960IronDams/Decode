@@ -15,15 +15,18 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 
 import java.util.List;
 import java.util.function.BooleanSupplier;
+import java.util.jar.Pack200;
 
 public class TagDetection {
     private final AprilTagReader TAG_READER;
     private final Logger LOG;
     private final WaitFor TAG_TIMEOUT = new WaitFor(500);
+    private final boolean ISRED;
 
-    public TagDetection(LinearOpMode opMode, Logger log) {
+    public TagDetection(@NonNull LinearOpMode opMode, Logger log, boolean isRed) {
         TAG_READER = new AprilTagReader(opMode.hardwareMap);
         LOG = log;
+        ISRED = isRed;
 
         SharedData.Pattern.actualIndex = -1;
         SharedData.Pattern.actual = new String[] { "", "", "" };
@@ -75,6 +78,7 @@ public class TagDetection {
                     else if (!right.isEmpty()) id = right.get(0).id;
 
                     LOG.writeToMemory(millis, "Webcam Target Id", id);
+                    packet.put("Webcam Target Id", id);
 
                     switch (id) {
                         case 21:

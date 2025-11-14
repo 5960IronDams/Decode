@@ -36,8 +36,13 @@ public class Pinpoint implements IGyro {
 
     @Override
     public void reset() {
+        PINPOINT.resetPosAndIMU();
+    }
+
+    public void resetYaw() {
         _initYaw = getPose().getHeading(AngleUnit.DEGREES);
     }
+
 
     @Override
     public Pose2D getPose() {

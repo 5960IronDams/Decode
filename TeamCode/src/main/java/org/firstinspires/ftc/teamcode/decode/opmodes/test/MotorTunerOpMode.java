@@ -24,7 +24,7 @@ public class MotorTunerOpMode extends LinearOpMode {
     public void runOpMode() {
         WaitFor userDelay = new WaitFor(500);
 
-        String[] motorKeys = { "leftOut", "rightOut", "intake" };
+        String[] motorKeys = { "leftOut", "rightOut", "intake", "leftFront", "leftBack", "rightBack", "rightFront" };
         DcMotorEx[] motors = new DcMotorEx[motorKeys.length];
 
         int activeMotorIndex = 0;
@@ -35,7 +35,8 @@ public class MotorTunerOpMode extends LinearOpMode {
             motors[i].setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
             motors[i].setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-            if (motorKeys[i].equals("rightOut") || motorKeys[i].equals("intake")) {
+            if (motorKeys[i].equals("rightOut") || motorKeys[i].equals("intake") ||
+                motorKeys[i].equals("rightFront") || motorKeys[i].equals("leftBack")) {
                 motors[i].setDirection(DcMotorEx.Direction.REVERSE);
             }
         }
@@ -71,6 +72,7 @@ public class MotorTunerOpMode extends LinearOpMode {
                 double velocity = motors[activeMotorIndex].getVelocity();
                 if (velocity > maxVelocity) maxVelocity = velocity;
 
+                telemetry.addData("Active motor", motorKeys[activeMotorIndex]);
                 telemetry.addData("velocity", velocity);
                 telemetry.addData("maxVelocity", maxVelocity);
                 telemetry.addData("power", motors[activeMotorIndex].getPower());
