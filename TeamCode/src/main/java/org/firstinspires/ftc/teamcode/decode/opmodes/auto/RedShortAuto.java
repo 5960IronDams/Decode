@@ -41,6 +41,9 @@ public class RedShortAuto extends LinearOpMode {
     private Pinpoint pinpoint;
     private AutoDrive autoDrive;
 
+    private final double PINPOINT_RESET_WAIT = 0.33;
+    private final double PICK_UP_POW = 0.33;
+
     @Override
     public void runOpMode() {
 
@@ -50,9 +53,10 @@ public class RedShortAuto extends LinearOpMode {
 
 //    private VoltageSensor voltageSensor;
         ballDetection = new BallDetection(this, logger);
+        launcher = new Launcher(this, logger, 180);
+        sleep(500);
         spindexer = new Spindexer(this, logger);
         intake = new Intake(this);
-        launcher = new Launcher(this, logger, 180);
 
         //TODO: Change this for the Blue side to be false.
         tagDetection = new TagDetection(this, logger, true);
@@ -63,7 +67,8 @@ public class RedShortAuto extends LinearOpMode {
         autoDrive = new AutoDrive(drive, pinpoint, logger);
 
 
-//        launcher.outtakePos();
+        telemetry.addLine("READY");
+        telemetry.update();
 
         if (isStopRequested()) {
             tagDetection.stopStreaming();
@@ -86,18 +91,25 @@ public class RedShortAuto extends LinearOpMode {
                         /* Indexing the artifacts that are in the spindexer while driving backwards. */
                         new InstantAction(() -> autoDrive.setDriveCompleted(false)),
                         new InstantAction(autoDrive::setStartingXPos),
-                        indexArtifacts(),
 
-                        autoDrive.driveTo(-8, 4, 4, 0.3, 0.8),
+                        new ParallelAction(
+                                autoDrive.driveTo(-8, 4, 4, 0.3, 0.8),
+                                indexArtifacts()
+                        ),
 
                         /* Read the obelisk */
                         new InstantAction(() -> autoDrive.setDriveCompleted(false)),
                         tagDetection.webcamResetTimeout(),
-                        tagDetection.webcamReadAction(autoDrive.getDriveComplete(), timer.milliseconds()),
+
+                        new ParallelAction(
+                            tagDetection.webcamReadAction(autoDrive.getDriveComplete(), timer.milliseconds()),
+                            indexArtifacts()
+                        ),
 
                         /* Sort the artifacts in the spindexer */
                         spindexer.resetSortTimeoutAction(autoDrive.getDriveComplete(), timer.milliseconds()),
                         spindexer.sortAction(autoDrive.getDriveComplete(), timer.milliseconds()),
+                        intake.setIntakeVelocityAction(timer.milliseconds(), 0),
                         new SleepAction(0.5),
 
                         /* shoot the balls */
@@ -105,95 +117,132 @@ public class RedShortAuto extends LinearOpMode {
 
                         /* Drive back to get good angle on first tape line. */
                         new InstantAction(() -> autoDrive.resetPinpoint()),
-                        new SleepAction(0.3),
+                        new SleepAction(PINPOINT_RESET_WAIT),
                         new InstantAction(() -> autoDrive.setDriveCompleted(false)),
                         new InstantAction(autoDrive::setStartingXPos),
-                        autoDrive.driveTo(-18, 4, 12, 0.3, 1.0),
+                        autoDrive.driveTo(-11, 4, 8, 0.3, 1.0),
 
-                        /* Turn to align ourselves to pick up new artifacts */
+                        /* Turn to align ourselves to pick up new artifacts, 1st tape line */
                         new InstantAction(() -> autoDrive.resetPinpoint()),
-                        new SleepAction(0.3),
+                        new SleepAction(PINPOINT_RESET_WAIT),
                         new InstantAction(() -> autoDrive.setDriveCompleted(false)),
                         new InstantAction(autoDrive::setStartingHeadingPos),
-                        autoDrive.turnTo(331, 0, 45, 0.5, 0.5),
+                        autoDrive.turnTo(331, 0, 45, 0.6, 0.6),
 
-                        /* Strafe to get in front of the artifacts */
+                        /* Strafe to get in front of the artifacts, 1st tape */
                         new InstantAction(() -> autoDrive.resetPinpoint()),
-                        new SleepAction(0.3),
+                        new SleepAction(PINPOINT_RESET_WAIT),
                         new InstantAction(() -> autoDrive.setDriveCompleted(false)),
                         new InstantAction(autoDrive::setStartingYPos),
                         new ParallelAction(
-                                autoDrive.strafeTo(-13, 3, 11, 0.4, 1.0)
+                                autoDrive.strafeTo(-17.25, 3, 11, 0.7, 1.0)
                         ),
 
-                        /* move in to pick up artifacts */
+                        /* move in to pick up artifacts, 1st tape */
                         new InstantAction(() -> autoDrive.resetPinpoint()),
                         new SleepAction(0.3),
                         new InstantAction(() -> autoDrive.setDriveCompleted(false)),
                         new InstantAction(autoDrive::setStartingXPos),
                         new ParallelAction(
                                 indexArtifacts(),
-                                autoDrive.driveTo(30.5, 0, 0, 0.3, 0.3)
+                                autoDrive.driveTo(24.25, 0, 0, PICK_UP_POW, PICK_UP_POW)
                         ),
 
-                        /* Turn to align ourselves to pick up new artifacts */
+                        /* Turn to align ourselves to get good angle on goal */
                         new InstantAction(() -> autoDrive.resetPinpoint()),
-                        new SleepAction(0.3),
+                        new SleepAction(PINPOINT_RESET_WAIT),
                         new InstantAction(() -> autoDrive.setDriveCompleted(false)),
                         new InstantAction(autoDrive::setStartingHeadingPos),
-                        autoDrive.turnTo(18, 0, 45, 0.5, 0.5),
+                        autoDrive.turnTo(25, 0, 45, 0.5, 0.5),
 
                         /* Strafe to get in front of the goal */
                         new InstantAction(() -> autoDrive.resetPinpoint()),
-                        new SleepAction(0.3),
+                        new SleepAction(PINPOINT_RESET_WAIT),
                         new InstantAction(() -> autoDrive.setDriveCompleted(false)),
                         new InstantAction(autoDrive::setStartingYPos),
                         new ParallelAction(
-                                indexArtifacts(),
-                                autoDrive.strafeTo(30, 3, 11, 0.4, 1.0)
+                                new SequentialAction(
+                                        indexArtifacts(),
+                                        /* Sort the artifacts in the spindexer */
+                                        spindexer.resetSortTimeoutAction(autoDrive.getDriveComplete(), timer.milliseconds()),
+                                        spindexer.sortAction(autoDrive.getDriveComplete(), timer.milliseconds())
+                                ),
+                                autoDrive.strafeTo(31.75, 3, 11, 0.4, 1.0)
                         ),
-
-                        /* Sort the artifacts in the spindexer */
-                        spindexer.resetSortTimeoutAction(autoDrive.getDriveComplete(), timer.milliseconds()),
-                        spindexer.sortAction(autoDrive.getDriveComplete(), timer.milliseconds()),
+                        intake.setIntakeVelocityAction(timer.milliseconds(), 0),
 
                         /* shoot the balls */
                         shotArtifacts(1750, 100),
 
                         /* Drive back to get good angle on first tape line. */
                         new InstantAction(() -> autoDrive.resetPinpoint()),
-                        new SleepAction(0.3),
+                        new SleepAction(PINPOINT_RESET_WAIT),
                         new InstantAction(() -> autoDrive.setDriveCompleted(false)),
                         new InstantAction(autoDrive::setStartingXPos),
                         autoDrive.driveTo(-4, 0, 0, 0.3, 0.3),
 
-                        /* Turn to align ourselves to pick up new artifacts */
+                        /* Turn to align ourselves to pick up new artifacts 2nd tape line */
                         new InstantAction(() -> autoDrive.resetPinpoint()),
-                        new SleepAction(0.3),
+                        new SleepAction(PINPOINT_RESET_WAIT),
                         new InstantAction(() -> autoDrive.setDriveCompleted(false)),
                         new InstantAction(autoDrive::setStartingHeadingPos),
-                        autoDrive.turnTo(325, 0, 45, 0.5, 0.5),
+                        autoDrive.turnTo(328, 0, 45, 0.5, 0.5),
 
                         /* Strafe to get in front of the artifacts 2nd tape line */
                         new InstantAction(() -> autoDrive.resetPinpoint()),
-                        new SleepAction(0.3),
+                        new SleepAction(PINPOINT_RESET_WAIT),
                         new InstantAction(() -> autoDrive.setDriveCompleted(false)),
                         new InstantAction(autoDrive::setStartingYPos),
                         new ParallelAction(
-                                autoDrive.strafeTo(-39, 3, 11, 0.4, 1.0)
+                                autoDrive.strafeTo(-44.25, 3, 11, 0.4, 1.0)
                         ),
 
-                        /* move in to pick up artifacts */
+                        /* Turn to align ourselves to pick up new artifacts 2nd tape line */
                         new InstantAction(() -> autoDrive.resetPinpoint()),
-                        new SleepAction(0.3),
+                        new SleepAction(PINPOINT_RESET_WAIT),
+                        new InstantAction(() -> autoDrive.setDriveCompleted(false)),
+                        new InstantAction(autoDrive::setStartingHeadingPos),
+                        autoDrive.turnTo(3, 0, 45, 0.5, 0.5),
+
+                        /* move in to pick up artifacts 2nd tape line */
+                        new InstantAction(() -> autoDrive.resetPinpoint()),
+                        new SleepAction(PINPOINT_RESET_WAIT),
                         new InstantAction(() -> autoDrive.setDriveCompleted(false)),
                         new InstantAction(autoDrive::setStartingXPos),
                         new ParallelAction(
                                 indexArtifacts(),
-                                autoDrive.driveTo(38, 0, 0, 0.3, 0.3)
+                                autoDrive.driveTo(33.5, 0, 0, PICK_UP_POW, PICK_UP_POW)
+                        ),
+                        new SleepAction(0.5),
+
+                        /* move back to clear goal rack */
+                        new InstantAction(() -> autoDrive.resetPinpoint()),
+                        new SleepAction(PINPOINT_RESET_WAIT),
+                        new InstantAction(() -> autoDrive.setDriveCompleted(false)),
+                        new InstantAction(autoDrive::setStartingXPos),
+                        new ParallelAction(
+                                indexArtifacts(),
+                                autoDrive.driveTo(-16, 3, 8, 0.4, 0.1)
                         ),
 
-                        new SleepAction(3)
+                        /* Strafe to get in front of the goal */
+                        new InstantAction(() -> autoDrive.resetPinpoint()),
+                        new SleepAction(PINPOINT_RESET_WAIT),
+                        new InstantAction(() -> autoDrive.setDriveCompleted(false)),
+                        new InstantAction(autoDrive::setStartingYPos),
+                        new ParallelAction(
+                                new SequentialAction(
+                                        indexArtifacts(),
+                                        /* Sort the artifacts in the spindexer */
+                                        spindexer.resetSortTimeoutAction(autoDrive.getDriveComplete(), timer.milliseconds()),
+                                        spindexer.sortAction(autoDrive.getDriveComplete(), timer.milliseconds())
+                                ),
+                                autoDrive.strafeTo(63.5, 3, 11, 0.7, 1.0)
+                        ),
+                        intake.setIntakeVelocityAction(timer.milliseconds(), 0),
+
+                        /* shoot the balls */
+                        shotArtifacts(1750, 100)
                 )
         );
 
@@ -215,7 +264,6 @@ public class RedShortAuto extends LinearOpMode {
                 ballDetection.detectBallAction(autoDrive.getDriveComplete(), timer.milliseconds()),
                 spindexer.moveSpindexerAction(autoDrive.getDriveComplete(), timer.milliseconds()),
 //                new SleepAction(0.25),
-                intake.setIntakeVelocityAction(timer.milliseconds(), 0),
                 launcher.setLauncherModeAction(false, timer.milliseconds())
         );
     }
