@@ -4,6 +4,7 @@ package org.firstinspires.ftc.teamcode.decode.opmodes.auto;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.ParallelAction;
+import com.acmerobotics.roadrunner.RaceAction;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.ftc.Actions;
@@ -102,7 +103,10 @@ public class ShortAuto extends LinearOpMode {
                         }),
 
                         new ParallelAction(
-                                autoDrive.driveTo(-8, 4, 4, 0.5, 0.8),
+                                new RaceAction(
+                                        autoDrive.driveTo(-8, 4, 4, 0.5, 0.8),
+                                        new SleepAction(0.55)
+                                ),
                                 indexArtifacts()
                         ),
 
@@ -130,9 +134,13 @@ public class ShortAuto extends LinearOpMode {
                         new InstantAction(() -> {
                             autoDrive.setDriveCompleted(false);
                             autoDrive.setStartingXPos();
-                            autoDrive.setStartingXPos();
+                            autoDrive.setStartTime();
                         }),
-                        autoDrive.driveTo(-11, 4, 8, 0.3, 1.0),
+
+                        new RaceAction(
+                                autoDrive.driveTo(-11, 4, 8, 0.3, 1.0),
+                                new SleepAction(6.3)
+                        ),
 
                         /* Turn to align ourselves to pick up new artifacts, 1st tape line */
                         new InstantAction(() -> autoDrive.resetPinpoint()),
@@ -142,7 +150,11 @@ public class ShortAuto extends LinearOpMode {
                             autoDrive.setStartingHeadingPos();
                             autoDrive.setStartTime();
                         }),
-                        autoDrive.turnTo(_isRed ? 332 : 28, 0, 25, 0.6, 0.6),
+
+                        new RaceAction(
+                                autoDrive.turnTo(_isRed ? 332 : 28, 0, 25, 0.6, 0.6),
+                                new SleepAction(0.4)
+                        ),
 
                         /* Strafe to get in front of the artifacts, 1st tape */
                         new InstantAction(() -> autoDrive.resetPinpoint()),
@@ -152,8 +164,10 @@ public class ShortAuto extends LinearOpMode {
                             autoDrive.setStartingYPos();
                             autoDrive.setStartTime();
                         }),
-                        new ParallelAction(
-                                autoDrive.strafeTo(_isRed ? -16.75 : 16.75, 3, 11, 0.7, 1.0)
+
+                        new RaceAction(
+                                autoDrive.strafeTo(_isRed ? -16.75 : 16.75, 3, 11, 0.7, 1.0),
+                                new SleepAction(0.9)
                         ),
 
                         /* move in to pick up artifacts, 1st tape */
@@ -166,7 +180,10 @@ public class ShortAuto extends LinearOpMode {
                         }),
                         new ParallelAction(
                                 indexArtifacts(),
-                                autoDrive.driveTo(25, 0, 0, PICK_UP_POW, PICK_UP_POW)
+                                new RaceAction(
+                                        autoDrive.driveTo(25, 0, 0, PICK_UP_POW, PICK_UP_POW),
+                                        new SleepAction(1.5)
+                                )
                         ),
 
                         /* Turn to align ourselves to get good angle on goal */
@@ -177,7 +194,11 @@ public class ShortAuto extends LinearOpMode {
                             autoDrive.setStartingHeadingPos();
                             autoDrive.setStartTime();
                         }),
-                        autoDrive.turnTo( _isRed ? 25 : 335, 0, 45, 0.6, 0.6),
+
+                        new RaceAction(
+                                autoDrive.turnTo( _isRed ? 25 : 335, 0, 45, 0.6, 0.6),
+                                new SleepAction(0.35)
+                        ),
 
                         /* Strafe to get in front of the goal */
                         new InstantAction(() -> autoDrive.resetPinpoint()),
@@ -194,7 +215,11 @@ public class ShortAuto extends LinearOpMode {
                                         spindexer.resetSortTimeoutAction(autoDrive.getDriveComplete(), timer.milliseconds()),
                                         spindexer.sortAction(autoDrive.getDriveComplete(), timer.milliseconds())
                                 ),
-                                autoDrive.strafeTo(_isRed ? 32.25 : -32.25, 3, 11, 0.7, 1.0)
+
+                                new RaceAction(
+                                        autoDrive.strafeTo(_isRed ? 32.25 : -32.25, 3, 11, 0.7, 1.0),
+                                        new SleepAction(1.3)
+                                )
                         ),
                         intake.setIntakeVelocityAction(timer.milliseconds(), 0),
 
@@ -209,28 +234,10 @@ public class ShortAuto extends LinearOpMode {
                             autoDrive.setStartingXPos();
                             autoDrive.setStartTime();
                         }),
-                        autoDrive.driveTo(-4, 0, 0, 0.4, 0.4),
 
-                        /* Turn to align ourselves to pick up new artifacts 2nd tape line */
-                        new InstantAction(() -> autoDrive.resetPinpoint()),
-                        new SleepAction(PINPOINT_RESET_WAIT),
-                        new InstantAction(() -> {
-                            autoDrive.setDriveCompleted(false);
-                            autoDrive.setStartingHeadingPos();
-                            autoDrive.setStartTime();
-                        }),
-                        autoDrive.turnTo(_isRed ? 328 : 32, 0, 45, 0.5, 0.5),
-
-                        /* Strafe to get in front of the artifacts 2nd tape line */
-                        new InstantAction(() -> autoDrive.resetPinpoint()),
-                        new SleepAction(PINPOINT_RESET_WAIT),
-                        new InstantAction(() -> {
-                            autoDrive.setDriveCompleted(false);
-                            autoDrive.setStartingYPos();
-                            autoDrive.setStartTime();
-                        }),
-                        new ParallelAction(
-                                autoDrive.strafeTo(_isRed ? -44.25 : 44.25, 3, 11, 0.7, 1.0)
+                        new RaceAction(
+                                autoDrive.driveTo(-4, 0, 0, 0.4, 0.4),
+                                new SleepAction(0.4)
                         ),
 
                         /* Turn to align ourselves to pick up new artifacts 2nd tape line */
@@ -241,7 +248,36 @@ public class ShortAuto extends LinearOpMode {
                             autoDrive.setStartingHeadingPos();
                             autoDrive.setStartTime();
                         }),
-                        autoDrive.turnTo(_isRed ? 3.5 : 356.5, 0, 45, 0.5, 0.5),
+                        new RaceAction(
+                            autoDrive.turnTo(_isRed ? 328 : 32, 0, 45, 0.5, 0.5),
+                            new SleepAction(0.5)
+                        ),
+                        /* Strafe to get in front of the artifacts 2nd tape line */
+                        new InstantAction(() -> autoDrive.resetPinpoint()),
+                        new SleepAction(PINPOINT_RESET_WAIT),
+                        new InstantAction(() -> {
+                            autoDrive.setDriveCompleted(false);
+                            autoDrive.setStartingYPos();
+                            autoDrive.setStartTime();
+                        }),
+                        new RaceAction(
+                                autoDrive.strafeTo(_isRed ? -44.25 : 44.25, 3, 11, 0.7, 1.0),
+                                new SleepAction(1.5)
+                        ),
+
+                        /* Turn to align ourselves to pick up new artifacts 2nd tape line */
+                        new InstantAction(() -> autoDrive.resetPinpoint()),
+                        new SleepAction(PINPOINT_RESET_WAIT),
+                        new InstantAction(() -> {
+                            autoDrive.setDriveCompleted(false);
+                            autoDrive.setStartingHeadingPos();
+                            autoDrive.setStartTime();
+                        }),
+
+                        new RaceAction(
+                                autoDrive.turnTo(_isRed ? 3.5 : 356.5, 0, 45, 0.5, 0.5),
+                                new SleepAction(0.2)
+                        ),
 
                         /* move in to pick up artifacts 2nd tape line */
                         new InstantAction(() -> autoDrive.resetPinpoint()),
@@ -253,7 +289,10 @@ public class ShortAuto extends LinearOpMode {
                         }),
                         new ParallelAction(
                                 indexArtifacts(),
-                                autoDrive.driveTo(37.5, 0, 0, PICK_UP_POW, PICK_UP_POW)
+                                new RaceAction(
+                                        autoDrive.driveTo(37.5, 0, 0, PICK_UP_POW, PICK_UP_POW),
+                                        new SleepAction(2.4)
+                                )
                         ),
                         new SleepAction(0.5),
 
@@ -267,7 +306,10 @@ public class ShortAuto extends LinearOpMode {
                         }),
                         new ParallelAction(
                                 indexArtifacts(),
-                                autoDrive.driveTo(-18, 3, 8, 0.4, 1)
+                                new RaceAction(
+                                        autoDrive.driveTo(-18, 3, 8, 0.4, 1),
+                                        new SleepAction(0.7)
+                                )
                         ),
 
                         /* Strafe to get in front of the goal */
@@ -285,7 +327,11 @@ public class ShortAuto extends LinearOpMode {
                                         spindexer.resetSortTimeoutAction(autoDrive.getDriveComplete(), timer.milliseconds()),
                                         spindexer.sortAction(autoDrive.getDriveComplete(), timer.milliseconds())
                                 ),
-                                autoDrive.strafeTo(_isRed ? 63.5 : -63.5, 3, 11, 0.7, 1.0)
+
+                                new RaceAction(
+                                        autoDrive.strafeTo(_isRed ? 63.5 : -63.5, 3, 11, 0.7, 1.0),
+                                        new SleepAction(1.9)
+                                )
                         ),
                         intake.setIntakeVelocityAction(timer.milliseconds(), 0),
 

@@ -15,7 +15,7 @@ public class Logger {
     public Logger(String opMode) {
         Date now = new Date();
         long time = now.getTime();
-        File logFile = new File( Environment.getExternalStorageDirectory().getPath() + "/FIRST/" + opMode + "_" + time + ".csv");
+        File logFile = new File( Environment.getExternalStorageDirectory().getPath() + "/FIRST/" + time + "_" + opMode + ".csv");
         try {
             writer = new FileWriter(logFile, true);
             writer.write("time, property, value\r\n");
