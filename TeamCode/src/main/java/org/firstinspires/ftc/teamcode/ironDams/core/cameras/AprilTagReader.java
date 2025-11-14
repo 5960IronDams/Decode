@@ -1,8 +1,7 @@
-package org.firstinspires.ftc.teamcode.ironDams.core.cameras;
+package org.firstinspires.ftc.teamcode.irondams.core.cameras;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.teamcode.ironDams.Config;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
@@ -24,13 +23,13 @@ public class AprilTagReader {
         RIGHT_PROCESSOR = AprilTagProcessor.easyCreateWithDefaults();
 
         LEFT_VISION_PORTAL = new VisionPortal.Builder()
-                .setCamera(hardwareMap.get(WebcamName.class, Config.Hardware.Cameras.LEFT_CAMERA_ID))
+                .setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"))
                 .setLiveViewContainerId(leftPortalViewId)
                 .addProcessor(LEFT_PROCESSOR)
                 .build();
 
         RIGHT_VISION_PORTAL = new VisionPortal.Builder()
-                .setCamera(hardwareMap.get(WebcamName.class, Config.Hardware.Cameras.RIGHT_CAMERA_ID))
+                .setCamera(hardwareMap.get(WebcamName.class, "Webcam 2"))
                 .setLiveViewContainerId(rightPortalViewId)
                 .addProcessor(RIGHT_PROCESSOR)
                 .build();
