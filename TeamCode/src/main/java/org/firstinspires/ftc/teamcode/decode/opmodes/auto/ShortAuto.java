@@ -127,31 +127,43 @@ public class ShortAuto extends LinearOpMode {
                         /* Drive back to get good angle on first tape line. */
                         new InstantAction(() -> autoDrive.resetPinpoint()),
                         new SleepAction(PINPOINT_RESET_WAIT),
-                        new InstantAction(() -> autoDrive.setDriveCompleted(false)),
-                        new InstantAction(autoDrive::setStartingXPos),
+                        new InstantAction(() -> {
+                            autoDrive.setDriveCompleted(false);
+                            autoDrive.setStartingXPos();
+                            autoDrive.setStartingXPos();
+                        }),
                         autoDrive.driveTo(-11, 4, 8, 0.3, 1.0),
 
                         /* Turn to align ourselves to pick up new artifacts, 1st tape line */
                         new InstantAction(() -> autoDrive.resetPinpoint()),
                         new SleepAction(PINPOINT_RESET_WAIT),
-                        new InstantAction(() -> autoDrive.setDriveCompleted(false)),
-                        new InstantAction(autoDrive::setStartingHeadingPos),
+                        new InstantAction(() -> {
+                            autoDrive.setDriveCompleted(false);
+                            autoDrive.setStartingHeadingPos();
+                            autoDrive.setStartTime();
+                        }),
                         autoDrive.turnTo(_isRed ? 332 : 28, 0, 25, 0.6, 0.6),
 
                         /* Strafe to get in front of the artifacts, 1st tape */
                         new InstantAction(() -> autoDrive.resetPinpoint()),
                         new SleepAction(PINPOINT_RESET_WAIT),
-                        new InstantAction(() -> autoDrive.setDriveCompleted(false)),
-                        new InstantAction(autoDrive::setStartingYPos),
+                        new InstantAction(() -> {
+                            autoDrive.setDriveCompleted(false);
+                            autoDrive.setStartingYPos();
+                            autoDrive.setStartTime();
+                        }),
                         new ParallelAction(
                                 autoDrive.strafeTo(_isRed ? -16.75 : 16.75, 3, 11, 0.7, 1.0)
                         ),
 
                         /* move in to pick up artifacts, 1st tape */
                         new InstantAction(() -> autoDrive.resetPinpoint()),
-                        new SleepAction(0.3),
-                        new InstantAction(() -> autoDrive.setDriveCompleted(false)),
-                        new InstantAction(autoDrive::setStartingXPos),
+                        new SleepAction(PINPOINT_RESET_WAIT),
+                        new InstantAction(() -> {
+                            autoDrive.setDriveCompleted(false);
+                            autoDrive.setStartingXPos();
+                            autoDrive.setStartTime();
+                        }),
                         new ParallelAction(
                                 indexArtifacts(),
                                 autoDrive.driveTo(25, 0, 0, PICK_UP_POW, PICK_UP_POW)
@@ -160,15 +172,21 @@ public class ShortAuto extends LinearOpMode {
                         /* Turn to align ourselves to get good angle on goal */
                         new InstantAction(() -> autoDrive.resetPinpoint()),
                         new SleepAction(PINPOINT_RESET_WAIT),
-                        new InstantAction(() -> autoDrive.setDriveCompleted(false)),
-                        new InstantAction(autoDrive::setStartingHeadingPos),
+                        new InstantAction(() -> {
+                            autoDrive.setDriveCompleted(false);
+                            autoDrive.setStartingHeadingPos();
+                            autoDrive.setStartTime();
+                        }),
                         autoDrive.turnTo( _isRed ? 25 : 335, 0, 45, 0.6, 0.6),
 
                         /* Strafe to get in front of the goal */
                         new InstantAction(() -> autoDrive.resetPinpoint()),
                         new SleepAction(PINPOINT_RESET_WAIT),
-                        new InstantAction(() -> autoDrive.setDriveCompleted(false)),
-                        new InstantAction(autoDrive::setStartingYPos),
+                        new InstantAction(() -> {
+                            autoDrive.setDriveCompleted(false);
+                            autoDrive.setStartingYPos();
+                            autoDrive.setStartTime();
+                        }),
                         new ParallelAction(
                                 new SequentialAction(
                                         indexArtifacts(),
@@ -186,22 +204,31 @@ public class ShortAuto extends LinearOpMode {
                         /* Drive back to get good angle on 2nd tape line. */
                         new InstantAction(() -> autoDrive.resetPinpoint()),
                         new SleepAction(PINPOINT_RESET_WAIT),
-                        new InstantAction(() -> autoDrive.setDriveCompleted(false)),
-                        new InstantAction(autoDrive::setStartingXPos),
+                        new InstantAction(() -> {
+                            autoDrive.setDriveCompleted(false);
+                            autoDrive.setStartingXPos();
+                            autoDrive.setStartTime();
+                        }),
                         autoDrive.driveTo(-4, 0, 0, 0.4, 0.4),
 
                         /* Turn to align ourselves to pick up new artifacts 2nd tape line */
                         new InstantAction(() -> autoDrive.resetPinpoint()),
                         new SleepAction(PINPOINT_RESET_WAIT),
-                        new InstantAction(() -> autoDrive.setDriveCompleted(false)),
-                        new InstantAction(autoDrive::setStartingHeadingPos),
+                        new InstantAction(() -> {
+                            autoDrive.setDriveCompleted(false);
+                            autoDrive.setStartingHeadingPos();
+                            autoDrive.setStartTime();
+                        }),
                         autoDrive.turnTo(_isRed ? 328 : 32, 0, 45, 0.5, 0.5),
 
                         /* Strafe to get in front of the artifacts 2nd tape line */
                         new InstantAction(() -> autoDrive.resetPinpoint()),
                         new SleepAction(PINPOINT_RESET_WAIT),
-                        new InstantAction(() -> autoDrive.setDriveCompleted(false)),
-                        new InstantAction(autoDrive::setStartingYPos),
+                        new InstantAction(() -> {
+                            autoDrive.setDriveCompleted(false);
+                            autoDrive.setStartingYPos();
+                            autoDrive.setStartTime();
+                        }),
                         new ParallelAction(
                                 autoDrive.strafeTo(_isRed ? -44.25 : 44.25, 3, 11, 0.7, 1.0)
                         ),
@@ -209,15 +236,21 @@ public class ShortAuto extends LinearOpMode {
                         /* Turn to align ourselves to pick up new artifacts 2nd tape line */
                         new InstantAction(() -> autoDrive.resetPinpoint()),
                         new SleepAction(PINPOINT_RESET_WAIT),
-                        new InstantAction(() -> autoDrive.setDriveCompleted(false)),
-                        new InstantAction(autoDrive::setStartingHeadingPos),
+                        new InstantAction(() -> {
+                            autoDrive.setDriveCompleted(false);
+                            autoDrive.setStartingHeadingPos();
+                            autoDrive.setStartTime();
+                        }),
                         autoDrive.turnTo(_isRed ? 3.5 : 356.5, 0, 45, 0.5, 0.5),
 
                         /* move in to pick up artifacts 2nd tape line */
                         new InstantAction(() -> autoDrive.resetPinpoint()),
                         new SleepAction(PINPOINT_RESET_WAIT),
-                        new InstantAction(() -> autoDrive.setDriveCompleted(false)),
-                        new InstantAction(autoDrive::setStartingXPos),
+                        new InstantAction(() -> {
+                            autoDrive.setDriveCompleted(false);
+                            autoDrive.setStartingXPos();
+                            autoDrive.setStartTime();
+                        }),
                         new ParallelAction(
                                 indexArtifacts(),
                                 autoDrive.driveTo(37.5, 0, 0, PICK_UP_POW, PICK_UP_POW)
@@ -227,8 +260,11 @@ public class ShortAuto extends LinearOpMode {
                         /* move back to clear goal rack 2nd tape line */
                         new InstantAction(() -> autoDrive.resetPinpoint()),
                         new SleepAction(PINPOINT_RESET_WAIT),
-                        new InstantAction(() -> autoDrive.setDriveCompleted(false)),
-                        new InstantAction(autoDrive::setStartingXPos),
+                        new InstantAction(() -> {
+                            autoDrive.setDriveCompleted(false);
+                            autoDrive.setStartingXPos();
+                            autoDrive.setStartTime();
+                        }),
                         new ParallelAction(
                                 indexArtifacts(),
                                 autoDrive.driveTo(-18, 3, 8, 0.4, 1)
@@ -237,8 +273,11 @@ public class ShortAuto extends LinearOpMode {
                         /* Strafe to get in front of the goal */
                         new InstantAction(() -> autoDrive.resetPinpoint()),
                         new SleepAction(PINPOINT_RESET_WAIT),
-                        new InstantAction(() -> autoDrive.setDriveCompleted(false)),
-                        new InstantAction(autoDrive::setStartingYPos),
+                        new InstantAction(() -> {
+                            autoDrive.setDriveCompleted(false);
+                            autoDrive.setStartingYPos();
+                            autoDrive.setStartTime();
+                        }),
                         new ParallelAction(
                                 new SequentialAction(
                                         indexArtifacts(),
