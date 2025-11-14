@@ -20,7 +20,7 @@
  *   SOFTWARE.
  */
 
-package org.firstinspires.ftc.teamcode.ironDams.core.odometry;
+package org.firstinspires.ftc.teamcode.irondams.core.odometry;
 
 import static com.qualcomm.robotcore.util.TypeConversion.byteArrayToInt;
 

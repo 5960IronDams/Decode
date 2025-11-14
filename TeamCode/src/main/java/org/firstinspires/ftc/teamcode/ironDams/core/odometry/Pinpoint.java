@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.ironDams.core.odometry;
+package org.firstinspires.ftc.teamcode.irondams.core.odometry;
 
 import androidx.annotation.NonNull;
 
@@ -9,7 +9,6 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
-import org.firstinspires.ftc.teamcode.ironDams.Config;
 
 public class Pinpoint implements IGyro {
     private final GoBildaPinpointDriver PINPOINT;
@@ -17,7 +16,7 @@ public class Pinpoint implements IGyro {
     private double _initYaw;
 
     public Pinpoint(LinearOpMode opMode) {
-        PINPOINT = opMode.hardwareMap.get(GoBildaPinpointDriver.class, Config.Hardware.Gyros.PINPOINT_ID);
+        PINPOINT = opMode.hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
         init();
     }
 
@@ -37,8 +36,13 @@ public class Pinpoint implements IGyro {
 
     @Override
     public void reset() {
+        PINPOINT.resetPosAndIMU();
+    }
+
+    public void resetYaw() {
         _initYaw = getPose().getHeading(AngleUnit.DEGREES);
     }
+
 
     @Override
     public Pose2D getPose() {

@@ -1,18 +1,14 @@
-package org.firstinspires.ftc.teamcode.ironDams.core.driveTrain;
+package org.firstinspires.ftc.teamcode.irondams.core.driveTrain;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.Gamepad;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.teamcode.ironDams.Config;
-import org.firstinspires.ftc.teamcode.ironDams.core.Acceleration;
-import org.firstinspires.ftc.teamcode.ironDams.core.WaitFor;
 
-public class GyroMecanumDriveTrain implements IDriveTrain{
+public class GyroMecanumDriveTrain implements IDriveTrain {
     private double currentHorizontal = 0;
     private double currentVertical = 0;
     private double currentPivot = 0;
@@ -50,7 +46,6 @@ public class GyroMecanumDriveTrain implements IDriveTrain{
 
     @Override
     public void drive(double x, double y, double turn) {
-
         double newHorizontal = Acceleration.rampPower(currentHorizontal, x);
         x = newHorizontal;
         currentHorizontal = newHorizontal;
@@ -89,6 +84,6 @@ public class GyroMecanumDriveTrain implements IDriveTrain{
         DRIVETRAIN.getLeftBackDrive().setPower(leftBack);
         DRIVETRAIN.getRightBackDrive().setPower(rightBack);
 
-        reset();
+//        reset();
     }
 }

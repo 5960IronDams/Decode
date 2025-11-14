@@ -1,10 +1,9 @@
-package org.firstinspires.ftc.teamcode.ironDams.core.driveTrain;
+package org.firstinspires.ftc.teamcode.irondams.core.driveTrain;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-import org.firstinspires.ftc.teamcode.ironDams.Config;
 
 public final class FourWheelDriveTrain {
     private final DcMotorEx _leftFrontDrive;
@@ -30,10 +29,10 @@ public final class FourWheelDriveTrain {
 
 
     public FourWheelDriveTrain (HardwareMap hardwareMap) {
-        _leftFrontDrive = hardwareMap.get(DcMotorEx.class, Config.Hardware.Motors.DriveTrain.LEFT_FRONT_MOTOR_ID);
-        _leftBackDrive = hardwareMap.get(DcMotorEx.class, Config.Hardware.Motors.DriveTrain.LEFT_BACK_MOTOR_ID);
-        _rightBackDrive = hardwareMap.get(DcMotorEx.class, Config.Hardware.Motors.DriveTrain.RIGHT_BACK_MOTOR_ID);
-        _rightFrontDrive = hardwareMap.get(DcMotorEx.class, Config.Hardware.Motors.DriveTrain.RIGHT_FRONT_MOTOR_ID);
+        _leftFrontDrive = hardwareMap.get(DcMotorEx.class, "leftFront");
+        _leftBackDrive = hardwareMap.get(DcMotorEx.class, "leftBack");
+        _rightBackDrive = hardwareMap.get(DcMotorEx.class, "rightBack");
+        _rightFrontDrive = hardwareMap.get(DcMotorEx.class, "rightFront");
 
         _leftFrontDrive.setDirection(DcMotor.Direction.FORWARD);
         _leftBackDrive.setDirection(DcMotor.Direction.FORWARD);

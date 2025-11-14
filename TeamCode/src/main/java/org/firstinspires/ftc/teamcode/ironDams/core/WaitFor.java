@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.ironDams.core;
+package org.firstinspires.ftc.teamcode.irondams.core;
 
 import androidx.annotation.NonNull;
 
@@ -12,6 +12,14 @@ public class WaitFor {
 
     public WaitFor(long millis) {
         MILLIS = millis;
+    }
+
+    public double getCurrentMillis() {
+        return TIMER.milliseconds();
+    }
+
+    public long getTargetMillis() {
+        return MILLIS;
     }
 
     public boolean allowExec() {

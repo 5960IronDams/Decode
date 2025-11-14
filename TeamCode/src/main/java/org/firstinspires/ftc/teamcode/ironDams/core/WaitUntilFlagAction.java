@@ -1,6 +1,6 @@
-package org.firstinspires.ftc.teamcode.ironDams;
-
+package org.firstinspires.ftc.teamcode.irondams.core;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+
 import java.util.function.BooleanSupplier;
 
 public class WaitUntilFlagAction implements IAction {
