@@ -73,9 +73,8 @@ public class LongAuto extends LinearOpMode {
 
         while (opModeInInit()) {
 //            if (isStopRequested()) { tagDetection.stopStreaming(); }
-            if (gamepad1.left_bumper) _isRed = true;
-            else if (gamepad1.right_bumper) _isRed = false;
-
+            if (gamepad1.left_bumper || gamepad2.left_bumper) _isRed = true;
+            else if (gamepad1.right_bumper || gamepad2.right_bumper) _isRed = false;
 //            tagDetection.setIsRed(_isRed);
 
             telemetry.addData("Color", _isRed ? "Red" : "Blue");

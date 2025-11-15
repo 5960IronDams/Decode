@@ -73,8 +73,8 @@ public class ShortAuto extends LinearOpMode {
 
         while (opModeInInit()) {
             if (isStopRequested()) { tagDetection.stopStreaming(); }
-            if (gamepad1.left_bumper) _isRed = true;
-            else if (gamepad1.right_bumper) _isRed = false;
+            if (gamepad1.left_bumper || gamepad2.left_bumper) _isRed = true;
+            else if (gamepad1.right_bumper || gamepad2.right_bumper) _isRed = false;
 
             tagDetection.setIsRed(_isRed);
 
@@ -97,11 +97,11 @@ public class ShortAuto extends LinearOpMode {
                 new SequentialAction(
                         /* Indexing the artifacts that are in the spindexer while driving backwards. */
                         new InstantAction(() -> {
+                            intake.setIntakeVelocityAction(timer.milliseconds(),1000);
                             autoDrive.setDriveCompleted(false);
                             autoDrive.setStartingXPos();
                             autoDrive.setStartTime();
                         }),
-
                         new ParallelAction(
                                 new RaceAction(
                                         autoDrive.driveTo(-8, 4, 4, 0.5, 0.8),
@@ -113,11 +113,13 @@ public class ShortAuto extends LinearOpMode {
                         /* Read the obelisk */
                         new InstantAction(() -> autoDrive.setDriveCompleted(false)),
                         tagDetection.webcamResetTimeout(),
-
                         new ParallelAction(
-                            tagDetection.webcamReadAction(autoDrive.getDriveComplete(), timer.milliseconds()),
-                            indexArtifacts()
-                        ),
+//                                new RaceAction(
+//                                        new SleepAction(0.5),
+                                        tagDetection.webcamReadAction(autoDrive.getDriveComplete(), timer.milliseconds())                                ),
+
+                            indexArtifacts(),
+//                        ),
 
                         /* Sort the artifacts in the spindexer */
                         spindexer.resetSortTimeoutAction(autoDrive.getDriveComplete(), timer.milliseconds()),
@@ -126,7 +128,7 @@ public class ShortAuto extends LinearOpMode {
                         new SleepAction(0.5),
 
                         /* shoot the balls */
-                        shotArtifacts(1750, 100),
+                        shotArtifacts(1800, 100),
 
                         /* Drive back to get good angle on first tape line. */
                         new InstantAction(() -> autoDrive.resetPinpoint()),
@@ -166,7 +168,7 @@ public class ShortAuto extends LinearOpMode {
                         }),
 
                         new RaceAction(
-                                autoDrive.strafeTo(_isRed ? -16.75 : 16.75, 3, 11, 0.7, 1.0),
+                                autoDrive.strafeTo(_isRed ? -16.75 : 14.75, 3, 11, 0.7, 1.0),
                                 new SleepAction(0.9)
                         ),
 
@@ -181,7 +183,7 @@ public class ShortAuto extends LinearOpMode {
                         new ParallelAction(
                                 indexArtifacts(),
                                 new RaceAction(
-                                        autoDrive.driveTo(25, 0, 0, PICK_UP_POW, PICK_UP_POW),
+                                        autoDrive.driveTo(24, 0, 0, PICK_UP_POW, PICK_UP_POW),
                                         new SleepAction(1.5)
                                 )
                         ),
@@ -214,7 +216,7 @@ public class ShortAuto extends LinearOpMode {
                                 ),
 
                                 new RaceAction(
-                                        autoDrive.strafeTo(_isRed ? 32.25 : -32.25, 3, 11, 0.7, 1.0),
+                                        autoDrive.strafeTo(_isRed ? 32.25 : -28.25, 3, 11, 0.7, 1.0),
                                         new SleepAction(1.3)
                                 )
                         ),
@@ -251,7 +253,7 @@ public class ShortAuto extends LinearOpMode {
                             autoDrive.setStartTime();
                         }),
                         new RaceAction(
-                            autoDrive.turnTo(_isRed ? 328 : 32, 0, 45, 0.5, 0.5),
+                            autoDrive.turnTo(_isRed ? 328 : 27, 0, 45, 0.5, 0.5),
                             new SleepAction(0.5)
                         ),
                         /* Strafe to get in front of the artifacts 2nd tape line */
@@ -263,7 +265,7 @@ public class ShortAuto extends LinearOpMode {
                             autoDrive.setStartTime();
                         }),
                         new RaceAction(
-                                autoDrive.strafeTo(_isRed ? -44.25 : 44.25, 3, 11, 0.7, 1.0),
+                                autoDrive.strafeTo(_isRed ? -44.25 : 42.25, 3, 11, 0.7, 1.0),
                                 new SleepAction(1.5)
                         ),
 
@@ -277,13 +279,14 @@ public class ShortAuto extends LinearOpMode {
                         }),
 
                         new RaceAction(
-                                autoDrive.turnTo(_isRed ? 3.5 : 356.5, 0, 45, 0.5, 0.5),
+                                autoDrive.turnTo(_isRed ? 3.5 : 354.5, 0, 45, 0.5, 0.5),
                                 new SleepAction(0.2)
                         ),
 
                         /* move in to pick up artifacts 2nd tape line */
                         new InstantAction(() -> autoDrive.resetPinpoint()),
                         new SleepAction(PINPOINT_RESET_WAIT),
+                        intake.setIntakeVelocityAction(timer.milliseconds(), 1000),
                         new InstantAction(() -> {
                             autoDrive.setDriveCompleted(false);
                             autoDrive.setStartingXPos();
@@ -292,7 +295,7 @@ public class ShortAuto extends LinearOpMode {
                         new ParallelAction(
                                 indexArtifacts(),
                                 new RaceAction(
-                                        autoDrive.driveTo(37.5, 0, 0, PICK_UP_POW, PICK_UP_POW),
+                                        autoDrive.driveTo(38.5, 0, 0, PICK_UP_POW, PICK_UP_POW),
                                         new SleepAction(2.4)
                                 )
                         ),
@@ -331,14 +334,14 @@ public class ShortAuto extends LinearOpMode {
                                 ),
 
                                 new RaceAction(
-                                        autoDrive.strafeTo(_isRed ? 63.5 : -63.5, 3, 11, 0.7, 1.0),
+                                        autoDrive.strafeTo(_isRed ? 63.5 : -61, 3, 11, 0.7, 1.0),
                                         new SleepAction(1.9)
                                 )
                         ),
                         intake.setIntakeVelocityAction(timer.milliseconds(), 0),
 
                         /* shoot the balls */
-                        shotArtifacts(1750, 100),
+                        shotArtifacts(1800, 100),
 
                         new InstantAction(() -> {
                                 logger.writeToMemory(timer.milliseconds(), "ending voltage", voltageSensor.getVoltage());
